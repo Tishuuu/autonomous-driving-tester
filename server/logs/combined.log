@@ -1,0 +1,124 @@
+2026-02-11 12:04:24.250 | INFO     | main:startup_event:16 -  Server Starting Up...
+2026-02-11 12:04:24.492 | INFO     | app.core.database:connect_db:30 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-02-11 12:10:24.367 | INFO     | app.routes.test_routes:save_test_result:17 -  Receiving new test for student: 216312355
+2026-02-11 12:10:24.615 | INFO     | app.routes.test_routes:save_test_result:25 -  Test saved successfully! ID: 698c55908f69c1ffd929fff3
+2026-02-11 12:10:52.433 | INFO     | app.routes.test_routes:save_test_result:17 -  Receiving new test for student: 216312355
+2026-02-11 12:10:52.437 | INFO     | app.routes.test_routes:save_test_result:25 -  Test saved successfully! ID: 698c55ac8f69c1ffd929fff4
+2026-02-11 12:16:15.415 | INFO     | main:shutdown_event:21 - 🌙 Server Shutting Down...
+2026-02-11 12:16:15.417 | INFO     | app.core.database:close_db:39 -  MongoDB Connection Closed
+2026-02-11 12:16:21.444 | INFO     | main:startup_event:16 -  Server Starting Up...
+2026-02-11 12:16:21.461 | INFO     | app.core.database:connect_db:30 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-02-11 12:17:53.613 | INFO     | app.routes.test_routes:save_test_result:17 -  Receiving new test for student: string
+2026-02-11 12:17:53.615 | INFO     | app.routes.test_routes:save_test_result:25 -  Test saved successfully! ID: 698c5751c29aba75d8d0db98
+2026-02-11 12:23:18.599 | INFO     | main:shutdown_event:21 - 🌙 Server Shutting Down...
+2026-02-11 12:23:18.600 | INFO     | app.core.database:close_db:39 -  MongoDB Connection Closed
+2026-02-11 12:23:19.847 | INFO     | main:startup_event:16 -  Server Starting Up...
+2026-02-11 12:23:19.897 | INFO     | app.core.database:connect_db:29 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-02-11 12:24:08.566 | INFO     | app.routes.test_routes:save_test_result:17 -  Receiving new test for student: 216312355
+2026-02-11 12:24:08.569 | INFO     | app.routes.test_routes:save_test_result:25 -  Test saved successfully! ID: 698c58c8b7caf1140dba7305
+2026-02-11 12:30:38.951 | INFO     | main:shutdown_event:21 - 🌙 Server Shutting Down...
+2026-02-11 12:30:38.954 | INFO     | app.core.database:close_db:38 -  MongoDB Connection Closed
+2026-02-11 12:34:57.825 | INFO     | main:startup_event:17 -  Server Starting Up...
+2026-02-11 12:34:57.872 | INFO     | app.core.database:connect_db:29 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-02-11 12:39:22.764 | INFO     | main:shutdown_event:22 - 🌙 Server Shutting Down...
+2026-02-11 12:39:22.768 | INFO     | app.core.database:close_db:38 -  MongoDB Connection Closed
+2026-02-11 12:39:24.875 | INFO     | main:startup_event:17 -  Server Starting Up...
+2026-02-11 12:39:24.929 | INFO     | app.core.database:connect_db:29 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-02-11 12:42:04.306 | INFO     | main:shutdown_event:22 - 🌙 Server Shutting Down...
+2026-02-11 12:42:04.309 | INFO     | app.core.database:close_db:38 -  MongoDB Connection Closed
+2026-02-11 12:42:06.299 | INFO     | main:startup_event:17 -  Server Starting Up...
+2026-02-11 12:42:06.340 | INFO     | app.core.database:connect_db:29 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-02-11 12:54:10.603 | INFO     | app.routes.auth_routes:login:30 - 🔑 Login attempt: jonhanak1@gmail.com
+2026-02-11 12:55:28.152 | INFO     | app.routes.auth_routes:login:30 - 🔑 Login attempt: jonhanak1@gmail.com
+2026-02-11 12:55:28.156 | INFO     | app.routes.auth_routes:login:30 - 🔑 Login attempt: jonhanak1@gmail.com
+2026-02-11 12:55:28.158 | INFO     | app.routes.auth_routes:login:30 - 🔑 Login attempt: jonhanak1@gmail.com
+2026-02-11 12:56:22.452 | INFO     | app.routes.auth_routes:login:30 - 🔑 Login attempt: jonhanak1@gmail.com
+2026-02-11 13:07:22.076 | INFO     | app.routes.auth_routes:login:30 - 🔑 Login attempt: jonhanak1@gmail.com
+2026-02-11 13:08:49.270 | INFO     | app.routes.auth_routes:login:30 - 🔑 Login attempt: jonhanak1@gmail.com
+2026-02-11 13:11:00.411 | INFO     | app.routes.auth_routes:login:30 - 🔑 Login attempt: jonhanak1@gmail.com
+2026-02-11 13:14:12.400 | INFO     | main:shutdown_event:22 - 🌙 Server Shutting Down...
+2026-02-11 13:14:12.403 | INFO     | app.core.database:close_db:38 -  MongoDB Connection Closed
+2026-02-11 13:14:29.436 | INFO     | main:startup_event:17 -  Server Starting Up...
+2026-02-11 13:14:29.492 | INFO     | app.core.database:connect_db:29 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-02-11 13:14:46.449 | INFO     | main:shutdown_event:22 - 🌙 Server Shutting Down...
+2026-02-11 13:14:46.451 | INFO     | app.core.database:close_db:38 -  MongoDB Connection Closed
+2026-02-11 13:14:48.137 | INFO     | main:startup_event:17 -  Server Starting Up...
+2026-02-11 13:14:48.193 | INFO     | app.core.database:connect_db:29 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-02-11 13:14:57.978 | INFO     | main:shutdown_event:22 -  Server Shutting Down...
+2026-02-11 13:14:57.981 | INFO     | app.core.database:close_db:38 -  MongoDB Connection Closed
+2026-02-11 13:14:59.900 | INFO     | main:startup_event:17 -  Server Starting Up...
+2026-02-11 13:14:59.928 | INFO     | app.core.database:connect_db:29 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-02-11 13:15:01.379 | INFO     | main:shutdown_event:22 -  Server Shutting Down...
+2026-02-11 13:15:01.381 | INFO     | app.core.database:close_db:38 -  MongoDB Connection Closed
+2026-02-11 13:15:02.959 | INFO     | main:startup_event:17 -  Server Starting Up...
+2026-02-11 13:15:02.986 | INFO     | app.core.database:connect_db:29 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-02-11 13:15:10.353 | INFO     | main:shutdown_event:22 -  Server Shutting Down...
+2026-02-11 13:15:10.355 | INFO     | app.core.database:close_db:38 -  MongoDB Connection Closed
+2026-02-11 13:15:12.103 | INFO     | main:startup_event:17 -  Server Starting Up...
+2026-02-11 13:15:12.130 | INFO     | app.core.database:connect_db:29 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-02-11 13:16:55.502 | INFO     | main:shutdown_event:22 -  Server Shutting Down...
+2026-02-11 13:16:55.505 | INFO     | app.core.database:close_db:38 -  MongoDB Connection Closed
+2026-02-11 13:17:15.237 | INFO     | main:startup_event:17 -  Server Starting Up...
+2026-02-11 13:17:15.300 | INFO     | app.core.database:connect_db:29 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-02-11 13:17:20.336 | INFO     | app.routes.auth_routes:register:25 - New user registered: jonhanak1@gmail.com
+2026-02-11 13:18:03.919 | INFO     | app.routes.auth_routes:login:30 -  Login attempt: jonhanak1@gmail.com
+2026-02-11 13:18:04.428 | INFO     | app.routes.auth_routes:login:39 -  Successful login: jonathan nakache
+2026-02-11 13:18:07.720 | INFO     | app.routes.auth_routes:login:30 -  Login attempt: jonhanak1@gmail.com
+2026-02-11 13:18:08.246 | INFO     | app.routes.auth_routes:login:39 -  Successful login: jonathan nakache
+2026-02-11 13:23:53.657 | INFO     | app.routes.auth_routes:login:30 -  Login attempt: jonhanak1@gmail.com
+2026-02-11 13:23:54.031 | INFO     | app.routes.auth_routes:login:39 -  Successful login: jonathan nakache
+2026-02-11 13:24:15.231 | INFO     | app.routes.auth_routes:login:30 -  Login attempt: jonhanak1@gmail.com
+2026-02-11 13:24:15.627 | INFO     | app.routes.auth_routes:login:39 -  Successful login: jonathan nakache
+2026-02-11 13:30:34.139 | INFO     | app.routes.auth_routes:login:30 -  Login attempt: jonnhanak1@gmail.com
+2026-02-11 13:30:34.142 | WARNING  | app.routes.auth_routes:login:36 - ❌ Failed login for: jonnhanak1@gmail.com
+2026-02-11 13:30:38.942 | INFO     | app.routes.auth_routes:login:30 -  Login attempt: jonnhanak1@gmail.com
+2026-02-11 13:30:38.946 | WARNING  | app.routes.auth_routes:login:36 - ❌ Failed login for: jonnhanak1@gmail.com
+2026-02-11 13:30:44.126 | INFO     | app.routes.auth_routes:login:30 -  Login attempt: jonhanak1@gmail.com
+2026-02-11 13:30:44.609 | INFO     | app.routes.auth_routes:login:39 -  Successful login: jonathan nakache
+2026-02-11 13:58:18.579 | INFO     | main:shutdown_event:22 -  Server Shutting Down...
+2026-02-11 13:58:18.587 | INFO     | app.core.database:close_db:38 -  MongoDB Connection Closed
+2026-02-11 13:58:20.696 | INFO     | main:startup_event:16 -  Server Starting Up...
+2026-02-11 13:58:20.752 | INFO     | app.core.database:connect_db:29 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-02-11 13:58:22.453 | INFO     | main:shutdown_event:21 -  Server Shutting Down...
+2026-02-11 13:58:22.456 | INFO     | app.core.database:close_db:38 -  MongoDB Connection Closed
+2026-02-11 13:58:24.353 | INFO     | main:startup_event:16 -  Server Starting Up...
+2026-02-11 13:58:24.390 | INFO     | app.core.database:connect_db:29 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-02-11 13:59:20.406 | INFO     | main:shutdown_event:21 -  Server Shutting Down...
+2026-02-11 13:59:20.408 | INFO     | app.core.database:close_db:38 -  MongoDB Connection Closed
+2026-02-11 13:59:21.927 | INFO     | main:startup_event:16 -  Server Starting Up...
+2026-02-11 13:59:21.950 | INFO     | app.core.database:connect_db:29 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-02-11 13:59:43.502 | INFO     | app.routes.auth_routes:login:30 -  Login attempt: jonhnak1@gmail.com
+2026-02-11 13:59:43.506 | WARNING  | app.routes.auth_routes:login:35 - ❌ Failed login for: jonhnak1@gmail.com
+2026-02-11 13:59:51.054 | INFO     | app.routes.auth_routes:login:30 -  Login attempt: jonhnak1@gmail.com
+2026-02-11 13:59:51.058 | WARNING  | app.routes.auth_routes:login:35 - ❌ Failed login for: jonhnak1@gmail.com
+2026-02-11 13:59:59.593 | INFO     | app.routes.auth_routes:login:30 -  Login attempt: jonhanak1@gmail.com
+2026-02-11 14:00:00.025 | INFO     | app.routes.auth_routes:login:38 -  Successful login: jonathan nakache
+2026-02-11 21:30:25.067 | INFO     | main:shutdown_event:21 -  Server Shutting Down...
+2026-02-11 21:30:25.358 | INFO     | app.core.database:close_db:38 -  MongoDB Connection Closed
+2026-02-11 21:30:46.711 | INFO     | main:startup_event:16 -  Server Starting Up...
+2026-02-11 21:30:46.782 | INFO     | app.core.database:connect_db:29 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-02-11 21:36:20.564 | INFO     | app.routes.auth_routes:login:30 -  Login attempt: jonhanak1@gmail.com
+2026-02-11 21:36:22.811 | INFO     | app.routes.auth_routes:login:38 -  Successful login: jonathan nakache
+2026-02-11 21:41:01.947 | INFO     | app.routes.auth_routes:login:30 -  Login attempt: jonhanak1@gmail.com
+2026-02-11 21:41:02.312 | INFO     | app.routes.auth_routes:login:38 -  Successful login: jonathan nakache
+2026-02-16 19:52:04.032 | INFO     | app.routes.auth_routes:login:30 -  Login attempt: jonhanak1@gmail.com
+2026-02-16 19:52:04.751 | WARNING  | app.routes.auth_routes:login:35 - ❌ Failed login for: jonhanak1@gmail.com
+2026-02-16 19:52:59.812 | INFO     | app.routes.auth_routes:login:30 -  Login attempt: jonhanak1@gmail.com
+2026-02-16 19:53:00.150 | WARNING  | app.routes.auth_routes:login:35 - ❌ Failed login for: jonhanak1@gmail.com
+2026-02-16 19:53:18.049 | INFO     | app.routes.auth_routes:login:30 -  Login attempt: jonhanak1@gmail.com
+2026-02-16 19:53:18.443 | WARNING  | app.routes.auth_routes:login:35 - ❌ Failed login for: jonhanak1@gmail.com
+2026-02-16 19:53:39.864 | INFO     | app.routes.auth_routes:login:30 -  Login attempt: jonhanak1@gmail.com
+2026-02-16 19:53:40.255 | INFO     | app.routes.auth_routes:login:38 -  Successful login: jonathan nakache
+2026-02-16 19:54:20.386 | INFO     | app.routes.auth_routes:register:25 - New user registered: eyal@gmail.com
+2026-02-16 19:54:43.890 | INFO     | app.routes.auth_routes:login:30 -  Login attempt: eyal@gmail.com
+2026-02-16 19:54:44.264 | INFO     | app.routes.auth_routes:login:38 -  Successful login: eyaler
+2026-02-16 19:55:52.739 | INFO     | app.routes.auth_routes:register:25 - New user registered: eyal2@gmail.com
+2026-02-16 19:56:09.896 | INFO     | app.routes.auth_routes:login:30 -  Login attempt: jonhanak1@gmail.com
+2026-02-16 19:56:10.278 | WARNING  | app.routes.auth_routes:login:35 - ❌ Failed login for: jonhanak1@gmail.com
+2026-02-16 19:57:01.138 | INFO     | app.routes.auth_routes:login:30 -  Login attempt: jonhanak1@gmail.com
+2026-02-16 19:57:01.528 | INFO     | app.routes.auth_routes:login:38 -  Successful login: jonathan nakache
+2026-02-18 18:29:59.659 | INFO     | main:startup_event:16 - 🚀 Server Starting Up...
+2026-02-18 18:30:00.432 | INFO     | app.core.database:connect_db:29 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-02-18 18:35:04.865 | INFO     | app.routes.auth_routes:register:25 - New user registered: jon@gmail.com
+2026-02-18 18:35:27.127 | INFO     | app.routes.auth_routes:login:30 -  Login attempt: jonhanak1@gmail.com
+2026-02-18 18:35:27.402 | INFO     | app.routes.auth_routes:login:38 -  Successful login: jonathan nakache
