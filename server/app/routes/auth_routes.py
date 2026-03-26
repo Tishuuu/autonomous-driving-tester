@@ -29,7 +29,7 @@ async def login(credentials: UserLogin):
     user = await db.db["users"].find_one({"email": credentials.email})
     
     if not user or not pwd_context.verify(credentials.password, user["password"]):
-        log.warning(f"❌ Failed login for: {credentials.email}")
+        log.warning(f" Failed login for: {credentials.email}")
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
     log.info(f" Successful login: {user['name']}")

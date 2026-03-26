@@ -6,18 +6,18 @@ from app.routes import test_routes, auth_routes
 
 app = FastAPI(
     title="Auto Tester API",
-    description="Backend for Autonomous Driving Test System (Python/FastAPI)",
+    description="Backend for Autonomous Driving Test System",
     version="1.0.0"
 )
 
 @app.on_event("startup")
 async def startup_event():
-    log.info("🚀 Server Starting Up...")
+    log.info(" Server Starting Up")
     await connect_db()
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    log.info("🛑 Server Shutting Down...")
+    log.info(" Server Shutting Down")
     await close_db()
 
 # --- Routes ---

@@ -38,7 +38,7 @@ class SensorProvider extends ChangeNotifier {
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        print("❌ GPS Permissions denied");
+        print(" GPS Permissions denied");
         return;
       }
     }
@@ -67,7 +67,7 @@ class SensorProvider extends ChangeNotifier {
           _isGpsLocked = true;
           if (_speedKmh < 0) _speedKmh = 0;
 
-          print("📍 GPS Update: Speed=${_speedKmh.toStringAsFixed(1)} km/h");
+          print("GPS Update: Speed=${_speedKmh.toStringAsFixed(1)} km/h");
           notifyListeners();
         });
 
@@ -87,7 +87,7 @@ class SensorProvider extends ChangeNotifier {
     _accelZ = 0;
     _isGpsLocked = false;
 
-    print("🛑 Real sensors stopped.");
+    print(" Real sensors stopped.");
     notifyListeners();
   }
 

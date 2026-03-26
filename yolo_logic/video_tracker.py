@@ -6,9 +6,6 @@ from scipy.optimize import linear_sum_assignment
 from filterpy.kalman import KalmanFilter
 import multiprocessing
 
-# ==========================================
-# 1. מנוע המעקב והזיכרון (Kalman Filter)
-# ==========================================
 class KalmanBoxTracker(object):
     count = 0
     def __init__(self, bbox, class_name):
@@ -77,50 +74,6 @@ def associate_detections_to_trackers(detections, trackers, iou_threshold=0.05):
             else: matches.append(np.array([d, t]))
     return np.array(matches) if len(matches) > 0 else np.empty((0, 2), dtype=int), np.array(unmatched_detections)
 
-
-# ==========================================
-# 2. ראייה ממוחשבת: זיהוי נתיבים (IPM Bird's Eye)
-# ==========================================
-def detect_lanes_ipm(frame):
-    height, width = frame.shape[:2]
-    
-    src = np.float32([
-        [width * 0.40, height * 0.65],
-        [width * 0.60, height * 0.65],
-        [width * 0.95, height],       
-        [width * 0.05, height]        
-    ])
-    
-    dst = np.float32([
-        [0, 0], [400, 0], [400, 600], [0, 600]
-    ])
-    
-    M = cv2.getPerspectiveTransform(src, dst)
-    Minv = cv2.getPerspectiveTransform(dst, src)
-    
-    warped = cv2.warpPerspective(frame, M, (400, 600))
-    
-    gray = cv2.cvtColor(warped, cv2.COLOR_BGR2GRAY)
-    blur = cv2.GaussianBlur(gray, (5, 5), 0)
-    edges = cv2.Canny(blur, 50, 150)
-    
-    lines = cv2.HoughLinesP(edges, 1, np.pi/180, 40, minLineLength=40, maxLineGap=200)
-    
-    warp_lines = np.zeros((600, 400, 3), dtype=np.uint8)
-    if lines is not None:
-        for line in lines:
-            x1, y1, x2, y2 = line[0]
-            if abs(y2 - y1) > abs(x2 - x1):
-                cv2.line(warp_lines, (x1, y1), (x2, y2), (0, 255, 0), 15)
-                
-    unwarped = cv2.warpPerspective(warp_lines, Minv, (width, height))
-    result = cv2.addWeighted(frame, 1, unwarped, 0.6, 0)
-    return result
-
-
-# ==========================================
-# 3. פונקציית עובד (Worker) לעיבוד מקבילי - בלי חיתוך, 1024
-# ==========================================
 def worker_yolo_extraction(args):
     video_path, start_frame, end_frame, chunk_id = args
     
@@ -139,12 +92,10 @@ def worker_yolo_extraction(args):
         ret, frame = cap.read()
         if not ret: break
         
-        # פריימים זוגיים בלבד!
         if current_frame % 2 != 0:
             chunk_results[current_frame] = []
             continue
 
-        # הרצה מלאה ב-1024, בלי לחתוך שום דבר! שומרים על Aspect Ratio מקורי
         results = model.predict(frame, conf=0.55, imgsz=1024, verbose=False)        
         
         raw_detections = []
@@ -156,7 +107,6 @@ def worker_yolo_extraction(args):
             
             box_w, box_h = x2 - x1, y2 - y1
             
-            # מסננות
             if (box_w * box_h) > (width * height) * 0.15: continue
             aspect_ratio = box_w / float(box_h) if box_h > 0 else 0
             if aspect_ratio < 0.5 or aspect_ratio > 1.5: continue
@@ -171,7 +121,6 @@ def worker_yolo_extraction(args):
             
             raw_detections.append({'box': [x1, y1, x2, y2], 'cls': class_name, 'conf': conf})
         
-        # NMS פנימי למניעת כפולות
         final_detections = []
         for raw_det in raw_detections:
             box = raw_det['box']
@@ -187,12 +136,8 @@ def worker_yolo_extraction(args):
     print(f"Worker {chunk_id} finished!")
     return chunk_results
 
-
-# ==========================================
-# 4. מנהל המשימות המקבילי + תפירת Tracking
-# ==========================================
-def process_video_parallel(input_path, output_path):
-    print("Initializing FULL FRAME Parallel Engine (1024 imgsz)... 🚀")
+def process_video(input_path, output_path):
+    print("frames")
     cap = cv2.VideoCapture(input_path)
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     width  = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -200,7 +145,6 @@ def process_video_parallel(input_path, output_path):
     fps = cap.get(cv2.CAP_PROP_FPS)
     cap.release()
 
-    # שימוש ברוב הליבות (משאירים אחת כדי שהמחשב לא יקפא)
     num_cores = multiprocessing.cpu_count()
     workers_to_use = max(1, num_cores - 1) 
     chunk_size = total_frames // workers_to_use
@@ -213,15 +157,13 @@ def process_video_parallel(input_path, output_path):
 
     print(f"Video has {total_frames} frames. Splitting into {workers_to_use} chunks.")
 
-    # שלב א': חישוב מקבילי
     all_yolo_results = {}
     with concurrent.futures.ProcessPoolExecutor(max_workers=workers_to_use) as executor:
         results = executor.map(worker_yolo_extraction, chunks)
         for res in results:
             all_yolo_results.update(res)
 
-    # שלב ב': תפירת Tracking ורנדור וידאו (מהיר מאוד)
-    print("YOLO Extraction Complete! Running High-Speed Kalman Tracking & IPM Lanes...")
+    print("YOLO is done")
     cap = cv2.VideoCapture(input_path)
     out = cv2.VideoWriter(output_path, cv2.VideoWriter_fourcc(*'XVID'), fps, (width, height))
     trackers = []
@@ -234,7 +176,6 @@ def process_video_parallel(input_path, output_path):
         detections = []
         det_classes = []
         
-        # קבלת הנתונים שחולצו מקודם (אם זה פריים זוגי ויש זיהויים)
         if frame_idx in all_yolo_results:
             for det in all_yolo_results[frame_idx]:
                 detections.append(det['box'])
@@ -273,16 +214,14 @@ def process_video_parallel(input_path, output_path):
         
         trackers = active_trackers 
         
-        # מוסיפים את הנתיבים החדשים
-        frame_with_lanes = detect_lanes_ipm(frame)
-        out.write(frame_with_lanes)
+        out.write(frame)
         
         frame_idx += 1
 
     cap.release()
     out.release()
-    print(f"Done! Masterpiece saved as {output_path}")
+    print(f"Done! {output_path}")
 
 if __name__ == '__main__':
     KalmanBoxTracker.count = 0
-    process_video_parallel('input_video(5).mp4', 'output_processed.avi')
+    process_video('input_video(5).mp4', 'output_processed.avi')
