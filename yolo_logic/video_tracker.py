@@ -91,10 +91,6 @@ def worker_yolo_extraction(args):
     for current_frame in range(start_frame, end_frame):
         ret, frame = cap.read()
         if not ret: break
-        
-        if current_frame % 2 != 0:
-            chunk_results[current_frame] = []
-            continue
 
         results = model.predict(frame, conf=0.55, imgsz=1024, verbose=False)        
         
@@ -224,4 +220,4 @@ def process_video(input_path, output_path):
 
 if __name__ == '__main__':
     KalmanBoxTracker.count = 0
-    process_video('input_video(5).mp4', 'output_processed.avi')
+    process_video('input_video(4).mp4', 'output_processed.avi')
