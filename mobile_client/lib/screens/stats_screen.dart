@@ -12,6 +12,17 @@ class StatsScreen extends StatefulWidget {
 }
 
 class _StatsScreenState extends State<StatsScreen> {
+  // משתנה שישמור את רשימת הטסטים שנמשוך מהשרת
+  late Future<List<dynamic>> _historyFuture;
+  final String studentId = "123456789"; // תעודת הזהות של התלמיד לבדיקה
+
+  @override
+  void initState() {
+    super.initState();
+    // ברגע שהמסך עולה, אנחנו מבקשים מהשרת את ההיסטוריה
+    _historyFuture = ApiService.getStudentHistory(studentId);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -29,83 +40,109 @@ class _StatsScreenState extends State<StatsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Image.asset('assets/images/logo.webp', height: 60),
+                    IconButton(
+                      icon: const Icon(Icons.logout, color: Colors.redAccent),
+                      onPressed: () async {
+                        await Provider.of<UserProvider>(
+                          context,
+                          listen: false,
+                        ).logout();
+                        if (context.mounted) {
+                          Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(
+                              builder: (context) => const LoginScreen(),
+                            ),
+                            (route) => false,
+                          );
+                        }
+                      },
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  "Test History",
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
                 const SizedBox(height: 20),
 
-                Align(
-                  alignment: Alignment.topLeft,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Image.asset('assets/images/logo.webp', height: 60),
-                      const SizedBox(height: 15),
+                // ה-FutureBuilder מטפל בטעינה של הנתונים מהשרת
+                Expanded(
+                  child: FutureBuilder<List<dynamic>>(
+                    future: _historyFuture,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(
+                          child: CircularProgressIndicator(color: Colors.white),
+                        );
+                      } else if (snapshot.hasError) {
+                        return Center(
+                          child: Text(
+                            "Error loading history: ${snapshot.error}",
+                            style: const TextStyle(color: Colors.red),
+                          ),
+                        );
+                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return const Center(
+                          child: Text(
+                            "No tests found.",
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 18,
+                            ),
+                          ),
+                        );
+                      }
 
-                      Text("stats page"),
+                      // ברגע שיש נתונים, נציג אותם ברשימה
+                      List<dynamic> tests = snapshot.data!;
+                      return ListView.builder(
+                        itemCount: tests.length,
+                        itemBuilder: (context, index) {
+                          var test = tests[index];
+                          bool passed = test['status'] == 'passed';
 
-                      IconButton(
-                        icon: const Icon(
-                          Icons.cloud_upload,
-                          color: Colors.blue,
-                        ),
-                        onPressed: () async {
-                          final dummyTest = {
-                            "student_id": "216312355",
-                            "test_id":
-                                "TEST-${DateTime.now().millisecondsSinceEpoch}",
-                            "start_time": DateTime.now().toIso8601String(),
-                            "final_score": 95.0,
-                            "status": "passed",
-                            "duration_seconds": 600,
-                            "environment": {
-                              "weather": "sunny",
-                              "road_type": "urban",
-                              "traffic_density": "low",
-                            },
-                            "metrics": {
-                              "obd": {"max_speed": 50.0},
-                              "imu": {"jerk_score": 10.0},
-                              "camera": {"signs_missed": 0},
-                              "gps_signal_quality": 100.0,
-                            },
-                            "events_log": [],
-                          };
-
-                          bool success = await ApiService.sendTestResult(
-                            dummyTest,
-                          );
-
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                success
-                                    ? "Data sent to server! "
-                                    : "Failed to connect ",
+                          return Card(
+                            color: Colors.white.withOpacity(0.1),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            child: ListTile(
+                              leading: Icon(
+                                passed ? Icons.check_circle : Icons.cancel,
+                                color: passed
+                                    ? Colors.greenAccent
+                                    : Colors.redAccent,
+                                size: 40,
                               ),
-                              backgroundColor: success
-                                  ? Colors.green
-                                  : Colors.red,
+                              title: Text(
+                                "Score: ${test['final_score']}",
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              subtitle: Text(
+                                "Date: ${DateTime.parse(test['start_time']).toString().split('.')[0]}",
+                                style: const TextStyle(color: Colors.white70),
+                              ),
+                              trailing: const Icon(
+                                Icons.arrow_forward_ios,
+                                color: Colors.white54,
+                              ),
                             ),
                           );
                         },
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.logout, color: Colors.redAccent),
-                        onPressed: () async {
-                          await Provider.of<UserProvider>(
-                            context,
-                            listen: false,
-                          ).logout();
-
-                          if (context.mounted) {
-                            Navigator.of(context).pushAndRemoveUntil(
-                              MaterialPageRoute(
-                                builder: (context) => const LoginScreen(),
-                              ),
-                              (route) => false,
-                            );
-                          }
-                        },
-                      ),
-                    ],
+                      );
+                    },
                   ),
                 ),
               ],

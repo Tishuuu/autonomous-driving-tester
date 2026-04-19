@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:camera/camera.dart';
 import '../providers/sensor_provider.dart';
+import '../services/api_service.dart';
 
 class LivefeedScreen extends StatefulWidget {
   const LivefeedScreen({super.key});
@@ -13,20 +15,57 @@ class LivefeedScreen extends StatefulWidget {
 
 class _LivefeedScreenState extends State<LivefeedScreen> {
   bool _isTesting = false;
+  CameraController? _cameraController;
+  bool _isCameraInitialized = false;
 
   @override
   void initState() {
     super.initState();
+    // נעילת המסך לרוחב (Landscape) עבור ה-Dashcam
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.landscapeRight,
       DeviceOrientation.landscapeLeft,
     ]);
+
+    _initCamera();
+  }
+
+  // אתחול מצלמת המכשיר (מצלמה אחורית)
+  Future<void> _initCamera() async {
+    try {
+      final cameras = await availableCameras();
+      if (cameras.isEmpty) return;
+
+      // נחפש את המצלמה האחורית
+      final backCamera = cameras.firstWhere(
+        (c) => c.lensDirection == CameraLensDirection.back,
+        orElse: () => cameras.first,
+      );
+
+      // נגדיר רזולוציה גבוהה, ללא סאונד (חוסך מקום ופרטיות)
+      _cameraController = CameraController(
+        backCamera,
+        ResolutionPreset.high,
+        enableAudio: false,
+      );
+
+      await _cameraController!.initialize();
+      if (!mounted) return;
+
+      setState(() {
+        _isCameraInitialized = true;
+      });
+    } catch (e) {
+      print("❌ Camera Init Error: $e");
+    }
   }
 
   @override
   void dispose() {
-    final sensorProvider = Provider.of<SensorProvider>(context, listen: false);
+    // שחרור משאבי המצלמה כשהמסך נסגר
+    _cameraController?.dispose();
 
+    // החזרת המסך למצב רגיל (Portrait)
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
@@ -34,242 +73,238 @@ class _LivefeedScreenState extends State<LivefeedScreen> {
     super.dispose();
   }
 
+  // הפונקציה שמופעלת בלחיצה על "START / STOP"
   void _toggleTest() async {
     final sensorProvider = Provider.of<SensorProvider>(context, listen: false);
 
-    setState(() {
-      _isTesting = !_isTesting;
-    });
-
     if (_isTesting) {
-      print("🟢 Starting Real World Test...");
-      await sensorProvider.startRealSensors();
-    } else {
+      // ===== עצירת הטסט =====
+      setState(() => _isTesting = false);
       print("🔴 Stopping Test...");
-      sensorProvider.stopRealSensors();
+
+      // 1. עצירת החיישנים וקבלת נתיב ה-JSON
+      String? jsonPath = await sensorProvider.stopRealSensors();
+
+      // 2. עצירת המצלמה וקבלת הוידאו
+      if (_cameraController != null &&
+          _cameraController!.value.isRecordingVideo) {
+        final XFile videoFile = await _cameraController!.stopVideoRecording();
+        print("✅ Video saved locally at: ${videoFile.path}");
+
+        // 3. שליחת הנתונים לשרת ול-MongoDB
+        if (jsonPath != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Uploading and processing... ⏳')),
+          );
+
+          bool success = await ApiService.uploadTestFiles(
+            videoFile.path,
+            jsonPath,
+            "123456789", // תעודת הזהות של התלמיד
+          );
+
+          if (success) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Test saved to DataBase! 🎉'),
+                backgroundColor: Colors.green,
+              ),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Server Error ❌'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
+      }
+    } else {
+      // ===== התחלת הטסט =====
+      setState(() => _isTesting = true);
+      print("🟢 Starting Real World Test...");
+
+      // 1. הפעלת איסוף נתוני החיישנים
+      await sensorProvider.startRealSensors();
+
+      // 2. התחלת צילום הוידאו
+      if (_cameraController != null &&
+          !_cameraController!.value.isRecordingVideo) {
+        await _cameraController!.startVideoRecording();
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final sensors = Provider.of<SensorProvider>(context);
-
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF314972), Color(0xFF233452)],
-          ),
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.1),
-                            shape: BoxShape.circle,
-                          ),
-                          child: IconButton(
-                            icon: const Icon(
-                              Icons.arrow_back,
-                              color: Colors.white,
-                            ),
-                            onPressed: () => Navigator.pop(context),
+      backgroundColor: Colors.black,
+      body: Row(
+        children: [
+          // צד שמאל: תצוגת המצלמה החיה (75% מהמסך)
+          Expanded(
+            flex: 3,
+            child: _isCameraInitialized
+                ? Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      // תצוגת המצלמה
+                      SizedBox(
+                        width: double.infinity,
+                        height: double.infinity,
+                        child: CameraPreview(_cameraController!),
+                      ),
+                      // נקודה אדומה מהבהבת שמראה הקלטה
+                      if (_isTesting)
+                        const Positioned(
+                          top: 20,
+                          right: 20,
+                          child: Icon(
+                            Icons.fiber_manual_record,
+                            color: Colors.red,
+                            size: 28,
                           ),
                         ),
-                        const SizedBox(width: 15),
-                        Text(
-                          "TESTER MODE",
-                          style: GoogleFonts.lexend(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            shadows: [
-                              const Shadow(
-                                color: Color(0xFF3E7DEA),
-                                blurRadius: 10,
+                    ],
+                  )
+                : const Center(
+                    child: CircularProgressIndicator(color: Colors.blueAccent),
+                  ),
+          ),
+
+          // צד ימין: פאנל השליטה והחיישנים (25% מהמסך)
+          Expanded(
+            flex: 1,
+            child: Container(
+              color: const Color(0xFF1E1E1E),
+              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+              child: Consumer<SensorProvider>(
+                builder: (context, sensorData, child) {
+                  return Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      // כרטיסיות נתונים שמתעדכנות בזמן אמת מה-Provider
+                      _buildDataCard(
+                        "SPEED",
+                        sensorData.speed.toStringAsFixed(0),
+                        "KM/H",
+                        Colors.blueAccent,
+                      ),
+                      _buildDataCard(
+                        "RPM",
+                        sensorData.rpm.toStringAsFixed(0),
+                        "RPM",
+                        Colors.orangeAccent,
+                      ),
+                      _buildDataCard(
+                        "G-FORCE",
+                        sensorData.totalGForce.toStringAsFixed(1),
+                        "G",
+                        Colors.purpleAccent,
+                      ),
+
+                      const Spacer(),
+
+                      // כפתור התחלה / עצירה
+                      GestureDetector(
+                        onTap: _isCameraInitialized ? _toggleTest : null,
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          height: 60,
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: _isTesting
+                                ? Colors.redAccent
+                                : Colors.greenAccent.shade700,
+                            borderRadius: BorderRadius.circular(15),
+                            boxShadow: [
+                              BoxShadow(
+                                color:
+                                    (_isTesting
+                                            ? Colors.redAccent
+                                            : Colors.greenAccent)
+                                        .withOpacity(0.3),
+                                blurRadius: 15,
+                                spreadRadius: 2,
                               ),
                             ],
                           ),
-                        ),
-                      ],
-                    ),
-                    ElevatedButton.icon(
-                      onPressed: _toggleTest,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _isTesting
-                            ? Colors.redAccent
-                            : const Color(0xFF3E7DEA),
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                      ),
-                      icon: Icon(_isTesting ? Icons.stop : Icons.play_arrow),
-                      label: Text(_isTesting ? "STOP TEST" : "START TEST"),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-
-                Expanded(
-                  flex: 3,
-                  child: Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: Colors.black,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: _isTesting
-                            ? Colors.green.withOpacity(0.5)
-                            : Colors.white10,
-                      ),
-                    ),
-                    child: Stack(
-                      children: [
-                        Center(
-                          child: Text(
-                            _isTesting
-                                ? "Processing Video..."
-                                : "Camera Standby",
-                            style: const TextStyle(color: Colors.white54),
-                          ),
-                        ),
-                        if (_isTesting)
-                          Positioned(
-                            top: 10,
-                            right: 10,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.red,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: const Text(
-                                "REC ●",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                          child: Center(
+                            child: Text(
+                              _isTesting ? "STOP TEST" : "START TEST",
+                              style: GoogleFonts.lexend(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.5,
                               ),
                             ),
                           ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 10),
-
-                Expanded(
-                  flex: 1,
-                  child: Row(
-                    children: [
-                      _buildDataBox(
-                        label: "SPEED",
-                        value: sensors.speed.toStringAsFixed(0),
-                        unit: "km/h",
-                        color: Colors.blueAccent,
-                      ),
-                      const SizedBox(width: 10),
-
-                      _buildDataBox(
-                        label: "RPM",
-                        value: sensors.rpm.toStringAsFixed(0),
-                        unit: "rev/min",
-                        color: Colors.orangeAccent,
-                      ),
-                      const SizedBox(width: 10),
-
-                      _buildDataBox(
-                        label: "G-FORCE",
-                        value: sensors.totalGForce.toStringAsFixed(2),
-                        unit: "g",
-                        color: sensors.totalGForce > 1.2
-                            ? Colors.red
-                            : Colors.greenAccent,
+                        ),
                       ),
                     ],
-                  ),
-                ),
-              ],
+                  );
+                },
+              ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
 
-  Widget _buildDataBox({
-    required String label,
-    required String value,
-    required String unit,
-    required Color color,
-  }) {
-    return Expanded(
-      child: Container(
-        decoration: BoxDecoration(
-          color: const Color(0xFF1E293B).withOpacity(0.9),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withOpacity(0.5), width: 1.5),
-          boxShadow: [
-            BoxShadow(
-              color: color.withOpacity(0.1),
-              blurRadius: 10,
-              spreadRadius: 1,
+  // עיצוב כרטיסיות הנתונים
+  Widget _buildDataCard(String label, String value, String unit, Color color) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF2A2A2A),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.5), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.1),
+            blurRadius: 10,
+            spreadRadius: 1,
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            label,
+            style: GoogleFonts.lexend(
+              color: Colors.white70,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
             ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              label,
-              style: GoogleFonts.lexend(
-                color: Colors.white70,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
+          ),
+          const SizedBox(height: 4),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Text(
+                value,
+                style: GoogleFonts.lexend(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-            const SizedBox(height: 4),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
-              children: [
-                Text(
-                  value,
-                  style: GoogleFonts.lexend(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  unit,
-                  style: GoogleFonts.lexend(
-                    color: Colors.white54,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+              const SizedBox(width: 4),
+              Text(
+                unit,
+                style: GoogleFonts.lexend(color: Colors.white54, fontSize: 12),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

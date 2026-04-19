@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../providers/user_provider.dart';
 import '../providers/sensor_provider.dart';
+import 'bluetooth_picker_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -25,6 +26,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _runSystemCheck() async {
+    // השארנו ריק כרגע, אפשר להוסיף בדיקות מערכת בעתיד
     final sensorProvider = Provider.of<SensorProvider>(context, listen: false);
   }
 
@@ -118,7 +120,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             Icons.settings_input_hdmi,
                             sensorProvider.isObdConnected,
                             false,
-                            () {},
+                            () {
+                              // ===== הלוגיקה החדשה של ה-OBD =====
+                              if (sensorProvider.isObdConnected) {
+                                // אם מחובר - ננתק
+                                sensorProvider.disconnectOBD();
+                              } else {
+                                // אם מנותק - נפתח את מסך הבחירה
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const BluetoothPickerScreen(),
+                                  ),
+                                );
+                              }
+                            },
                           ),
                         ),
                         const SizedBox(width: 15),

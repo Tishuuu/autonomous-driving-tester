@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:mobile_client/providers/sensor_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../providers/sensor_provider.dart';
 import 'dashboard_screen.dart';
 import 'history_screen.dart';
 import 'settings_screen.dart';
 import 'stats_screen.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'liveFeed_screen.dart';
+import 'livefeed_screen.dart'; // שים לב לאותיות רישיות/קטנות בשם הקובץ
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -17,23 +17,14 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final Color _primaryColor = const Color(0xFF3E7DEA);
+  final Color _errorColor = const Color(0xFFFF4C4C);
 
-  final bool _isObdConnected = false;
-  final bool _isCameraReady = false;
-  final bool _isGpsLocked = false;
-  bool get _isSystemReady => _isObdConnected && _isCameraReady && _isGpsLocked;
   final List<Widget> _pages = [
     const DashboardScreen(),
     const HistoryScreen(),
     const StatsScreen(),
     const SettingsScreen(),
   ];
-  Color get _mainButtonColor {
-    if (_isSystemReady) {
-      return _primaryColor;
-    }
-    return const Color(0xFFFF4C4C);
-  }
 
   int _selectedIndex = 0;
 
@@ -45,7 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildNavIcon(IconData icon, String label, int index) {
     final bool isSelected = _selectedIndex == index;
-    final Color iconColor = isSelected ? const Color(0xFF3E7DEA) : Colors.grey;
+    final Color iconColor = isSelected ? _primaryColor : Colors.grey;
 
     return Tooltip(
       message: label,
@@ -53,15 +44,8 @@ class _HomeScreenState extends State<HomeScreen> {
         color: Colors.transparent,
         child: InkWell(
           customBorder: const CircleBorder(),
-
           splashFactory: InkRipple.splashFactory,
-
-          onTap: () {
-            setState(() {
-              _selectedIndex = index;
-            });
-          },
-
+          onTap: () => _onItemTapped(index),
           child: Padding(
             padding: const EdgeInsets.symmetric(
               horizontal: 12.0,
@@ -94,38 +78,30 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       extendBody: true,
+
+      // כפתור הפעלת הטסט - מגיב למצב ה-Provider
       floatingActionButton: Consumer<SensorProvider>(
         builder: (context, sensor, child) {
           final bool isReady = sensor.isSystemReady;
-
-          final Color mainButtonColor = isReady
-              ? const Color(0xFF3E7DEA)
-              : const Color(0xFFFF4C4C);
+          final Color mainButtonColor = isReady ? _primaryColor : _errorColor;
 
           return Container(
             height: 70,
-
             width: 70,
-
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-
               boxShadow: [
                 BoxShadow(
                   color: mainButtonColor.withOpacity(0.5),
-
                   blurRadius: 20,
-
                   spreadRadius: 2,
                 ),
               ],
             ),
-
             child: FloatingActionButton(
               onPressed: () {
                 if (isReady) {
-                  print("System Ready");
-
+                  print("✅ System Ready - Moving to Live Feed");
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (_) => const LivefeedScreen()),
@@ -133,20 +109,23 @@ class _HomeScreenState extends State<HomeScreen> {
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text("Please make sure to connect all sensors"),
+                      content: Text(
+                        "Please make sure all required sensors are connected",
+                      ),
                       backgroundColor: Colors.red,
                     ),
                   );
                 }
               },
-
               backgroundColor: mainButtonColor,
-
               elevation: 0,
-
               shape: const CircleBorder(),
-
-              child: Icon(Icons.bluetooth, size: 35, color: Colors.white),
+              // אייקון רכב או פליי מתאים יותר פה מאשר בלוטות' שכן זה כפתור מעבר לנסיעה
+              child: const Icon(
+                Icons.directions_car,
+                size: 35,
+                color: Colors.white,
+              ),
             ),
           );
         },
@@ -160,18 +139,16 @@ class _HomeScreenState extends State<HomeScreen> {
           height: 60,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
-
             children: [
               _buildNavIcon(Icons.home_filled, "Home", 0),
               _buildNavIcon(Icons.history, "History", 1),
-              const SizedBox(width: 40),
+              const SizedBox(width: 40), // חלל בשביל הכפתור האמצעי
               _buildNavIcon(Icons.bar_chart_rounded, "Stats", 2),
               _buildNavIcon(Icons.settings, "Settings", 3),
             ],
           ),
         ),
       ),
-
       body: _pages[_selectedIndex],
     );
   }

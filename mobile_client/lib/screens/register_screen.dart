@@ -138,7 +138,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     final body = jsonEncode(user);
 
-    final url = Uri.parse('http://192.168.68.55:8000/api/auth/register');
+    final url = Uri.parse('http://127.0.0.1:8000/api/auth/register');
 
     try {
       print(" Attempting to register: ${user['email']}");

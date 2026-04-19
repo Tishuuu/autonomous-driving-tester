@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 # ==========================================
-# 1. מנוע ההתרעות (הממוצע הנע שביקשת!)
+# 1. מנוע ההתרעות 
 # ==========================================
 class DriftDetector:
     def __init__(self, history_size=30, drift_threshold_percent=0.10):
@@ -15,10 +15,7 @@ class DriftDetector:
         if len(self.center_history) > self.history_size:
             self.center_history.pop(0)
 
-        # מחשבים את הממוצע הנע (האמצע היציב)
         average_center_x = int(np.mean(self.center_history))
-
-        # חישוב הסטייה
         deviation = abs(current_center_x - average_center_x)
         deviation_percent = deviation / frame_width
         is_drifting = deviation_percent > self.drift_threshold_percent
@@ -26,15 +23,15 @@ class DriftDetector:
         return average_center_x, deviation_percent, is_drifting
 
 # ==========================================
-# 2. מנוע הזרימה האופטית (Optical Flow)
+# 2. מנוע הזרימה האופטית - מתוקן!
 # ==========================================
 class OpticalFlowVanishingPoint:
     def __init__(self):
         self.prev_gray = None
-        # הגדרות לאלגוריתם המעקב Lucas-Kanade
         self.lk_params = dict(winSize=(15, 15), maxLevel=2,
                               criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
-        self.feature_params = dict(maxCorners=50, qualityLevel=0.3, minDistance=10, blockSize=7)
+        # הוספתי קצת יותר רגישות לפיקסלים כדי שימצא יותר נקודות בעיר
+        self.feature_params = dict(maxCorners=100, qualityLevel=0.1, minDistance=10, blockSize=7)
 
     def get_vanishing_point(self, frame):
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -42,20 +39,18 @@ class OpticalFlowVanishingPoint:
 
         if self.prev_gray is None:
             self.prev_gray = gray
-            return width // 2, [] # מחזיר את האמצע כברירת מחדל בפריים הראשון
+            return width // 2, [] 
 
-        # אנחנו מחפשים פיקסלים לזיהוי רק בשליש התחתון של המסך (הכביש)
+        # מסכה - מחפשים רק בחצי התחתון של הכביש
         mask = np.zeros_like(gray)
-        mask[int(height * 0.6):, :] = 255
+        mask[int(height * 0.5):, :] = 255
 
-        # מוצאים פיקסלים "מעניינים" בכביש
         p0 = cv2.goodFeaturesToTrack(self.prev_gray, mask=mask, **self.feature_params)
 
         vp_x = width // 2
         flow_lines = []
 
         if p0 is not None:
-            # בודקים לאן הפיקסלים האלו זזו בפריים החדש
             p1, st, err = cv2.calcOpticalFlowPyrLK(self.prev_gray, gray, p0, None, **self.lk_params)
             
             good_new = p1[st == 1]
@@ -64,33 +59,30 @@ class OpticalFlowVanishingPoint:
             A = []
             b = []
             
-            # עוברים על כל הנקודות שזזו ומייצרים מהן משוואות של קווים ישרים
             for i, (new, old) in enumerate(zip(good_new, good_old)):
                 a, c = new.ravel()
                 d, f = old.ravel()
                 dx = a - d
                 dy = c - f
 
-                # מסננים תזוזות מזעריות או נקודות שעפות למעלה בטעות
-                if np.sqrt(dx**2 + dy**2) < 1.0 or dy > 0:
+                # התיקון הגדול! 
+                # מתעלמים מנקודות שזזות למעלה (dy < 0) כי אנחנו נוסעים קדימה
+                # והורדנו את סף התנועה ל-0.5 כדי לתפוס גם נסיעה איטית בעיר
+                if np.sqrt(dx**2 + dy**2) < 0.5 or dy < 0:
                     continue
                 
-                # שומרים את הקווים לציור כדי שתראה את זה עובד
                 flow_lines.append((int(a), int(c), int(d), int(f)))
 
-                # בניית המטריצה למציאת נקודת החיתוך (Least Squares)
                 A.append([dy, -dx])
                 b.append([dy * d - dx * f])
 
             A = np.array(A)
             b = np.array(b)
 
-            # אם מצאנו מספיק קווים טובים, נחשב את נקודת המפגש שלהם!
             if len(A) >= 2:
                 res, _, _, _ = np.linalg.lstsq(A, b, rcond=None)
                 calculated_x = int(res[0][0])
                 
-                # בדיקת שפיות: הנקודה חייבת להיות בתוך גבולות המסך
                 if 0 < calculated_x < width:
                     vp_x = calculated_x
 
@@ -98,10 +90,10 @@ class OpticalFlowVanishingPoint:
         return vp_x, flow_lines
 
 # ==========================================
-# 3. מנהל ההרצה (טסט לסרטון)
+# 3. מנהל ההרצה 
 # ==========================================
 def run_drift_test(video_path, output_path):
-    print("Starting Optical Flow Drift Detection... 🚗")
+    print("Starting Optical Flow Drift Detection (Forward Motion Fixed)... 🚗")
     cap = cv2.VideoCapture(video_path)
     width  = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -116,33 +108,25 @@ def run_drift_test(video_path, output_path):
         ret, frame = cap.read()
         if not ret: break
 
-        # 1. מציאת נקודת המגוז בעזרת הזרימה האופטית
         current_vp_x, flow_lines = of_tracker.get_vanishing_point(frame)
-
-        # 2. בדיקת הסטייה מול הממוצע
         avg_x, deviation_pct, is_drifting = drift_detector.update_and_check(current_vp_x, width)
 
-        # 3. ציור הגרפיקה המטורפת על הפריים!
-        
-        # ציור וקטורי התנועה (החצים של הכביש) - שתראה את האלגוריתם "חושב"
+        # ציור החצים הירוקים (עכשיו אתה תראה אותם!)
         for (x_new, y_new, x_old, y_old) in flow_lines:
             cv2.line(frame, (x_new, y_new), (x_old, y_old), (0, 255, 0), 2)
             cv2.circle(frame, (x_new, y_new), 3, (0, 200, 0), -1)
 
-        horizon_y = int(height * 0.45) # גובה האופק המשוער
+        horizon_y = int(height * 0.45) 
 
-        # כוונת אדומה: ה"אמצע" הנוכחי שהאלגוריתם מזהה כרגע
+        # כוונת אדומה (האמצע עכשיו) ונקודה צהובה (הממוצע היציב)
         cv2.drawMarker(frame, (current_vp_x, horizon_y), (0, 0, 255), markerType=cv2.MARKER_CROSS, markerSize=30, thickness=2)
-        
-        # נקודה כחולה/ירוקה: הממוצע הנע שלנו! (היציבות)
         cv2.circle(frame, (avg_x, horizon_y), 8, (255, 255, 0), -1)
 
-        # התרעות וטקסט
         color = (0, 0, 255) if is_drifting else (0, 255, 0)
         cv2.putText(frame, f"Dev: {deviation_pct*100:.1f}%", (30, 60), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 3)
         
         if is_drifting:
-            cv2.rectangle(frame, (0,0), (width, height), (0, 0, 255), 10) # מסגרת אדומה קריטית
+            cv2.rectangle(frame, (0,0), (width, height), (0, 0, 255), 10) 
             cv2.putText(frame, "!!! LANE DEPARTURE !!!", (width//2 - 250, 100), cv2.FONT_HERSHEY_DUPLEX, 1.5, (0, 0, 255), 4)
 
         out.write(frame)

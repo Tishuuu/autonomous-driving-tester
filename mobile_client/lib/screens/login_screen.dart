@@ -44,7 +44,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> loginUser() async {
-    final url = Uri.parse('http://192.168.68.55:8000/api/auth/login');
+    final url = Uri.parse('http://127.0.0.1:8000/api/auth/login');
 
     try {
       print("Attempting login for: ${emailController.text}");

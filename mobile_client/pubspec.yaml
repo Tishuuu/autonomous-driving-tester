@@ -10,20 +10,20 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
-  # ספריות בסיס ועיצוב (הגרסאות החדשות)
   cupertino_icons: ^1.0.8
-  google_fonts: ^8.0.0
+  google_fonts: ^8.0.2
   provider: ^6.1.5+1
   http: ^1.6.0
   shared_preferences: ^2.5.4
 
   # ספריות חומרה (מצלמה וחיישנים)
-  sensors_plus: ^6.1.0
-  geolocator: ^13.0.0
+  sensors_plus: ^7.0.0
+  geolocator: ^14.0.2
   permission_handler: ^11.3.1
   camera: ^0.11.4
   flutter_vision: ^2.0.0
+  path_provider: ^2.1.5
+  flutter_bluetooth_serial: ^0.4.0
 
 dev_dependencies:
   flutter_test:
