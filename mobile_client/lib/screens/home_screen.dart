@@ -3,9 +3,10 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../providers/sensor_provider.dart';
 import 'dashboard_screen.dart';
-import 'history_screen.dart';
+import 'prediction_screen.dart';
 import 'settings_screen.dart';
 import 'stats_screen.dart';
+import 'prediction_screen.dart';
 import 'livefeed_screen.dart'; // שים לב לאותיות רישיות/קטנות בשם הקובץ
 
 class HomeScreen extends StatefulWidget {
@@ -21,7 +22,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final List<Widget> _pages = [
     const DashboardScreen(),
-    const HistoryScreen(),
+    const PredictionsScreen(),
     const StatsScreen(),
     const SettingsScreen(),
   ];
@@ -141,7 +142,7 @@ class _HomeScreenState extends State<HomeScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildNavIcon(Icons.home_filled, "Home", 0),
-              _buildNavIcon(Icons.history, "History", 1),
+              _buildNavIcon(Icons.batch_prediction_outlined, "Predictions", 1),
               const SizedBox(width: 40), // חלל בשביל הכפתור האמצעי
               _buildNavIcon(Icons.bar_chart_rounded, "Stats", 2),
               _buildNavIcon(Icons.settings, "Settings", 3),

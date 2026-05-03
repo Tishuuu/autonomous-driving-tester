@@ -4,3 +4,4 @@ motor
 pydantic
 python-dotenv
 loguru
+python-jose[cryptography]==3.3.0

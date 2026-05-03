@@ -15,7 +15,7 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   bool _loadingGps = false;
   bool _loadingCamera = false;
-  final bool _loadingImu = false;
+  bool _loadingImu = false;
 
   @override
   void initState() {
@@ -26,23 +26,67 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> _runSystemCheck() async {
-    // השארנו ריק כרגע, אפשר להוסיף בדיקות מערכת בעתיד
-    final sensorProvider = Provider.of<SensorProvider>(context, listen: false);
+    // מקום לבדיקות מערכת בעתיד
   }
 
+  // ===== הפעלת GPS בלבד =====
   Future<void> _connectGps() async {
     setState(() => _loadingGps = true);
     final sensorProvider = Provider.of<SensorProvider>(context, listen: false);
 
-    await sensorProvider.startRealSensors();
+    // התיקון: בודקים אם יש האזנה פעילה, ולא רק אם יש נעילה
+    if (sensorProvider.isGpsListening) {
+      sensorProvider.stopGps();
+    } else {
+      await sensorProvider.startGps();
+    }
 
     if (mounted) setState(() => _loadingGps = false);
+    debugPrint('--- gps DEBUG ---');
+    debugPrint(
+      'gps Button Tapped. Current state: ${sensorProvider.isGpsListening}',
+    );
+    debugPrint('--- gps DEBUG ---');
   }
 
+  // ===== הפעלת מצלמה בלבד =====
   Future<void> _connectCamera() async {
     setState(() => _loadingCamera = true);
-    await Future.delayed(const Duration(milliseconds: 1500));
+    final sensorProvider = Provider.of<SensorProvider>(context, listen: false);
+    if (sensorProvider.isCameraReady) {
+      sensorProvider.deactivateCamera();
+    } else {
+      await sensorProvider.activateCamera();
+    }
+
     if (mounted) setState(() => _loadingCamera = false);
+
+    debugPrint('--- CAMERA DEBUG ---');
+    debugPrint(
+      'Camera Button Tapped. Current state: ${sensorProvider.isCameraReady}',
+    );
+    debugPrint('--- CAMERA DEBUG ---');
+  }
+
+  // ===== הפעלת IMU בלבד =====
+  Future<void> _connectImu() async {
+    setState(() => _loadingImu = true);
+    final sensorProvider = Provider.of<SensorProvider>(context, listen: false);
+
+    if (sensorProvider.isImuActive) {
+      sensorProvider.stopImu();
+    } else {
+      sensorProvider.startImu();
+    }
+
+    // השהיה קצרה לפידבק ויזואלי
+    await Future.delayed(const Duration(milliseconds: 300));
+    if (mounted) setState(() => _loadingImu = false);
+    debugPrint('--- IMU DEBUG ---');
+    debugPrint(
+      'IMU Button Tapped. Current state: ${sensorProvider.isImuActive}',
+    );
+    debugPrint('--- IMU DEBUG ---');
   }
 
   @override
@@ -120,13 +164,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             Icons.settings_input_hdmi,
                             sensorProvider.isObdConnected,
                             false,
-                            () {
-                              // ===== הלוגיקה החדשה של ה-OBD =====
+                            () async {
                               if (sensorProvider.isObdConnected) {
-                                // אם מחובר - ננתק
-                                sensorProvider.disconnectOBD();
+                                await sensorProvider.disconnectOBD();
                               } else {
-                                // אם מנותק - נפתח את מסך הבחירה
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
@@ -144,9 +185,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           child: _buildSensorCard(
                             "GPS Lock",
                             Icons.gps_fixed,
-                            sensorProvider.speed > 0 ||
-                                sensorProvider.isMonitoring,
-                            _loadingGps,
+                            sensorProvider.hasGpsFix,
+                            _loadingGps ||
+                                (sensorProvider.isGpsListening &&
+                                    !sensorProvider.hasGpsFix),
                             () => _connectGps(),
                           ),
                         ),
@@ -162,18 +204,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             Icons.camera_alt,
                             sensorProvider.isCameraReady,
                             _loadingCamera,
-                            () => _connectCamera(),
+                            () => _connectCamera(), // ✅ תוקן
                           ),
                         ),
+
                         const SizedBox(width: 15),
 
                         Expanded(
                           child: _buildSensorCard(
                             "IMU Sensor",
                             Icons.screen_rotation,
-                            sensorProvider.totalGForce > 0,
+                            sensorProvider.isImuActive, // ✅ תוקן
                             _loadingImu,
-                            () => _connectGps(),
+                            () => _connectImu(), // ✅ תוקן
                           ),
                         ),
                       ],
@@ -233,7 +276,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               : [],
         ),
         child: isLoading
-            ? Center(
+            ? const Center(
                 child: CircularProgressIndicator(
                   color: Colors.white,
                   strokeWidth: 2,

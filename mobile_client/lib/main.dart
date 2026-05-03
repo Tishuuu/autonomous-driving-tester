@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'screens/login_screen.dart';
 import 'providers/user_provider.dart';
 import 'screens/home_screen.dart';
 import 'providers/sensor_provider.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // ✅ הפונטים נטענים מ-assets/fonts/ דרך pubspec.yaml.
+  // נכבה הורדה מהרשת כדי למנוע ניסיונות חוזרים שחוסמים את ה-UI thread.
+  GoogleFonts.config.allowRuntimeFetching = false;
+
   runApp(
     MultiProvider(
       providers: [

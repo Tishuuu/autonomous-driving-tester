@@ -1,0 +1,6 @@
+2026-04-21 19:05:06 | ERROR | ❌ Error processing test TEST-CA7D8E7A: None: Max retries exceeded with url: /repos/ultralytics/assets/releases/tags/v8.4.0 (Caused by NameResolutionError("None: Failed to resolve 'api.github.com' ([Errno 11001] getaddrinfo failed)"))
+2026-04-21 19:13:55 | ERROR | ❌ Error processing test TEST-AFB1EE28: [Errno 2] No such file or directory: 'C:\\MyProject\\auto_tester\\server\\app\\services\\..\\ai_models\\best.pt'
+2026-04-24 22:39:16 | ERROR | Failed to load production models: Layer dense_1 weight shape (32, 5) is not compatible with provided weight shape (256, 32).
+2026-04-24 22:39:44 | ERROR | Failed to load production models: Layer dense_1 weight shape (32, 5) is not compatible with provided weight shape (256, 32).
+2026-04-24 22:57:55 | ERROR | ❌ Error processing test TEST_1777060480012: "['speed_ms', 'g_force'] not in index"
+2026-04-26 18:09:43 | ERROR | ❌ Error processing test TEST_1777215007615: 'coroutine' object is not subscriptable

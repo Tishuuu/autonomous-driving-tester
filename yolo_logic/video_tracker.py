@@ -5,6 +5,7 @@ from ultralytics import YOLO
 from scipy.optimize import linear_sum_assignment
 from filterpy.kalman import KalmanFilter
 import multiprocessing
+import os
 
 class KalmanBoxTracker(object):
     count = 0
@@ -77,7 +78,7 @@ def associate_detections_to_trackers(detections, trackers, iou_threshold=0.05):
 def worker_yolo_extraction(args):
     video_path, start_frame, end_frame, chunk_id = args
     
-    model = YOLO('best.pt')
+    model = YOLO("best (cars).pt")
     model_classes = model.names 
     
     cap = cv2.VideoCapture(video_path)
@@ -103,12 +104,16 @@ def worker_yolo_extraction(args):
             
             box_w, box_h = x2 - x1, y2 - y1
             
+            # סינון גודל אבסורדי
             if (box_w * box_h) > (width * height) * 0.15: continue
             aspect_ratio = box_w / float(box_h) if box_h > 0 else 0
             if aspect_ratio < 0.5 or aspect_ratio > 1.5: continue
             
+            # --- התיקון: מסננים נתיב נגדי רק לתמרורים ולא לרכבים! ---
             center_x = x1 + (box_w / 2)
-            if center_x < width * 0.35: continue 
+            is_car = "car" in class_name.lower()
+            if not is_car:
+                if center_x < width * 0.35: continue 
 
             FOCAL_LENGTH, REAL_SIGN_HEIGHT, MAX_DISTANCE = 800, 0.8, 45       
             if box_h > 0: 
@@ -133,7 +138,7 @@ def worker_yolo_extraction(args):
     return chunk_results
 
 def process_video(input_path, output_path):
-    print("frames")
+    print("Extracting video info...")
     cap = cv2.VideoCapture(input_path)
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     width  = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -159,7 +164,7 @@ def process_video(input_path, output_path):
         for res in results:
             all_yolo_results.update(res)
 
-    print("YOLO is done")
+    print("YOLO extraction done. Starting tracking and drawing...")
     cap = cv2.VideoCapture(input_path)
     out = cv2.VideoWriter(output_path, cv2.VideoWriter_fourcc(*'XVID'), fps, (width, height))
     trackers = []
@@ -197,9 +202,18 @@ def process_video(input_path, output_path):
                 h = box[2] / w if w > 0 else 0
                 x1, y1, x2, y2 = int(box[0]-w/2), int(box[1]-h/2), int(box[0]+w/2), int(box[1]+h/2)
                 
-                if "STOP" in trk.class_name.upper(): color = (0, 0, 255) 
-                elif "YIELD" in trk.class_name.upper(): color = (0, 255, 255) 
-                else: color = (255, 0, 0) 
+                # --- התיקון: צבעים מותאמים אישית לקלאסים שלך! ---
+                cls_upper = trk.class_name.upper()
+                if "STOP" in cls_upper: 
+                    color = (0, 0, 255)       # אדום לתמרור עצור
+                elif "YIELD" in cls_upper: 
+                    color = (0, 255, 255)     # צהוב לזכות קדימה
+                elif "ENTRY" in cls_upper: 
+                    color = (0, 165, 255)     # כתום לאין כניסה
+                elif "CAR" in cls_upper: 
+                    color = (0, 255, 0)       # ירוק לרכבים!
+                else: 
+                    color = (255, 0, 0)       # כחול לכל השאר (גיבוי)
                 
                 cv2.rectangle(frame, (x1, y1), (x2, y2), color, 3)
                 label = f"{trk.class_name} ID:{trk.id}"
@@ -211,13 +225,13 @@ def process_video(input_path, output_path):
         trackers = active_trackers 
         
         out.write(frame)
-        
         frame_idx += 1
 
     cap.release()
     out.release()
-    print(f"Done! {output_path}")
+    print(f"Done! Saved to {output_path}")
 
 if __name__ == '__main__':
     KalmanBoxTracker.count = 0
+    # שים לב לשנות פה את השם של הסרטון שלך אם צריך
     process_video('input_video(4).mp4', 'output_processed.avi')

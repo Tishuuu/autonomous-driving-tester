@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'dart:async';
 import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
+import '../services/api_config.dart';
 import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -39,55 +40,11 @@ class _LoginScreenState extends State<LoginScreen> {
   void _sendTORegister() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => RegisterScreen()),
+      MaterialPageRoute(builder: (context) => const RegisterScreen()),
     );
   }
 
-  Future<void> loginUser() async {
-    final url = Uri.parse('http://127.0.0.1:8000/api/auth/login');
-
-    try {
-      print("Attempting login for: ${emailController.text}");
-
-      final response = await http.post(
-        url,
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode({
-          "email": emailController.text.trim(),
-          "password": passController.text,
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        print(" Login Success!");
-        final responseData = jsonDecode(response.body);
-
-        String userName = responseData['name'] ?? "Driver";
-        String userEmail = responseData['email'] ?? emailController.text;
-
-        if (!mounted) return;
-
-        await Provider.of<UserProvider>(
-          context,
-          listen: false,
-        ).login(userEmail, userName, _rememberMe);
-
-        if (mounted) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const HomeScreen()),
-          );
-        }
-      } else if (response.statusCode == 401) {
-        _showError("Invalid email or password");
-      } else {
-        print("Server Error: ${response.body}");
-        _showError("thats not a vaild email");
-      }
-    } catch (e) {
-      print(" CRITICAL ERROR: $e");
-      _showError("Can't connect to server. Check your Wi-Fi.");
-    }
-  }
+  // הפונקציה הקודמת הוסרה. הכל מטופל עכשיו דרך ה-Provider.
 
   void _showError(String message) {
     setState(() {
@@ -106,6 +63,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // השג את ה-UserProvider כדי שנוכל להראות מצב טעינה
+    final userProvider = Provider.of<UserProvider>(context);
+
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -284,23 +244,57 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               elevation: 0,
                             ),
-                            onPressed: () {
-                              if (_emailError == null &&
-                                  _passError == null &&
-                                  emailController.text.isNotEmpty &&
-                                  passController.text.isNotEmpty) {
-                                loginUser();
-                                print("pressed");
-                              }
-                            },
-                            child: Text(
-                              "LOG IN",
-                              style: GoogleFonts.rubik(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1.5,
-                              ),
-                            ),
+                            // ✅ פונקציית הלחיצה המעודכנת (async)
+                            onPressed: userProvider.isLoading
+                                ? null
+                                : () async {
+                                    if (_emailError == null &&
+                                        _passError == null &&
+                                        emailController.text.isNotEmpty &&
+                                        passController.text.isNotEmpty) {
+                                      bool success =
+                                          await Provider.of<UserProvider>(
+                                            context,
+                                            listen: false,
+                                          ).login(
+                                            emailController.text.trim(),
+                                            passController.text, // מעביר סיסמה
+                                            _rememberMe,
+                                          );
+
+                                      if (mounted) {
+                                        if (success) {
+                                          Navigator.of(context).pushReplacement(
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  const HomeScreen(),
+                                            ),
+                                          );
+                                        } else {
+                                          _showError(
+                                            "Login failed. Please check your credentials.",
+                                          );
+                                        }
+                                      }
+                                    }
+                                  },
+                            child: userProvider.isLoading
+                                ? const SizedBox(
+                                    height: 24,
+                                    width: 24,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2.5,
+                                    ),
+                                  )
+                                : Text(
+                                    "LOG IN",
+                                    style: GoogleFonts.rubik(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 1.5,
+                                    ),
+                                  ),
                           ),
                         ),
 

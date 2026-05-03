@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart'; // 🆕 הוסף ייבוא Provider
+import '../providers/user_provider.dart'; // 🆕 הוסף ייבוא UserProvider
+import '../services/api_config.dart';
 import 'login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -43,7 +46,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void _sendTOlogin() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => LoginScreen()),
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
     );
   }
 
@@ -129,69 +132,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Future<void> registerUser() async {
-    final user = {
-      "name": nameController.text.trim(),
-      "email": emailController.text.trim(),
-      "password": passController.text,
-    };
-
-    final body = jsonEncode(user);
-
-    final url = Uri.parse('http://127.0.0.1:8000/api/auth/register');
-
-    try {
-      print(" Attempting to register: ${user['email']}");
-
-      final response = await http.post(
-        url,
-        headers: {"Content-Type": "application/json"},
-        body: body,
-      );
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        print(" Registration Success!");
-
-        if (!mounted) return;
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Account created! Please log in."),
-            backgroundColor: Colors.green,
-          ),
-        );
-
-        Future.delayed(const Duration(seconds: 2), () {
-          if (mounted) _sendTOlogin();
-        });
-      } else if (response.statusCode == 409) {
-        print(" Email taken!");
-        setState(() {
-          _emailError = "This email is already registered!";
-        });
-      } else {
-        print(" Error: ${response.body}");
-        final errorData = jsonDecode(response.body);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              "Error: ${errorData['detail'] ?? 'Registration failed'}",
-            ),
-          ),
-        );
-      }
-    } catch (e) {
-      print("System Error: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Can't connect to server. Check your connection."),
-        ),
-      );
-    }
-  }
+  // הפונקציה הישנה הוסרה - הכל מטופל דרך הפרובידר
 
   @override
   Widget build(BuildContext context) {
+    // השגת הפרובידר כדי להראות חיווי טעינה
+    final userProvider = Provider.of<UserProvider>(context);
+
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -359,26 +306,78 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               ),
                               elevation: 0,
                             ),
-                            onPressed: () {
-                              if (_nameError == null &&
-                                  _emailError == null &&
-                                  _passError == null &&
-                                  _confirmPassError == null &&
-                                  nameController.text.isNotEmpty &&
-                                  emailController.text.isNotEmpty &&
-                                  passController.text.isNotEmpty) {
-                                registerUser();
-                                print("pressed");
-                              }
-                            },
-                            child: Text(
-                              "CREATE ACCOUNT",
-                              style: GoogleFonts.rubik(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1.5,
-                              ),
-                            ),
+                            // ✅ פונקציית הלחיצה המעודכנת
+                            onPressed: userProvider.isLoading
+                                ? null
+                                : () async {
+                                    if (_nameError == null &&
+                                        _emailError == null &&
+                                        _passError == null &&
+                                        _confirmPassError == null &&
+                                        nameController.text.isNotEmpty &&
+                                        emailController.text.isNotEmpty &&
+                                        passController.text.isNotEmpty) {
+                                      bool success =
+                                          await Provider.of<UserProvider>(
+                                            context,
+                                            listen: false,
+                                          ).register(
+                                            nameController.text.trim(),
+                                            emailController.text.trim(),
+                                            passController.text,
+                                            false, // מסך רישום לא צריך remember me כברירת מחדל
+                                          );
+
+                                      if (mounted) {
+                                        if (success) {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                "Account created! Please log in.",
+                                              ),
+                                              backgroundColor: Colors.green,
+                                            ),
+                                          );
+                                          Future.delayed(
+                                            const Duration(seconds: 2),
+                                            () {
+                                              if (mounted) _sendTOlogin();
+                                            },
+                                          );
+                                        } else {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                "Registration failed. Please try again.",
+                                              ),
+                                              backgroundColor: Colors.red,
+                                            ),
+                                          );
+                                        }
+                                      }
+                                    }
+                                  },
+                            child: userProvider.isLoading
+                                ? const SizedBox(
+                                    height: 24,
+                                    width: 24,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2.5,
+                                    ),
+                                  )
+                                : Text(
+                                    "CREATE ACCOUNT",
+                                    style: GoogleFonts.rubik(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 1.5,
+                                    ),
+                                  ),
                           ),
                         ),
 

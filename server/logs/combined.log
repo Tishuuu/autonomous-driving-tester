@@ -157,3 +157,1442 @@
 2026-04-04 23:42:57.672 | INFO     | app.routes.test_routes:process_and_save_test:33 -  Receiving test files for student: 123456789
 2026-04-04 23:42:57.691 | INFO     | app.routes.test_routes:process_and_save_test:41 -  Analyzing video for student 123456789...
 2026-04-04 23:42:57.832 | INFO     | app.routes.test_routes:process_and_save_test:60 -  AI Test Processed and Saved! DB ID: 69d177d139f7c081aed48bc2
+2026-04-19 19:30:20.246 | INFO     | main:shutdown_event:20 -  Server Shutting Down
+2026-04-19 19:30:20.478 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-04-19 19:30:24.352 | INFO     | main:startup_event:15 -  Server Starting Up
+2026-04-19 19:30:24.600 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-04-19 19:38:50.870 | INFO     | main:shutdown_event:20 -  Server Shutting Down
+2026-04-19 19:38:50.872 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-04-19 19:44:39.215 | INFO     | main:startup_event:15 -  Server Starting Up
+2026-04-19 19:44:39.249 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-04-19 20:34:11.034 | INFO     | main:shutdown_event:20 -  Server Shutting Down
+2026-04-19 20:34:11.109 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-04-19 20:35:25.480 | INFO     | main:startup_event:15 -  Server Starting Up
+2026-04-19 20:35:25.893 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-04-20 00:16:22.907 | INFO     | main:shutdown_event:20 -  Server Shutting Down
+2026-04-20 00:16:23.001 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-04-20 00:16:35.485 | INFO     | main:startup_event:15 -  Server Starting Up
+2026-04-20 00:16:35.559 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-04-20 00:18:03.013 | INFO     | app.routes.test_routes:process_and_save_test:27 -  Receiving test files for student: 123456789 | Test ID: TEST-EF91DA79
+2026-04-20 00:18:03.019 | INFO     | app.routes.test_routes:process_and_save_test:36 - ⚙️ Starting Sensor Preprocessing...
+2026-04-20 00:18:03.021 | INFO     | app.services.sensor_sync:process_sensor_json:10 - 🔄 Processing sensor data from: temp_TEST-EF91DA79.json
+2026-04-20 00:18:03.055 | INFO     | app.services.sensor_sync:process_sensor_json:29 - ⏱️ Resampling data to exactly 10Hz (100ms intervals)
+2026-04-20 00:18:03.079 | INFO     | app.services.sensor_sync:process_sensor_json:49 - ✅ Sensor processing complete. Total 10Hz rows: 119
+2026-04-20 00:18:03.081 | INFO     | app.routes.test_routes:process_and_save_test:60 - 🗑️ Deleted temp video: temp_TEST-EF91DA79.mp4
+2026-04-20 00:18:03.082 | INFO     | app.routes.test_routes:process_and_save_test:63 - 🗑️ Deleted temp JSON: temp_TEST-EF91DA79.json
+2026-04-20 00:19:34.534 | INFO     | main:shutdown_event:20 -  Server Shutting Down
+2026-04-20 00:19:34.536 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-04-20 00:19:36.604 | INFO     | main:startup_event:15 -  Server Starting Up
+2026-04-20 00:19:36.631 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-04-20 00:20:40.122 | INFO     | app.routes.test_routes:process_and_save_test:27 -  Receiving test files for student: 123456789 | Test ID: TEST-8CBB912C
+2026-04-20 00:20:40.126 | INFO     | app.routes.test_routes:process_and_save_test:36 - ⚙️ Starting Sensor Preprocessing...
+2026-04-20 00:20:40.126 | INFO     | app.services.sensor_sync:process_sensor_json:10 - 🔄 Processing sensor data from: temp_TEST-8CBB912C.json
+2026-04-20 00:20:40.137 | INFO     | app.services.sensor_sync:process_sensor_json:29 - ⏱️ Resampling data to exactly 10Hz (100ms intervals)
+2026-04-20 00:20:40.143 | INFO     | app.services.sensor_sync:process_sensor_json:49 - ✅ Sensor processing complete. Total 10Hz rows: 17
+2026-04-20 00:20:40.144 | INFO     | app.routes.test_routes:process_and_save_test:60 - 🗑️ Deleted temp video: temp_TEST-8CBB912C.mp4
+2026-04-20 00:20:40.146 | INFO     | app.routes.test_routes:process_and_save_test:63 - 🗑️ Deleted temp JSON: temp_TEST-8CBB912C.json
+2026-04-20 00:40:14.945 | INFO     | main:shutdown_event:20 -  Server Shutting Down
+2026-04-20 00:40:14.952 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-04-20 00:40:17.456 | INFO     | main:startup_event:15 -  Server Starting Up
+2026-04-20 00:40:17.514 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-04-20 00:40:28.307 | INFO     | main:shutdown_event:20 -  Server Shutting Down
+2026-04-20 00:40:28.308 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-04-20 00:40:29.845 | INFO     | main:startup_event:15 -  Server Starting Up
+2026-04-20 00:40:29.883 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-04-20 00:41:35.178 | INFO     | main:shutdown_event:20 -  Server Shutting Down
+2026-04-20 00:41:35.180 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-04-21 19:00:15.127 | INFO     | main:startup_event:15 -  Server Starting Up
+2026-04-21 19:00:16.169 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-04-21 19:00:26.044 | INFO     | main:shutdown_event:20 -  Server Shutting Down
+2026-04-21 19:00:26.049 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-04-21 19:00:46.013 | INFO     | main:startup_event:15 -  Server Starting Up
+2026-04-21 19:00:46.046 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-04-21 19:04:38.194 | INFO     | app.routes.test_routes:process_and_save_test:30 - 📥 Receiving test files for student: 123456789 | Test ID: TEST-CA7D8E7A
+2026-04-21 19:04:38.382 | INFO     | app.routes.test_routes:process_and_save_test:39 - ⚙️ Starting Sensor Preprocessing...
+2026-04-21 19:04:38.383 | INFO     | app.services.sensor_sync:process_sensor_json:10 - 🔄 Processing sensor data from: temp_TEST-CA7D8E7A.json
+2026-04-21 19:04:38.444 | INFO     | app.services.sensor_sync:process_sensor_json:29 - ⏱️ Resampling data to exactly 10Hz (100ms intervals)
+2026-04-21 19:04:38.461 | INFO     | app.services.sensor_sync:process_sensor_json:49 - ✅ Sensor processing complete. Total 10Hz rows: 1450
+2026-04-21 19:04:38.462 | INFO     | app.routes.test_routes:process_and_save_test:44 - 🎥 Starting Video Analysis Pipeline...
+2026-04-21 19:04:38.464 | INFO     | app.services.vision_service:analyze_video_for_server:147 - 🎥 Starting Video Analysis Pipeline...
+2026-04-21 19:04:38.689 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-04-21 19:05:06.255 | ERROR    | app.routes.test_routes:process_and_save_test:82 - ❌ Error processing test TEST-CA7D8E7A: None: Max retries exceeded with url: /repos/ultralytics/assets/releases/tags/v8.4.0 (Caused by NameResolutionError("None: Failed to resolve 'api.github.com' ([Errno 11001] getaddrinfo failed)"))
+2026-04-21 19:05:06.259 | INFO     | app.routes.test_routes:process_and_save_test:89 - 🗑️ Deleted temp video: temp_TEST-CA7D8E7A.mp4
+2026-04-21 19:05:06.261 | INFO     | app.routes.test_routes:process_and_save_test:92 - 🗑️ Deleted temp JSON: temp_TEST-CA7D8E7A.json
+2026-04-21 19:09:32.878 | INFO     | main:shutdown_event:20 -  Server Shutting Down
+2026-04-21 19:09:32.904 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-04-21 19:13:23.815 | INFO     | main:startup_event:15 -  Server Starting Up
+2026-04-21 19:13:23.943 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-04-21 19:13:29.067 | INFO     | app.routes.test_routes:process_and_save_test:30 - 📥 Receiving test files for student: 123456789 | Test ID: TEST-AFB1EE28
+2026-04-21 19:13:29.074 | INFO     | app.routes.test_routes:process_and_save_test:39 - ⚙️ Starting Sensor Preprocessing...
+2026-04-21 19:13:29.076 | INFO     | app.services.sensor_sync:process_sensor_json:10 - 🔄 Processing sensor data from: temp_TEST-AFB1EE28.json
+2026-04-21 19:13:29.092 | INFO     | app.services.sensor_sync:process_sensor_json:29 - ⏱️ Resampling data to exactly 10Hz (100ms intervals)
+2026-04-21 19:13:29.100 | INFO     | app.services.sensor_sync:process_sensor_json:49 - ✅ Sensor processing complete. Total 10Hz rows: 24
+2026-04-21 19:13:29.101 | INFO     | app.routes.test_routes:process_and_save_test:44 - 🎥 Starting Video Analysis Pipeline...
+2026-04-21 19:13:29.102 | INFO     | app.services.vision_service:analyze_video_for_server:149 - 🎥 Starting Video Analysis Pipeline...
+2026-04-21 19:13:29.243 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-04-21 19:13:55.773 | ERROR    | app.routes.test_routes:process_and_save_test:82 - ❌ Error processing test TEST-AFB1EE28: [Errno 2] No such file or directory: 'C:\\MyProject\\auto_tester\\server\\app\\services\\..\\ai_models\\best.pt'
+2026-04-21 19:13:55.785 | INFO     | app.routes.test_routes:process_and_save_test:89 - 🗑️ Deleted temp video: temp_TEST-AFB1EE28.mp4
+2026-04-21 19:13:55.787 | INFO     | app.routes.test_routes:process_and_save_test:92 - 🗑️ Deleted temp JSON: temp_TEST-AFB1EE28.json
+2026-04-21 19:14:43.402 | INFO     | main:shutdown_event:20 -  Server Shutting Down
+2026-04-21 19:14:43.421 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-04-21 19:14:55.602 | INFO     | main:startup_event:15 -  Server Starting Up
+2026-04-21 19:14:55.690 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-04-21 19:14:55.752 | INFO     | app.routes.test_routes:process_and_save_test:30 - 📥 Receiving test files for student: 123456789 | Test ID: TEST-D5FE0D41
+2026-04-21 19:14:55.758 | INFO     | app.routes.test_routes:process_and_save_test:39 - ⚙️ Starting Sensor Preprocessing...
+2026-04-21 19:14:55.759 | INFO     | app.services.sensor_sync:process_sensor_json:10 - 🔄 Processing sensor data from: temp_TEST-D5FE0D41.json
+2026-04-21 19:14:55.849 | INFO     | app.services.sensor_sync:process_sensor_json:29 - ⏱️ Resampling data to exactly 10Hz (100ms intervals)
+2026-04-21 19:14:55.887 | INFO     | app.services.sensor_sync:process_sensor_json:49 - ✅ Sensor processing complete. Total 10Hz rows: 24
+2026-04-21 19:14:55.888 | INFO     | app.routes.test_routes:process_and_save_test:44 - 🎥 Starting Video Analysis Pipeline...
+2026-04-21 19:14:55.890 | INFO     | app.services.vision_service:analyze_video_for_server:149 - 🎥 Starting Video Analysis Pipeline...
+2026-04-21 19:14:56.054 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-04-21 19:15:45.040 | INFO     | app.services.vision_service:analyze_video_for_server:175 - ✅ YOLO Extraction Done. Starting Kalman & Filtering...
+2026-04-21 19:15:45.056 | INFO     | app.services.vision_service:analyze_video_for_server:248 - 🏁 Video Pipeline Complete. Total valid events: 0
+2026-04-21 19:15:45.079 | INFO     | app.routes.test_routes:process_and_save_test:49 - 🧬 Building Final Feature Vector...
+2026-04-21 19:15:45.084 | INFO     | app.services.vector_builder:build_feature_vector:6 - 🧬 Starting Vector Merging Process...
+2026-04-21 19:15:45.174 | WARNING  | app.services.vector_builder:build_feature_vector:15 - ⚠️ No video events to merge. Vector contains only sensor data.
+2026-04-21 19:15:45.408 | INFO     | app.routes.test_routes:process_and_save_test:65 - 💾 Vector saved to training_data/vector_TEST-D5FE0D41.csv
+2026-04-21 19:15:45.411 | INFO     | app.routes.test_routes:process_and_save_test:89 - 🗑️ Deleted temp video: temp_TEST-D5FE0D41.mp4
+2026-04-21 19:15:45.412 | INFO     | app.routes.test_routes:process_and_save_test:92 - 🗑️ Deleted temp JSON: temp_TEST-D5FE0D41.json
+2026-04-21 19:20:05.229 | INFO     | app.routes.test_routes:process_and_save_test:30 - 📥 Receiving test files for student: 123456789 | Test ID: TEST-A5A0EBF2
+2026-04-21 19:20:05.263 | INFO     | app.routes.test_routes:process_and_save_test:39 - ⚙️ Starting Sensor Preprocessing...
+2026-04-21 19:20:05.263 | INFO     | app.services.sensor_sync:process_sensor_json:10 - 🔄 Processing sensor data from: temp_TEST-A5A0EBF2.json
+2026-04-21 19:20:05.298 | INFO     | app.services.sensor_sync:process_sensor_json:29 - ⏱️ Resampling data to exactly 10Hz (100ms intervals)
+2026-04-21 19:20:05.319 | INFO     | app.services.sensor_sync:process_sensor_json:49 - ✅ Sensor processing complete. Total 10Hz rows: 393
+2026-04-21 19:20:05.320 | INFO     | app.routes.test_routes:process_and_save_test:44 - 🎥 Starting Video Analysis Pipeline...
+2026-04-21 19:20:05.321 | INFO     | app.services.vision_service:analyze_video_for_server:149 - 🎥 Starting Video Analysis Pipeline...
+2026-04-21 19:20:05.388 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-04-21 19:24:16.226 | INFO     | app.services.vision_service:analyze_video_for_server:175 - ✅ YOLO Extraction Done. Starting Kalman & Filtering...
+2026-04-21 19:24:16.626 | INFO     | app.services.vision_service:analyze_video_for_server:248 - 🏁 Video Pipeline Complete. Total valid events: 31
+2026-04-21 19:24:16.639 | INFO     | app.routes.test_routes:process_and_save_test:49 - 🧬 Building Final Feature Vector...
+2026-04-21 19:24:16.641 | INFO     | app.services.vector_builder:build_feature_vector:6 - 🧬 Starting Vector Merging Process...
+2026-04-21 19:24:16.667 | INFO     | app.services.vector_builder:build_feature_vector:40 - ✅ Feature Vector successfully built with 393 time steps.
+2026-04-21 19:24:16.875 | INFO     | app.routes.test_routes:process_and_save_test:65 - 💾 Vector saved to training_data/vector_TEST-A5A0EBF2.csv
+2026-04-21 19:24:16.880 | INFO     | app.routes.test_routes:process_and_save_test:89 - 🗑️ Deleted temp video: temp_TEST-A5A0EBF2.mp4
+2026-04-21 19:24:16.884 | INFO     | app.routes.test_routes:process_and_save_test:92 - 🗑️ Deleted temp JSON: temp_TEST-A5A0EBF2.json
+2026-04-21 19:25:25.171 | INFO     | app.routes.test_routes:process_and_save_test:30 - 📥 Receiving test files for student: 123456789 | Test ID: TEST-82735836
+2026-04-21 19:25:25.220 | INFO     | app.routes.test_routes:process_and_save_test:39 - ⚙️ Starting Sensor Preprocessing...
+2026-04-21 19:25:25.220 | INFO     | app.services.sensor_sync:process_sensor_json:10 - 🔄 Processing sensor data from: temp_TEST-82735836.json
+2026-04-21 19:25:25.241 | INFO     | app.services.sensor_sync:process_sensor_json:29 - ⏱️ Resampling data to exactly 10Hz (100ms intervals)
+2026-04-21 19:25:25.260 | INFO     | app.services.sensor_sync:process_sensor_json:49 - ✅ Sensor processing complete. Total 10Hz rows: 451
+2026-04-21 19:25:25.261 | INFO     | app.routes.test_routes:process_and_save_test:44 - 🎥 Starting Video Analysis Pipeline...
+2026-04-21 19:25:25.261 | INFO     | app.services.vision_service:analyze_video_for_server:149 - 🎥 Starting Video Analysis Pipeline...
+2026-04-21 19:25:25.346 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-04-21 19:31:33.813 | INFO     | app.services.vision_service:analyze_video_for_server:175 - ✅ YOLO Extraction Done. Starting Kalman & Filtering...
+2026-04-21 19:31:34.834 | INFO     | app.services.vision_service:analyze_video_for_server:248 - 🏁 Video Pipeline Complete. Total valid events: 159
+2026-04-21 19:31:34.844 | INFO     | app.routes.test_routes:process_and_save_test:49 - 🧬 Building Final Feature Vector...
+2026-04-21 19:31:34.846 | INFO     | app.services.vector_builder:build_feature_vector:6 - 🧬 Starting Vector Merging Process...
+2026-04-21 19:31:34.925 | INFO     | app.services.vector_builder:build_feature_vector:40 - ✅ Feature Vector successfully built with 451 time steps.
+2026-04-21 19:31:35.059 | INFO     | app.routes.test_routes:process_and_save_test:65 - 💾 Vector saved to training_data/vector_TEST-82735836.csv
+2026-04-21 19:31:35.063 | INFO     | app.routes.test_routes:process_and_save_test:89 - 🗑️ Deleted temp video: temp_TEST-82735836.mp4
+2026-04-21 19:31:35.065 | INFO     | app.routes.test_routes:process_and_save_test:92 - 🗑️ Deleted temp JSON: temp_TEST-82735836.json
+2026-04-22 03:38:24.102 | INFO     | main:shutdown_event:20 -  Server Shutting Down
+2026-04-22 03:38:24.153 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-04-22 03:39:04.672 | INFO     | main:startup_event:15 -  Server Starting Up
+2026-04-22 03:39:05.386 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-04-22 03:48:12.891 | INFO     | main:shutdown_event:20 -  Server Shutting Down
+2026-04-22 03:48:12.895 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-04-22 03:48:23.434 | INFO     | main:startup_event:15 -  Server Starting Up
+2026-04-22 03:48:23.484 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-04-24 14:07:23.966 | INFO     | main:shutdown_event:20 -  Server Shutting Down
+2026-04-24 14:07:24.041 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-04-24 14:07:42.623 | INFO     | main:startup_event:15 -  Server Starting Up
+2026-04-24 14:07:42.923 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-04-24 14:09:49.735 | INFO     | main:shutdown_event:20 -  Server Shutting Down
+2026-04-24 14:09:49.737 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-04-24 14:09:59.535 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 14:09:59.709 | INFO     | main:startup_event:15 -  Server Starting Up
+2026-04-24 14:09:59.753 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-04-24 14:10:23.540 | INFO     | main:shutdown_event:20 -  Server Shutting Down
+2026-04-24 14:10:23.542 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-04-24 14:10:37.730 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 14:10:46.130 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 14:10:46.352 | INFO     | main:startup_event:15 -  Server Starting Up
+2026-04-24 14:10:46.425 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-04-24 14:14:41.713 | INFO     | app.routes.test_routes:process_and_save_test:30 - 📥 Receiving test files for student: 123456789 | Test ID: TEST-9607DC70
+2026-04-24 14:14:41.806 | INFO     | app.routes.test_routes:process_and_save_test:39 - ⚙️ Starting Sensor Preprocessing...
+2026-04-24 14:14:41.807 | INFO     | app.services.sensor_sync:process_sensor_json:10 - 🔄 Processing sensor data from: temp_TEST-9607DC70.json
+2026-04-24 14:14:41.894 | INFO     | app.services.sensor_sync:process_sensor_json:29 - ⏱️ Resampling data to exactly 10Hz (100ms intervals)
+2026-04-24 14:14:41.926 | INFO     | app.services.sensor_sync:process_sensor_json:49 - ✅ Sensor processing complete. Total 10Hz rows: 1943
+2026-04-24 14:14:41.927 | INFO     | app.routes.test_routes:process_and_save_test:44 - 🎥 Starting Video Analysis Pipeline...
+2026-04-24 14:14:41.929 | INFO     | app.services.vision_service:analyze_video_for_server:150 - 🎥 Starting Video Analysis Pipeline...
+2026-04-24 14:14:42.280 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-04-24 14:15:07.088 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 14:15:07.089 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 14:15:07.089 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 14:15:07.090 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 14:15:07.090 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 14:15:07.089 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 14:15:07.090 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 14:23:32.634 | INFO     | app.services.vision_service:analyze_video_for_server:176 - ✅ YOLO Extraction Done. Starting Kalman & Filtering...
+2026-04-24 14:23:33.935 | INFO     | app.services.vision_service:analyze_video_for_server:249 - 🏁 Video Pipeline Complete. Total valid events: 67
+2026-04-24 14:23:33.945 | INFO     | app.routes.test_routes:process_and_save_test:49 - 🧬 Building Final Feature Vector...
+2026-04-24 14:23:33.947 | INFO     | app.services.vector_builder:build_feature_vector:11 - 🧬 Building Multi-Object Vector with Dead Reckoning (FOV handling)...
+2026-04-24 14:23:35.776 | INFO     | app.services.vector_builder:build_feature_vector:96 - ✅ Multi-Object Vector Built with FOV tracking. Dimensions: (1943, 15)
+2026-04-24 14:23:36.295 | INFO     | app.routes.test_routes:process_and_save_test:65 - 💾 Vector saved to training_data/vector_TEST-9607DC70.csv
+2026-04-24 14:23:36.300 | INFO     | app.routes.test_routes:process_and_save_test:89 - 🗑️ Deleted temp video: temp_TEST-9607DC70.mp4
+2026-04-24 14:23:36.303 | INFO     | app.routes.test_routes:process_and_save_test:92 - 🗑️ Deleted temp JSON: temp_TEST-9607DC70.json
+2026-04-24 15:02:09.147 | INFO     | main:shutdown_event:20 -  Server Shutting Down
+2026-04-24 15:02:09.186 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-04-24 15:02:54.963 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 15:02:55.575 | INFO     | main:startup_event:15 -  Server Starting Up
+2026-04-24 15:02:56.316 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-04-24 15:04:59.673 | INFO     | main:shutdown_event:20 -  Server Shutting Down
+2026-04-24 15:04:59.675 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-04-24 15:05:09.594 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 15:05:09.756 | INFO     | main:startup_event:15 -  Server Starting Up
+2026-04-24 15:05:09.793 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-04-24 21:14:35.947 | INFO     | main:shutdown_event:20 -  Server Shutting Down
+2026-04-24 21:14:36.093 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-04-24 21:14:54.897 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 21:14:59.810 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 21:14:59.968 | INFO     | main:startup_event:15 -  Server Starting Up
+2026-04-24 21:15:00.268 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-04-24 22:35:13.966 | INFO     | main:shutdown_event:20 -  Server Shutting Down
+2026-04-24 22:35:13.985 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-04-24 22:39:14.601 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 22:39:14.651 | INFO     | app.routes.test_routes:<module>:94 - Loading Scaler and M8 Attention Production Model...
+2026-04-24 22:39:16.596 | ERROR    | app.routes.test_routes:<module>:101 - Failed to load production models: Layer dense_1 weight shape (32, 5) is not compatible with provided weight shape (256, 32).
+2026-04-24 22:39:42.583 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 22:39:42.588 | INFO     | app.routes.test_routes:<module>:94 - Loading Scaler and M8 Attention Production Model...
+2026-04-24 22:39:44.165 | ERROR    | app.routes.test_routes:<module>:101 - Failed to load production models: Layer dense_1 weight shape (32, 5) is not compatible with provided weight shape (256, 32).
+2026-04-24 22:39:44.703 | INFO     | main:startup_event:15 -  Server Starting Up
+2026-04-24 22:39:44.959 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-04-24 22:40:50.001 | INFO     | main:shutdown_event:20 -  Server Shutting Down
+2026-04-24 22:40:50.016 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-04-24 22:41:20.391 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 22:41:20.391 | INFO     | app.routes.test_routes:<module>:96 - Loading Scaler and M8 Attention Production Model...
+2026-04-24 22:41:21.203 | INFO     | app.routes.test_routes:<module>:101 - M8 Production Model & Scaler Loaded Successfully.
+2026-04-24 22:41:35.059 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 22:41:35.060 | INFO     | app.routes.test_routes:<module>:96 - Loading Scaler and M8 Attention Production Model...
+2026-04-24 22:41:36.082 | INFO     | app.routes.test_routes:<module>:101 - M8 Production Model & Scaler Loaded Successfully.
+2026-04-24 22:41:36.259 | INFO     | main:startup_event:15 -  Server Starting Up
+2026-04-24 22:41:36.324 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-04-24 22:42:03.639 | INFO     | app.routes.test_routes:evaluate_test:129 - Starting analysis for Test TEST_1777059721920...
+2026-04-24 22:42:03.640 | INFO     | app.services.sensor_sync:process_sensor_json:10 - 🔄 Processing sensor data from: temp_f52b854c-8cf8-4bff-bc43-9588dbb38032.json
+2026-04-24 22:42:03.641 | INFO     | app.services.vision_service:analyze_video_for_server:150 - 🎥 Starting Video Analysis Pipeline...
+2026-04-24 22:42:03.673 | INFO     | app.services.sensor_sync:process_sensor_json:29 - ⏱️ Resampling data to exactly 10Hz (100ms intervals)
+2026-04-24 22:42:03.703 | INFO     | app.services.sensor_sync:process_sensor_json:49 - ✅ Sensor processing complete. Total 10Hz rows: 178
+2026-04-24 22:42:03.939 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-04-24 22:43:43.910 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 22:43:44.218 | INFO     | app.routes.test_routes:<module>:96 - Loading Scaler and M8 Attention Production Model...
+2026-04-24 22:43:44.219 | INFO     | app.routes.test_routes:<module>:96 - Loading Scaler and M8 Attention Production Model...
+2026-04-24 22:43:58.142 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 22:43:58.431 | INFO     | app.routes.test_routes:<module>:96 - Loading Scaler and M8 Attention Production Model...
+2026-04-24 22:44:03.718 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 22:44:03.802 | INFO     | app.routes.test_routes:<module>:96 - Loading Scaler and M8 Attention Production Model...
+2026-04-24 22:44:52.138 | INFO     | app.routes.test_routes:<module>:101 - M8 Production Model & Scaler Loaded Successfully.
+2026-04-24 22:45:05.120 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 22:45:05.281 | INFO     | app.routes.test_routes:<module>:96 - Loading Scaler and M8 Attention Production Model...
+2026-04-24 22:45:13.056 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 22:45:13.293 | INFO     | app.routes.test_routes:<module>:96 - Loading Scaler and M8 Attention Production Model...
+2026-04-24 22:45:24.372 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 22:45:24.435 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 22:45:24.761 | INFO     | app.routes.test_routes:<module>:96 - Loading Scaler and M8 Attention Production Model...
+2026-04-24 22:45:24.766 | INFO     | app.routes.test_routes:<module>:96 - Loading Scaler and M8 Attention Production Model...
+2026-04-24 22:45:28.397 | INFO     | app.routes.test_routes:<module>:101 - M8 Production Model & Scaler Loaded Successfully.
+2026-04-24 22:45:31.291 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 22:45:31.558 | INFO     | app.routes.test_routes:<module>:96 - Loading Scaler and M8 Attention Production Model...
+2026-04-24 22:45:31.644 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 22:45:31.708 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 22:45:31.937 | INFO     | app.routes.test_routes:<module>:96 - Loading Scaler and M8 Attention Production Model...
+2026-04-24 22:45:31.980 | INFO     | app.routes.test_routes:<module>:96 - Loading Scaler and M8 Attention Production Model...
+2026-04-24 22:45:32.194 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 22:45:32.345 | INFO     | app.routes.test_routes:<module>:96 - Loading Scaler and M8 Attention Production Model...
+2026-04-24 22:45:32.390 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 22:45:32.552 | INFO     | app.routes.test_routes:<module>:96 - Loading Scaler and M8 Attention Production Model...
+2026-04-24 22:45:33.244 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 22:45:33.365 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 22:45:33.529 | INFO     | app.routes.test_routes:<module>:96 - Loading Scaler and M8 Attention Production Model...
+2026-04-24 22:45:33.529 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 22:45:33.886 | INFO     | app.routes.test_routes:<module>:96 - Loading Scaler and M8 Attention Production Model...
+2026-04-24 22:45:33.918 | INFO     | app.routes.test_routes:<module>:96 - Loading Scaler and M8 Attention Production Model...
+2026-04-24 22:45:34.044 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 22:45:34.589 | INFO     | app.routes.test_routes:<module>:96 - Loading Scaler and M8 Attention Production Model...
+2026-04-24 22:45:34.876 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 22:45:34.977 | INFO     | app.routes.test_routes:<module>:96 - Loading Scaler and M8 Attention Production Model...
+2026-04-24 22:45:35.023 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 22:45:35.033 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 22:45:35.082 | INFO     | app.routes.test_routes:<module>:96 - Loading Scaler and M8 Attention Production Model...
+2026-04-24 22:45:35.118 | INFO     | app.routes.test_routes:<module>:96 - Loading Scaler and M8 Attention Production Model...
+2026-04-24 22:45:41.566 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 22:45:41.686 | INFO     | app.routes.test_routes:<module>:96 - Loading Scaler and M8 Attention Production Model...
+2026-04-24 22:46:33.496 | INFO     | app.routes.test_routes:<module>:101 - M8 Production Model & Scaler Loaded Successfully.
+2026-04-24 22:46:38.018 | INFO     | app.routes.test_routes:<module>:101 - M8 Production Model & Scaler Loaded Successfully.
+2026-04-24 22:46:58.764 | INFO     | app.routes.test_routes:<module>:101 - M8 Production Model & Scaler Loaded Successfully.
+2026-04-24 22:47:20.443 | INFO     | app.routes.test_routes:<module>:101 - M8 Production Model & Scaler Loaded Successfully.
+2026-04-24 22:47:24.541 | INFO     | app.routes.test_routes:<module>:101 - M8 Production Model & Scaler Loaded Successfully.
+2026-04-24 22:47:29.004 | INFO     | app.routes.test_routes:<module>:101 - M8 Production Model & Scaler Loaded Successfully.
+2026-04-24 22:47:29.551 | INFO     | app.routes.test_routes:<module>:101 - M8 Production Model & Scaler Loaded Successfully.
+2026-04-24 22:47:30.670 | INFO     | app.routes.test_routes:<module>:101 - M8 Production Model & Scaler Loaded Successfully.
+2026-04-24 22:47:37.084 | INFO     | app.routes.test_routes:<module>:101 - M8 Production Model & Scaler Loaded Successfully.
+2026-04-24 22:47:54.541 | INFO     | app.routes.test_routes:<module>:101 - M8 Production Model & Scaler Loaded Successfully.
+2026-04-24 22:48:22.005 | INFO     | main:shutdown_event:20 -  Server Shutting Down
+2026-04-24 22:48:22.101 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-04-24 22:52:45.936 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 22:52:56.255 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 22:52:56.575 | INFO     | main:startup_event:15 -  Server Starting Up
+2026-04-24 22:52:56.626 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-04-24 22:54:41.190 | INFO     | app.routes.test_routes:load_ai_models:103 - Loading Scaler and M8 Attention Production Model...
+2026-04-24 22:54:41.818 | INFO     | app.routes.test_routes:load_ai_models:109 - M8 Production Model & Scaler Loaded Successfully.
+2026-04-24 22:54:41.824 | INFO     | app.routes.test_routes:evaluate_test:138 - Starting analysis for Test TEST_1777060480012...
+2026-04-24 22:54:41.825 | INFO     | app.services.sensor_sync:process_sensor_json:10 - 🔄 Processing sensor data from: temp_5319e935-9b51-40f4-99d7-e73df9edc894.json
+2026-04-24 22:54:41.825 | INFO     | app.services.vision_service:analyze_video_for_server:150 - 🎥 Starting Video Analysis Pipeline...
+2026-04-24 22:54:41.853 | INFO     | app.services.sensor_sync:process_sensor_json:29 - ⏱️ Resampling data to exactly 10Hz (100ms intervals)
+2026-04-24 22:54:41.863 | INFO     | app.services.sensor_sync:process_sensor_json:49 - ✅ Sensor processing complete. Total 10Hz rows: 486
+2026-04-24 22:54:41.899 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-04-24 22:55:57.358 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 22:55:57.371 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 22:55:57.836 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 22:56:06.375 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 22:56:06.641 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 22:56:06.859 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 22:56:14.394 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 22:56:14.938 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 22:56:19.195 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 22:56:57.972 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 22:56:58.455 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 22:57:08.422 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 22:57:10.322 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 22:57:16.171 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 22:57:17.358 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 22:57:18.082 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 22:57:30.351 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 22:57:30.800 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-24 22:57:55.301 | INFO     | app.services.vision_service:analyze_video_for_server:176 - ✅ YOLO Extraction Done. Starting Kalman & Filtering...
+2026-04-24 22:57:55.380 | INFO     | app.services.vision_service:analyze_video_for_server:249 - 🏁 Video Pipeline Complete. Total valid events: 0
+2026-04-24 22:57:55.404 | INFO     | app.services.vector_builder:build_feature_vector:11 - 🧬 Building Multi-Object Vector with Dead Reckoning (FOV handling)...
+2026-04-24 22:57:55.476 | WARNING  | app.services.vector_builder:build_feature_vector:24 - ⚠️ No video events. Returning clean sensor vector.
+2026-04-24 22:57:55.491 | ERROR    | app.routes.test_routes:evaluate_test:216 - ❌ Error processing test TEST_1777060480012: "['speed_ms', 'g_force'] not in index"
+2026-04-26 17:20:06.410 | INFO     | main:shutdown_event:20 -  Server Shutting Down
+2026-04-26 17:20:06.473 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-04-26 17:21:23.499 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-26 17:21:40.215 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-26 17:21:40.710 | INFO     | main:startup_event:15 -  Server Starting Up
+2026-04-26 17:21:40.908 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-04-26 17:25:44.591 | INFO     | main:shutdown_event:20 -  Server Shutting Down
+2026-04-26 17:25:44.638 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-04-26 17:26:20.358 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-26 17:26:37.060 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-26 17:26:37.505 | INFO     | main:startup_event:15 -  Server Starting Up
+2026-04-26 17:26:37.613 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-04-26 17:50:13.635 | INFO     | app.routes.test_routes:load_ai_models:103 - Loading Scaler and M8 Attention Production Model...
+2026-04-26 17:50:16.474 | INFO     | app.routes.test_routes:load_ai_models:109 - M8 Production Model & Scaler Loaded Successfully.
+2026-04-26 17:50:16.556 | INFO     | app.routes.test_routes:evaluate_test:138 - Starting analysis for Test TEST_1777215007615...
+2026-04-26 17:50:16.572 | INFO     | app.services.sensor_sync:process_sensor_json:10 - 🔄 Processing sensor data from: temp_a6fb766f-dea5-482e-b281-1984e0d01820.json
+2026-04-26 17:50:16.574 | INFO     | app.services.vision_service:analyze_video_for_server:150 - 🎥 Starting Video Analysis Pipeline...
+2026-04-26 17:50:16.672 | INFO     | app.services.sensor_sync:process_sensor_json:29 - ⏱️ Resampling data to exactly 10Hz (100ms intervals)
+2026-04-26 17:50:16.729 | INFO     | app.services.sensor_sync:process_sensor_json:49 - ✅ Sensor processing complete. Total 10Hz rows: 537
+2026-04-26 17:50:16.731 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-04-26 17:51:28.423 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-26 17:51:28.424 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-26 17:51:28.427 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-26 17:51:28.469 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-26 17:51:28.790 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-26 17:51:30.231 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-26 17:51:30.761 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-26 17:51:31.388 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-26 17:51:58.746 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-26 17:52:46.241 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-26 17:52:51.315 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-26 17:53:05.141 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-26 17:53:11.027 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-26 17:53:11.040 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-26 17:53:16.558 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-26 17:53:17.358 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-26 17:53:17.357 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-26 17:53:17.475 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-26 17:53:17.615 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-26 18:09:43.167 | INFO     | app.services.vision_service:analyze_video_for_server:176 - ✅ YOLO Extraction Done. Starting Kalman & Filtering...
+2026-04-26 18:09:43.539 | ERROR    | app.routes.test_routes:evaluate_test:216 - ❌ Error processing test TEST_1777215007615: 'coroutine' object is not subscriptable
+2026-04-26 18:20:19.471 | INFO     | main:shutdown_event:20 -  Server Shutting Down
+2026-04-26 18:20:19.543 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-04-26 18:21:39.736 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-26 18:21:54.190 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-26 18:21:54.735 | INFO     | main:startup_event:15 -  Server Starting Up
+2026-04-26 18:21:55.478 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-04-26 18:22:34.352 | INFO     | app.routes.test_routes:load_ai_models:103 - Loading Scaler and M8 Attention Production Model...
+2026-04-26 18:22:35.731 | INFO     | app.routes.test_routes:load_ai_models:109 - M8 Production Model & Scaler Loaded Successfully.
+2026-04-26 18:22:35.746 | INFO     | app.routes.test_routes:evaluate_test:140 - Starting analysis for Test TEST_1777216952153...
+2026-04-26 18:22:35.748 | INFO     | app.services.sensor_sync:process_sensor_json:10 - 🔄 Processing sensor data from: temp_43045308-c968-4b83-8102-dfd28808a4f7.json
+2026-04-26 18:22:35.778 | INFO     | app.services.sensor_sync:process_sensor_json:29 - ⏱️ Resampling data to exactly 10Hz (100ms intervals)
+2026-04-26 18:22:35.803 | INFO     | app.services.sensor_sync:process_sensor_json:49 - ✅ Sensor processing complete. Total 10Hz rows: 72
+2026-04-26 18:22:35.804 | INFO     | app.services.vision_service:analyze_video_for_server:150 - 🎥 Starting Video Analysis Pipeline...
+2026-04-26 18:22:36.037 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-04-26 18:23:46.156 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-26 18:23:46.160 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-26 18:23:46.157 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-26 18:23:46.330 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-26 18:23:52.476 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-26 18:24:03.419 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-26 18:24:04.436 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-26 18:24:09.708 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-26 18:24:09.881 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-26 18:24:10.673 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-26 18:24:11.005 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-26 18:24:12.087 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-26 18:24:15.948 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-26 18:24:57.360 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-26 18:24:58.599 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-26 18:24:59.624 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-26 18:25:00.796 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-26 18:25:09.954 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-26 18:25:12.314 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-26 18:26:40.295 | INFO     | app.services.vision_service:analyze_video_for_server:176 - ✅ YOLO Extraction Done. Starting Kalman & Filtering...
+2026-04-26 18:26:40.330 | INFO     | app.services.vision_service:analyze_video_for_server:249 - 🏁 Video Pipeline Complete. Total valid events: 0
+2026-04-26 18:26:40.373 | INFO     | app.services.vector_builder:build_feature_vector:11 - 🧬 Building Multi-Object Vector with Dead Reckoning (FOV handling)...
+2026-04-26 18:26:40.494 | WARNING  | app.services.vector_builder:build_feature_vector:27 - ⚠️ No video events. Returning clean sensor vector.
+2026-04-26 18:26:40.574 | INFO     | app.routes.test_routes:evaluate_test:172 - Running M8 Production Model on 43 windows...
+2026-04-26 18:26:43.315 | INFO     | app.routes.test_routes:evaluate_test:205 - 🎯 Evaluation Complete. Grade: 80
+2026-04-26 19:57:38.847 | INFO     | main:shutdown_event:20 -  Server Shutting Down
+2026-04-26 19:57:38.917 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-04-27 00:22:26.179 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 00:22:43.657 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 00:22:44.284 | INFO     | main:lifespan:13 -  Server Starting Up
+2026-04-27 00:22:45.059 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-04-27 00:25:40.643 | INFO     | app.routes.test_routes:load_ai_models:112 - Loading Scaler and M8 Attention Production Model...
+2026-04-27 00:25:42.402 | INFO     | app.routes.test_routes:load_ai_models:118 - M8 Production Model & Scaler Loaded Successfully.
+2026-04-27 00:25:42.415 | INFO     | app.routes.test_routes:evaluate_test:150 - Starting analysis for Test TEST_1777238738453...
+2026-04-27 00:25:42.417 | INFO     | app.services.sensor_sync:process_sensor_json:10 - 🔄 Processing sensor data from: temp_f36a912b-e73b-4b53-9306-5ee0278fc36f.json
+2026-04-27 00:25:42.471 | INFO     | app.services.sensor_sync:process_sensor_json:29 - ⏱️ Resampling data to exactly 10Hz (100ms intervals)
+2026-04-27 00:25:42.496 | INFO     | app.services.sensor_sync:process_sensor_json:49 - ✅ Sensor processing complete. Total 10Hz rows: 62
+2026-04-27 00:25:42.498 | INFO     | app.services.vision_service:analyze_video_for_server:150 - 🎥 Starting Video Analysis Pipeline...
+2026-04-27 00:25:42.860 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-04-27 00:26:30.732 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 00:26:30.856 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 00:26:30.800 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 00:26:30.956 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 00:26:30.916 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 00:26:31.004 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 00:26:31.013 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 00:26:31.288 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 00:26:31.683 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 00:26:31.856 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 00:26:31.856 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 00:26:33.434 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 00:26:51.706 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 00:27:16.089 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 00:27:33.202 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 00:27:34.534 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 00:27:35.658 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 00:27:36.228 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 00:27:38.154 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 00:27:40.435 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 00:28:57.198 | INFO     | app.services.vision_service:analyze_video_for_server:176 - ✅ YOLO Extraction Done. Starting Kalman & Filtering...
+2026-04-27 00:28:57.223 | INFO     | app.services.vision_service:analyze_video_for_server:249 - 🏁 Video Pipeline Complete. Total valid events: 0
+2026-04-27 00:28:57.241 | INFO     | app.services.vector_builder:build_feature_vector:17 - 🧬 Building Multi-Object Vector with Dead Reckoning (FOV handling)...
+2026-04-27 00:28:57.309 | WARNING  | app.services.vector_builder:build_feature_vector:36 - ⚠️ No video events. Returning clean sensor vector.
+2026-04-27 00:28:57.387 | INFO     | app.routes.test_routes:evaluate_test:190 - Running M8 Production Model on 33 windows...
+2026-04-27 00:28:59.773 | INFO     | app.routes.test_routes:evaluate_test:276 - 🎯 Evaluation Complete. Grade: 100 | Violation Events: 0 | Violation Types: []
+2026-04-27 00:31:58.706 | INFO     | main:lifespan:17 -  Server Shutting Down
+2026-04-27 00:31:58.805 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-04-27 01:55:24.677 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 01:55:39.339 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 01:55:39.889 | INFO     | main:lifespan:13 -  Server Starting Up
+2026-04-27 01:55:40.139 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-04-27 01:56:53.693 | INFO     | app.routes.test_routes:load_ai_models:112 - Loading Scaler and M8 Attention Production Model...
+2026-04-27 01:56:54.390 | INFO     | app.routes.test_routes:load_ai_models:118 - M8 Production Model & Scaler Loaded Successfully.
+2026-04-27 01:56:54.406 | INFO     | app.routes.test_routes:evaluate_test:150 - Starting analysis for Test TEST_1777244211763...
+2026-04-27 01:56:54.408 | INFO     | app.services.sensor_sync:process_sensor_json:10 - 🔄 Processing sensor data from: temp_662033fe-34d4-4e1a-9554-ba97ca72abe6.json
+2026-04-27 01:56:54.451 | INFO     | app.services.sensor_sync:process_sensor_json:29 - ⏱️ Resampling data to exactly 10Hz (100ms intervals)
+2026-04-27 01:56:54.468 | INFO     | app.services.sensor_sync:process_sensor_json:49 - ✅ Sensor processing complete. Total 10Hz rows: 149
+2026-04-27 01:56:54.470 | INFO     | app.services.vision_service:analyze_video_for_server:150 - 🎥 Starting Video Analysis Pipeline...
+2026-04-27 01:56:54.580 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-04-27 01:57:44.969 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 01:57:44.968 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 01:57:44.989 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 01:57:45.296 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 01:57:45.385 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 01:57:49.856 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 01:57:52.520 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 01:57:53.994 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 01:57:54.477 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 01:57:55.085 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 01:57:57.377 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 01:58:01.019 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 01:58:01.145 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 01:58:01.448 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 01:58:03.173 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 01:58:04.908 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 01:58:16.004 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 01:58:50.336 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 01:59:15.825 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 01:59:16.258 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:01:24.504 | INFO     | app.services.vision_service:analyze_video_for_server:176 - ✅ YOLO Extraction Done. Starting Kalman & Filtering...
+2026-04-27 02:01:24.818 | INFO     | app.services.vision_service:analyze_video_for_server:249 - 🏁 Video Pipeline Complete. Total valid events: 3
+2026-04-27 02:01:24.841 | INFO     | app.services.vector_builder:build_feature_vector:17 - 🧬 Building Multi-Object Vector with Dead Reckoning (FOV handling)...
+2026-04-27 02:01:25.009 | INFO     | app.services.vector_builder:build_feature_vector:114 - ✅ Multi-Object Vector Built. Dimensions: (149, 15), Features order: ['speed_kmh', 'jerk', 'car_distance', 'car_ttc', 'sign_type', 'sign_distance', 'sign_ttc']
+2026-04-27 02:01:25.043 | INFO     | app.routes.test_routes:evaluate_test:190 - Running M8 Production Model on 120 windows...
+2026-04-27 02:01:26.768 | INFO     | app.routes.test_routes:evaluate_test:276 - 🎯 Evaluation Complete. Grade: 100 | Violation Events: 0 | Violation Types: []
+2026-04-27 02:09:56.433 | INFO     | app.routes.test_routes:evaluate_test:150 - Starting analysis for Test TEST_1777244994665...
+2026-04-27 02:09:56.459 | INFO     | app.services.sensor_sync:process_sensor_json:10 - 🔄 Processing sensor data from: temp_fcae4139-c758-4bb5-ac08-2068abd0d1ef.json
+2026-04-27 02:09:56.845 | INFO     | app.services.sensor_sync:process_sensor_json:29 - ⏱️ Resampling data to exactly 10Hz (100ms intervals)
+2026-04-27 02:09:57.102 | INFO     | app.services.sensor_sync:process_sensor_json:49 - ✅ Sensor processing complete. Total 10Hz rows: 70
+2026-04-27 02:09:57.106 | INFO     | app.services.vision_service:analyze_video_for_server:150 - 🎥 Starting Video Analysis Pipeline...
+2026-04-27 02:09:57.326 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-04-27 02:11:15.514 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:11:15.516 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:11:15.779 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:11:17.643 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:11:17.690 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:11:23.076 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:11:23.210 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:11:23.332 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:11:31.939 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:11:35.085 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:11:38.047 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:11:59.208 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:12:04.814 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:12:14.344 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:12:25.761 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:12:27.189 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:12:27.326 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:12:27.623 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:12:51.840 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:14:04.419 | INFO     | app.services.vision_service:analyze_video_for_server:176 - ✅ YOLO Extraction Done. Starting Kalman & Filtering...
+2026-04-27 02:14:04.809 | INFO     | app.services.vision_service:analyze_video_for_server:249 - 🏁 Video Pipeline Complete. Total valid events: 4
+2026-04-27 02:14:04.833 | INFO     | app.services.vector_builder:build_feature_vector:17 - 🧬 Building Multi-Object Vector with Dead Reckoning (FOV handling)...
+2026-04-27 02:14:04.968 | INFO     | app.services.vector_builder:build_feature_vector:114 - ✅ Multi-Object Vector Built. Dimensions: (70, 15), Features order: ['speed_kmh', 'jerk', 'car_distance', 'car_ttc', 'sign_type', 'sign_distance', 'sign_ttc']
+2026-04-27 02:14:04.999 | INFO     | app.routes.test_routes:evaluate_test:190 - Running M8 Production Model on 41 windows...
+2026-04-27 02:14:06.317 | INFO     | app.routes.test_routes:evaluate_test:276 - 🎯 Evaluation Complete. Grade: 100 | Violation Events: 0 | Violation Types: []
+2026-04-27 02:15:57.308 | INFO     | app.routes.test_routes:evaluate_test:150 - Starting analysis for Test TEST_1777245355873...
+2026-04-27 02:15:57.310 | INFO     | app.services.sensor_sync:process_sensor_json:10 - 🔄 Processing sensor data from: temp_f1b038c3-54e3-4c7f-8ee9-b5003a63d459.json
+2026-04-27 02:15:57.349 | INFO     | app.services.sensor_sync:process_sensor_json:29 - ⏱️ Resampling data to exactly 10Hz (100ms intervals)
+2026-04-27 02:15:57.369 | INFO     | app.services.sensor_sync:process_sensor_json:49 - ✅ Sensor processing complete. Total 10Hz rows: 51
+2026-04-27 02:15:57.371 | INFO     | app.services.vision_service:analyze_video_for_server:150 - 🎥 Starting Video Analysis Pipeline...
+2026-04-27 02:15:57.483 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-04-27 02:16:51.533 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:16:51.574 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:16:51.536 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:16:51.536 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:16:51.533 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:16:51.575 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:16:51.574 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:16:51.578 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:16:51.579 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:16:51.581 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:16:51.584 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:16:51.751 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:16:59.172 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:16:59.567 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:17:00.335 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:17:14.312 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:17:25.408 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:17:27.876 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:18:00.723 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:18:00.962 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:18:01.341 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:18:31.419 | INFO     | app.services.vision_service:analyze_video_for_server:176 - ✅ YOLO Extraction Done. Starting Kalman & Filtering...
+2026-04-27 02:18:31.620 | INFO     | app.services.vision_service:analyze_video_for_server:249 - 🏁 Video Pipeline Complete. Total valid events: 5
+2026-04-27 02:18:31.669 | INFO     | app.services.vector_builder:build_feature_vector:17 - 🧬 Building Multi-Object Vector with Dead Reckoning (FOV handling)...
+2026-04-27 02:18:31.805 | INFO     | app.services.vector_builder:build_feature_vector:114 - ✅ Multi-Object Vector Built. Dimensions: (51, 15), Features order: ['speed_kmh', 'jerk', 'car_distance', 'car_ttc', 'sign_type', 'sign_distance', 'sign_ttc']
+2026-04-27 02:18:31.815 | INFO     | app.routes.test_routes:evaluate_test:190 - Running M8 Production Model on 22 windows...
+2026-04-27 02:18:32.937 | INFO     | app.routes.test_routes:evaluate_test:276 - 🎯 Evaluation Complete. Grade: 100 | Violation Events: 0 | Violation Types: []
+2026-04-27 02:30:41.996 | INFO     | app.routes.test_routes:evaluate_test:150 - Starting analysis for Test TEST_1777246240761...
+2026-04-27 02:30:42.007 | INFO     | app.services.sensor_sync:process_sensor_json:10 - 🔄 Processing sensor data from: temp_4e795f9b-6fa6-4ec6-9799-4d350f4d30d3.json
+2026-04-27 02:30:42.262 | INFO     | app.services.sensor_sync:process_sensor_json:29 - ⏱️ Resampling data to exactly 10Hz (100ms intervals)
+2026-04-27 02:30:42.414 | INFO     | app.services.sensor_sync:process_sensor_json:49 - ✅ Sensor processing complete. Total 10Hz rows: 50
+2026-04-27 02:30:42.426 | INFO     | app.services.vision_service:analyze_video_for_server:150 - 🎥 Starting Video Analysis Pipeline...
+2026-04-27 02:30:43.480 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-04-27 02:32:12.086 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:32:12.087 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:32:12.100 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:32:12.132 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:32:12.138 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:32:12.136 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:32:12.198 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:32:12.217 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:32:12.221 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:32:12.246 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:32:12.218 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:32:12.278 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:32:12.338 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:32:12.360 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:32:12.364 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:32:12.371 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:32:12.370 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:32:12.385 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:32:12.389 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:32:14.962 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:32:20.078 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:34:46.784 | INFO     | app.services.vision_service:analyze_video_for_server:176 - ✅ YOLO Extraction Done. Starting Kalman & Filtering...
+2026-04-27 02:34:47.023 | INFO     | app.services.vision_service:analyze_video_for_server:249 - 🏁 Video Pipeline Complete. Total valid events: 6
+2026-04-27 02:34:47.050 | INFO     | app.services.vector_builder:build_feature_vector:17 - 🧬 Building Multi-Object Vector with Dead Reckoning (FOV handling)...
+2026-04-27 02:34:47.164 | INFO     | app.services.vector_builder:build_feature_vector:114 - ✅ Multi-Object Vector Built. Dimensions: (50, 15), Features order: ['speed_kmh', 'jerk', 'car_distance', 'car_ttc', 'sign_type', 'sign_distance', 'sign_ttc']
+2026-04-27 02:34:47.179 | INFO     | app.routes.test_routes:evaluate_test:190 - Running M8 Production Model on 21 windows...
+2026-04-27 02:34:47.912 | INFO     | app.routes.test_routes:evaluate_test:276 - 🎯 Evaluation Complete. Grade: 100 | Violation Events: 0 | Violation Types: []
+2026-04-27 02:34:56.405 | INFO     | app.routes.student_routes:list_students:51 - 📋 Listed 0 students for jonhanak1@gmail.com
+2026-04-27 02:35:11.616 | INFO     | app.routes.student_routes:create_student:28 - ➕ New student: elad (216312345) added by jonhanak1@gmail.com
+2026-04-27 02:35:11.827 | INFO     | app.routes.test_routes:save_test:335 - 💾 Test saved | student: elad (216312345) | grade: 100 | by: jonhanak1@gmail.com
+2026-04-27 02:44:20.920 | INFO     | main:lifespan:17 -  Server Shutting Down
+2026-04-27 02:44:20.930 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-04-27 02:45:38.833 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:45:58.369 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:45:59.033 | INFO     | main:lifespan:13 -  Server Starting Up
+2026-04-27 02:45:59.233 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-04-27 02:54:09.684 | INFO     | app.routes.test_routes:load_ai_models:112 - Loading Scaler and M8 Attention Production Model...
+2026-04-27 02:54:10.734 | INFO     | app.routes.test_routes:load_ai_models:118 - M8 Production Model & Scaler Loaded Successfully.
+2026-04-27 02:54:10.791 | INFO     | app.routes.test_routes:evaluate_test:150 - Starting analysis for Test TEST_1777247647208...
+2026-04-27 02:54:10.794 | INFO     | app.services.sensor_sync:process_sensor_json:10 - 🔄 Processing sensor data from: temp_73d822c7-a893-4048-9375-40a9bed17899.json
+2026-04-27 02:54:10.834 | INFO     | app.services.sensor_sync:process_sensor_json:29 - ⏱️ Resampling data to exactly 10Hz (100ms intervals)
+2026-04-27 02:54:10.848 | INFO     | app.services.sensor_sync:process_sensor_json:49 - ✅ Sensor processing complete. Total 10Hz rows: 328
+2026-04-27 02:54:10.849 | INFO     | app.services.vision_service:analyze_video_for_server:150 - 🎥 Starting Video Analysis Pipeline...
+2026-04-27 02:54:10.972 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-04-27 02:55:18.224 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:55:18.222 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:55:18.305 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:55:18.305 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:55:19.906 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:55:23.837 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:55:44.013 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:55:52.004 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:55:54.889 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:55:57.438 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:56:02.388 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:56:30.391 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:56:31.650 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:56:32.288 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:56:39.686 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:56:40.716 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:56:41.679 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 02:56:50.020 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 03:02:26.599 | INFO     | app.services.vision_service:analyze_video_for_server:176 - ✅ YOLO Extraction Done. Starting Kalman & Filtering...
+2026-04-27 03:02:27.714 | INFO     | app.services.vision_service:analyze_video_for_server:249 - 🏁 Video Pipeline Complete. Total valid events: 80
+2026-04-27 03:17:32.441 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 03:17:32.816 | INFO     | main:lifespan:13 -  Server Starting Up
+2026-04-27 03:17:32.920 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-04-27 03:17:33.137 | INFO     | main:lifespan:17 -  Server Shutting Down
+2026-04-27 03:17:33.148 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-04-27 03:17:44.637 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 03:17:44.944 | INFO     | main:lifespan:13 -  Server Starting Up
+2026-04-27 03:17:44.988 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-04-27 03:18:03.444 | INFO     | main:lifespan:17 -  Server Shutting Down
+2026-04-27 03:18:03.445 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-04-27 03:18:13.839 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 03:18:14.148 | INFO     | main:lifespan:13 -  Server Starting Up
+2026-04-27 03:18:14.183 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-04-27 03:24:08.028 | INFO     | main:lifespan:17 -  Server Shutting Down
+2026-04-27 03:24:08.030 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-04-27 03:24:39.553 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 03:24:39.900 | INFO     | main:lifespan:13 -  Server Starting Up
+2026-04-27 03:24:39.936 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-04-27 03:24:46.803 | INFO     | main:lifespan:17 -  Server Shutting Down
+2026-04-27 03:24:46.806 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-04-27 03:25:10.883 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 03:25:11.303 | INFO     | main:lifespan:13 -  Server Starting Up
+2026-04-27 03:25:11.431 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-04-27 03:29:11.725 | INFO     | app.routes.test_routes:load_ai_models:112 - Loading Scaler and M8 Attention Production Model...
+2026-04-27 03:29:12.507 | INFO     | app.routes.test_routes:load_ai_models:118 - M8 Production Model & Scaler Loaded Successfully.
+2026-04-27 03:29:12.511 | INFO     | app.routes.test_routes:evaluate_test:159 - 📹 Video saved: 2.9 MB
+2026-04-27 03:29:12.512 | INFO     | app.routes.test_routes:evaluate_test:174 - 📊 Sensors saved: 4.1 KB
+2026-04-27 03:29:12.512 | INFO     | app.routes.test_routes:evaluate_test:179 - Starting analysis for Test TEST_1777249750487...
+2026-04-27 03:29:12.513 | INFO     | app.services.sensor_sync:process_sensor_json:13 - 🔄 Processing sensor data from: temp_b4ed30c3-09cf-4969-96bb-cf67e910510b.json
+2026-04-27 03:29:12.524 | INFO     | app.services.sensor_sync:process_sensor_json:26 - 🎥 Video starts 208ms after sensors - will align timestamps
+2026-04-27 03:29:12.540 | INFO     | app.services.sensor_sync:process_sensor_json:38 - ⏱️ Resampling data to exactly 10Hz (100ms intervals)
+2026-04-27 03:29:12.554 | INFO     | app.services.sensor_sync:process_sensor_json:57 - 🗑️ Dropped 2 sensor rows recorded before video started
+2026-04-27 03:29:12.555 | INFO     | app.services.sensor_sync:process_sensor_json:64 - ✅ Sensor processing complete. Total 10Hz rows: 29
+2026-04-27 03:29:12.556 | INFO     | app.services.vision_service:analyze_video_for_server:150 - 🎥 Starting Video Analysis Pipeline...
+2026-04-27 03:29:12.675 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-04-27 03:29:32.791 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 03:29:32.791 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 03:29:32.791 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 03:29:32.795 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 03:30:03.080 | INFO     | app.services.vision_service:analyze_video_for_server:178 - ✅ YOLO Extraction Done. Starting Kalman & Filtering...
+2026-04-27 03:30:03.114 | INFO     | app.services.vision_service:analyze_video_for_server:251 - 🏁 Video Pipeline Complete. Total valid events: 0
+2026-04-27 03:30:03.123 | INFO     | app.services.vector_builder:build_feature_vector:17 - 🧬 Building Multi-Object Vector with Dead Reckoning (FOV handling)...
+2026-04-27 03:30:03.133 | WARNING  | app.services.vector_builder:build_feature_vector:36 - ⚠️ No video events. Returning clean sensor vector.
+2026-04-27 03:30:03.141 | INFO     | app.routes.test_routes:evaluate_test:305 - 🎯 Evaluation Complete. Grade: 100 | Violation Events: 0 | Violation Types: []
+2026-04-27 03:30:12.495 | INFO     | app.routes.student_routes:list_students:51 - 📋 Listed 1 students for jonhanak1@gmail.com
+2026-04-27 03:30:13.930 | INFO     | app.routes.test_routes:save_test:383 - 💾 Test saved | student: elad (216312345) | grade: 100 | by: jonhanak1@gmail.com
+2026-04-27 03:34:30.145 | INFO     | app.routes.test_routes:evaluate_test:159 - 📹 Video saved: 3.9 MB
+2026-04-27 03:34:30.146 | INFO     | app.routes.test_routes:evaluate_test:174 - 📊 Sensors saved: 5.7 KB
+2026-04-27 03:34:30.146 | INFO     | app.routes.test_routes:evaluate_test:179 - Starting analysis for Test TEST_1777250068967...
+2026-04-27 03:34:30.146 | INFO     | app.services.sensor_sync:process_sensor_json:13 - 🔄 Processing sensor data from: temp_1e438227-c0bd-41cd-afc6-27fd4a15fb86.json
+2026-04-27 03:34:30.154 | INFO     | app.services.sensor_sync:process_sensor_json:26 - 🎥 Video starts 207ms after sensors - will align timestamps
+2026-04-27 03:34:30.157 | INFO     | app.services.sensor_sync:process_sensor_json:38 - ⏱️ Resampling data to exactly 10Hz (100ms intervals)
+2026-04-27 03:34:30.174 | INFO     | app.services.sensor_sync:process_sensor_json:57 - 🗑️ Dropped 2 sensor rows recorded before video started
+2026-04-27 03:34:30.175 | INFO     | app.services.sensor_sync:process_sensor_json:64 - ✅ Sensor processing complete. Total 10Hz rows: 41
+2026-04-27 03:34:30.175 | INFO     | app.services.vision_service:analyze_video_for_server:150 - 🎥 Starting Video Analysis Pipeline...
+2026-04-27 03:34:30.199 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-04-27 03:34:42.979 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 03:34:42.980 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 03:34:42.989 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-27 03:35:18.385 | INFO     | app.services.vision_service:analyze_video_for_server:178 - ✅ YOLO Extraction Done. Starting Kalman & Filtering...
+2026-04-27 03:35:18.435 | INFO     | app.services.vision_service:analyze_video_for_server:251 - 🏁 Video Pipeline Complete. Total valid events: 6
+2026-04-27 03:35:18.437 | INFO     | app.services.vector_builder:build_feature_vector:17 - 🧬 Building Multi-Object Vector with Dead Reckoning (FOV handling)...
+2026-04-27 03:35:18.529 | INFO     | app.services.vector_builder:build_feature_vector:114 - ✅ Multi-Object Vector Built. Dimensions: (41, 15), Features order: ['speed_kmh', 'jerk', 'car_distance', 'car_ttc', 'sign_type', 'sign_distance', 'sign_ttc']
+2026-04-27 03:35:18.534 | INFO     | app.routes.test_routes:evaluate_test:219 - Running M8 Production Model on 12 windows...
+2026-04-27 03:35:19.279 | INFO     | app.routes.test_routes:evaluate_test:305 - 🎯 Evaluation Complete. Grade: 100 | Violation Events: 0 | Violation Types: []
+2026-04-27 03:35:21.769 | INFO     | app.routes.student_routes:list_students:51 - 📋 Listed 1 students for jonhanak1@gmail.com
+2026-04-27 03:35:28.423 | INFO     | app.routes.student_routes:create_student:28 - ➕ New student: ffdf (5565883) added by jonhanak1@gmail.com
+2026-04-27 03:35:28.480 | INFO     | app.routes.test_routes:save_test:383 - 💾 Test saved | student: ffdf (5565883) | grade: 100 | by: jonhanak1@gmail.com
+2026-04-28 00:12:58.284 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 00:12:58.772 | INFO     | main:lifespan:13 -  Server Starting Up
+2026-04-28 00:12:59.217 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-04-28 02:21:59.145 | INFO     | main:lifespan:17 -  Server Shutting Down
+2026-04-28 02:21:59.205 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-04-28 02:22:34.734 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 02:22:35.222 | INFO     | main:lifespan:13 -  Server Starting Up
+2026-04-28 02:22:35.349 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-04-28 02:45:21.972 | INFO     | app.routes.test_routes:load_ai_models:112 - Loading Scaler and M8 Attention Production Model...
+2026-04-28 02:45:25.285 | INFO     | app.routes.test_routes:load_ai_models:118 - M8 Production Model & Scaler Loaded Successfully.
+2026-04-28 02:45:25.536 | INFO     | app.routes.test_routes:evaluate_test:159 - 📹 Video saved: 103.4 MB
+2026-04-28 02:45:25.540 | INFO     | app.routes.test_routes:evaluate_test:174 - 📊 Sensors saved: 116.5 KB
+2026-04-28 02:45:25.542 | INFO     | app.routes.test_routes:evaluate_test:179 - Starting analysis for Test TEST_1777333512413...
+2026-04-28 02:45:25.552 | INFO     | app.services.sensor_sync:process_sensor_json:13 - 🔄 Processing sensor data from: temp_b9444999-45fb-4b9d-946d-347c522f71b6.json
+2026-04-28 02:45:25.582 | INFO     | app.services.sensor_sync:process_sensor_json:26 - 🎥 Video starts 547ms after sensors - will align timestamps
+2026-04-28 02:45:25.688 | INFO     | app.services.sensor_sync:process_sensor_json:38 - ⏱️ Resampling data to exactly 10Hz (100ms intervals)
+2026-04-28 02:45:25.757 | INFO     | app.services.sensor_sync:process_sensor_json:57 - 🗑️ Dropped 5 sensor rows recorded before video started
+2026-04-28 02:45:25.762 | INFO     | app.services.sensor_sync:process_sensor_json:64 - ✅ Sensor processing complete. Total 10Hz rows: 965
+2026-04-28 02:45:25.767 | INFO     | app.services.vision_service:analyze_video_for_server:150 - 🎥 Starting Video Analysis Pipeline...
+2026-04-28 02:45:26.489 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-04-28 02:45:46.056 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 02:45:46.056 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 02:45:46.057 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 02:45:46.058 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 02:50:19.954 | INFO     | app.routes.test_routes:evaluate_test:159 - 📹 Video saved: 103.4 MB
+2026-04-28 02:50:19.957 | INFO     | app.routes.test_routes:evaluate_test:174 - 📊 Sensors saved: 116.5 KB
+2026-04-28 02:50:19.957 | INFO     | app.routes.test_routes:evaluate_test:179 - Starting analysis for Test TEST_1777333815631...
+2026-04-28 02:50:19.958 | INFO     | app.services.sensor_sync:process_sensor_json:13 - 🔄 Processing sensor data from: temp_7efa4d01-60a3-49a8-afb5-8a75d2c3618c.json
+2026-04-28 02:50:19.981 | INFO     | app.services.sensor_sync:process_sensor_json:26 - 🎥 Video starts 547ms after sensors - will align timestamps
+2026-04-28 02:50:20.007 | INFO     | app.services.sensor_sync:process_sensor_json:38 - ⏱️ Resampling data to exactly 10Hz (100ms intervals)
+2026-04-28 02:50:20.020 | INFO     | app.services.sensor_sync:process_sensor_json:57 - 🗑️ Dropped 5 sensor rows recorded before video started
+2026-04-28 02:50:20.022 | INFO     | app.services.sensor_sync:process_sensor_json:64 - ✅ Sensor processing complete. Total 10Hz rows: 965
+2026-04-28 02:50:20.024 | INFO     | app.services.vision_service:analyze_video_for_server:150 - 🎥 Starting Video Analysis Pipeline...
+2026-04-28 02:50:20.143 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-04-28 02:50:45.611 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 02:50:48.475 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 02:50:48.508 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 02:50:53.454 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 02:55:56.953 | INFO     | app.routes.test_routes:evaluate_test:159 - 📹 Video saved: 4.0 MB
+2026-04-28 02:55:56.958 | INFO     | app.routes.test_routes:evaluate_test:174 - 📊 Sensors saved: 5.1 KB
+2026-04-28 02:55:56.961 | INFO     | app.routes.test_routes:evaluate_test:179 - Starting analysis for Test TEST_1777334155020...
+2026-04-28 02:55:56.994 | INFO     | app.services.sensor_sync:process_sensor_json:13 - 🔄 Processing sensor data from: temp_bbd40b65-1ef7-40ab-af19-939a1401bdec.json
+2026-04-28 02:55:57.020 | INFO     | app.services.sensor_sync:process_sensor_json:26 - 🎥 Video starts 177ms after sensors - will align timestamps
+2026-04-28 02:55:57.026 | INFO     | app.services.sensor_sync:process_sensor_json:38 - ⏱️ Resampling data to exactly 10Hz (100ms intervals)
+2026-04-28 02:55:57.054 | INFO     | app.services.sensor_sync:process_sensor_json:57 - 🗑️ Dropped 1 sensor rows recorded before video started
+2026-04-28 02:55:57.060 | INFO     | app.services.sensor_sync:process_sensor_json:64 - ✅ Sensor processing complete. Total 10Hz rows: 43
+2026-04-28 02:55:57.061 | INFO     | app.services.vision_service:analyze_video_for_server:150 - 🎥 Starting Video Analysis Pipeline...
+2026-04-28 02:55:57.153 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-04-28 02:56:23.299 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 02:56:34.313 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 02:56:52.810 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 02:57:01.582 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 02:58:24.258 | INFO     | app.services.vision_service:analyze_video_for_server:178 - ✅ YOLO Extraction Done. Starting Kalman & Filtering...
+2026-04-28 02:58:24.273 | INFO     | app.services.vision_service:analyze_video_for_server:251 - 🏁 Video Pipeline Complete. Total valid events: 0
+2026-04-28 02:58:24.314 | INFO     | app.services.vector_builder:build_feature_vector:17 - 🧬 Building Multi-Object Vector with Dead Reckoning (FOV handling)...
+2026-04-28 02:58:24.424 | WARNING  | app.services.vector_builder:build_feature_vector:36 - ⚠️ No video events. Returning clean sensor vector.
+2026-04-28 02:58:24.638 | INFO     | app.routes.test_routes:evaluate_test:219 - Running M8 Production Model on 14 windows...
+2026-04-28 02:58:27.646 | INFO     | app.routes.test_routes:evaluate_test:305 - 🎯 Evaluation Complete. Grade: 100 | Violation Events: 0 | Violation Types: []
+2026-04-28 02:58:57.428 | INFO     | app.routes.student_routes:list_students:51 - 📋 Listed 2 students for jonhanak1@gmail.com
+2026-04-28 02:59:01.212 | INFO     | app.routes.test_routes:save_test:383 - 💾 Test saved | student: elad (216312345) | grade: 100 | by: jonhanak1@gmail.com
+2026-04-28 03:00:48.959 | INFO     | app.routes.test_routes:evaluate_test:159 - 📹 Video saved: 38.2 MB
+2026-04-28 03:00:48.962 | INFO     | app.routes.test_routes:evaluate_test:174 - 📊 Sensors saved: 43.3 KB
+2026-04-28 03:00:48.963 | INFO     | app.routes.test_routes:evaluate_test:179 - Starting analysis for Test TEST_1777334445796...
+2026-04-28 03:00:48.966 | INFO     | app.services.sensor_sync:process_sensor_json:13 - 🔄 Processing sensor data from: temp_e52bd123-7fac-4307-8c85-7007ab4e088e.json
+2026-04-28 03:00:48.996 | INFO     | app.services.sensor_sync:process_sensor_json:26 - 🎥 Video starts 219ms after sensors - will align timestamps
+2026-04-28 03:00:49.005 | INFO     | app.services.sensor_sync:process_sensor_json:38 - ⏱️ Resampling data to exactly 10Hz (100ms intervals)
+2026-04-28 03:00:49.018 | INFO     | app.services.sensor_sync:process_sensor_json:57 - 🗑️ Dropped 2 sensor rows recorded before video started
+2026-04-28 03:00:49.020 | INFO     | app.services.sensor_sync:process_sensor_json:64 - ✅ Sensor processing complete. Total 10Hz rows: 359
+2026-04-28 03:00:49.021 | INFO     | app.services.vision_service:analyze_video_for_server:150 - 🎥 Starting Video Analysis Pipeline...
+2026-04-28 03:00:49.153 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-04-28 03:01:15.366 | INFO     | app.services.vision_service:worker_yolo_extraction:89 - YOLO STARTING
+2026-04-28 03:01:20.916 | INFO     | app.services.vision_service:worker_yolo_extraction:89 - YOLO STARTING
+2026-04-28 03:01:24.197 | INFO     | app.services.vision_service:worker_yolo_extraction:89 - YOLO STARTING
+2026-04-28 03:01:24.894 | INFO     | app.services.vision_service:worker_yolo_extraction:89 - YOLO STARTING
+2026-04-28 03:04:47.314 | INFO     | app.services.vision_service:analyze_video_for_server:178 - ✅ YOLO Extraction Done. Starting Kalman & Filtering...
+2026-04-28 03:04:49.477 | INFO     | app.services.vision_service:analyze_video_for_server:251 - 🏁 Video Pipeline Complete. Total valid events: 164
+2026-04-28 03:04:49.482 | INFO     | app.services.vector_builder:build_feature_vector:17 - 🧬 Building Multi-Object Vector with Dead Reckoning (FOV handling)...
+2026-04-28 03:04:50.429 | INFO     | app.services.vector_builder:build_feature_vector:114 - ✅ Multi-Object Vector Built. Dimensions: (965, 15), Features order: ['speed_kmh', 'jerk', 'car_distance', 'car_ttc', 'sign_type', 'sign_distance', 'sign_ttc']
+2026-04-28 03:04:50.440 | INFO     | app.routes.test_routes:evaluate_test:219 - Running M8 Production Model on 936 windows...
+2026-04-28 03:04:52.114 | INFO     | app.routes.test_routes:evaluate_test:305 - 🎯 Evaluation Complete. Grade: 0 | Violation Events: 20 | Violation Types: [2, 3, 4]
+2026-04-28 03:05:51.404 | INFO     | app.routes.test_routes:evaluate_test:159 - 📹 Video saved: 38.2 MB
+2026-04-28 03:05:51.416 | INFO     | app.routes.test_routes:evaluate_test:174 - 📊 Sensors saved: 43.3 KB
+2026-04-28 03:05:51.418 | INFO     | app.routes.test_routes:evaluate_test:179 - Starting analysis for Test TEST_1777334748822...
+2026-04-28 03:05:51.419 | INFO     | app.services.sensor_sync:process_sensor_json:13 - 🔄 Processing sensor data from: temp_78a8bf5b-d155-4df0-a4b0-d019014e39e5.json
+2026-04-28 03:05:51.454 | INFO     | app.services.sensor_sync:process_sensor_json:26 - 🎥 Video starts 219ms after sensors - will align timestamps
+2026-04-28 03:05:51.463 | INFO     | app.services.sensor_sync:process_sensor_json:38 - ⏱️ Resampling data to exactly 10Hz (100ms intervals)
+2026-04-28 03:05:51.481 | INFO     | app.services.sensor_sync:process_sensor_json:57 - 🗑️ Dropped 2 sensor rows recorded before video started
+2026-04-28 03:05:51.483 | INFO     | app.services.sensor_sync:process_sensor_json:64 - ✅ Sensor processing complete. Total 10Hz rows: 359
+2026-04-28 03:05:51.484 | INFO     | app.services.vision_service:analyze_video_for_server:150 - 🎥 Starting Video Analysis Pipeline...
+2026-04-28 03:05:51.630 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-04-28 03:06:19.015 | INFO     | app.services.vision_service:worker_yolo_extraction:89 - YOLO STARTING
+2026-04-28 03:06:35.441 | INFO     | app.services.vision_service:worker_yolo_extraction:89 - YOLO STARTING
+2026-04-28 03:06:45.692 | INFO     | app.services.vision_service:worker_yolo_extraction:89 - YOLO STARTING
+2026-04-28 03:07:08.507 | INFO     | app.services.vision_service:worker_yolo_extraction:89 - YOLO STARTING
+2026-04-28 03:10:06.652 | WARNING  | app.routes.test_routes:evaluate_test:324 - ⚠️ Test TEST_1777333815631 cancelled by client (network drop?)
+2026-04-28 03:10:06.753 | WARNING  | app.routes.test_routes:evaluate_test:324 - ⚠️ Test TEST_1777334445796 cancelled by client (network drop?)
+2026-04-28 03:36:34.188 | INFO     | main:lifespan:13 -  Server Starting Up
+2026-04-28 03:36:35.087 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-04-28 03:39:21.354 | INFO     | app.routes.test_routes:load_ai_models:112 - Loading Scaler and M8 Attention Production Model...
+2026-04-28 03:39:22.988 | INFO     | app.routes.test_routes:load_ai_models:118 - M8 Production Model & Scaler Loaded Successfully.
+2026-04-28 03:39:23.052 | INFO     | app.routes.test_routes:evaluate_test:159 - 📹 Video saved: 36.9 MB
+2026-04-28 03:39:23.054 | INFO     | app.routes.test_routes:evaluate_test:174 - 📊 Sensors saved: 42.0 KB
+2026-04-28 03:39:23.054 | INFO     | app.routes.test_routes:evaluate_test:179 - Starting analysis for Test TEST_1777336757719...
+2026-04-28 03:39:23.056 | INFO     | app.services.sensor_sync:process_sensor_json:13 - 🔄 Processing sensor data from: temp_b5f7cf99-d0ed-4a97-b24e-3e443fc0589d.json
+2026-04-28 03:39:23.100 | INFO     | app.services.sensor_sync:process_sensor_json:26 - 🎥 Video starts 541ms after sensors - will align timestamps
+2026-04-28 03:39:23.128 | INFO     | app.services.sensor_sync:process_sensor_json:38 - ⏱️ Resampling data to exactly 10Hz (100ms intervals)
+2026-04-28 03:39:23.145 | INFO     | app.services.sensor_sync:process_sensor_json:57 - 🗑️ Dropped 4 sensor rows recorded before video started
+2026-04-28 03:39:23.147 | INFO     | app.services.sensor_sync:process_sensor_json:64 - ✅ Sensor processing complete. Total 10Hz rows: 346
+2026-04-28 03:39:23.147 | INFO     | app.services.vision_service:analyze_video_for_server:151 - 🎥 Starting Video Analysis Pipeline...
+2026-04-28 03:39:23.446 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-04-28 03:39:38.154 | INFO     | app.services.vision_service:worker_yolo_extraction:89 - YOLO STARTING
+2026-04-28 03:39:38.154 | INFO     | app.services.vision_service:worker_yolo_extraction:89 - YOLO STARTING
+2026-04-28 03:39:38.156 | INFO     | app.services.vision_service:worker_yolo_extraction:89 - YOLO STARTING
+2026-04-28 03:39:38.157 | INFO     | app.services.vision_service:worker_yolo_extraction:89 - YOLO STARTING
+2026-04-28 03:42:49.109 | INFO     | app.services.vision_service:analyze_video_for_server:179 - ✅ YOLO Extraction Done. Starting Kalman & Filtering...
+2026-04-28 03:42:49.581 | INFO     | app.services.vision_service:analyze_video_for_server:252 - 🏁 Video Pipeline Complete. Total valid events: 55
+2026-04-28 03:42:49.582 | INFO     | app.services.vector_builder:build_feature_vector:17 - 🧬 Building Multi-Object Vector with Dead Reckoning (FOV handling)...
+2026-04-28 03:42:49.858 | INFO     | app.services.vector_builder:build_feature_vector:114 - ✅ Multi-Object Vector Built. Dimensions: (346, 15), Features order: ['speed_kmh', 'jerk', 'car_distance', 'car_ttc', 'sign_type', 'sign_distance', 'sign_ttc']
+2026-04-28 03:42:49.862 | INFO     | app.routes.test_routes:evaluate_test:219 - Running M8 Production Model on 317 windows...
+2026-04-28 03:42:51.088 | INFO     | app.routes.test_routes:evaluate_test:305 - 🎯 Evaluation Complete. Grade: 90 | Violation Events: 2 | Violation Types: [2, 3]
+2026-04-28 03:44:00.483 | INFO     | app.routes.student_routes:list_students:51 - 📋 Listed 2 students for jonhanak1@gmail.com
+2026-04-28 03:44:01.606 | INFO     | app.routes.test_routes:save_test:383 - 💾 Test saved | student: elad (216312345) | grade: 90 | by: jonhanak1@gmail.com
+2026-04-28 03:49:49.054 | INFO     | app.routes.test_routes:evaluate_test:159 - 📹 Video saved: 177.1 MB
+2026-04-28 03:49:49.057 | INFO     | app.routes.test_routes:evaluate_test:174 - 📊 Sensors saved: 198.9 KB
+2026-04-28 03:49:49.057 | INFO     | app.routes.test_routes:evaluate_test:179 - Starting analysis for Test TEST_1777337381926...
+2026-04-28 03:49:49.058 | INFO     | app.services.sensor_sync:process_sensor_json:13 - 🔄 Processing sensor data from: temp_62e9856a-8569-4f49-9b6d-51d4fdea582a.json
+2026-04-28 03:49:49.171 | INFO     | app.services.sensor_sync:process_sensor_json:26 - 🎥 Video starts 177ms after sensors - will align timestamps
+2026-04-28 03:49:49.185 | INFO     | app.services.sensor_sync:process_sensor_json:38 - ⏱️ Resampling data to exactly 10Hz (100ms intervals)
+2026-04-28 03:49:49.191 | INFO     | app.services.sensor_sync:process_sensor_json:57 - 🗑️ Dropped 1 sensor rows recorded before video started
+2026-04-28 03:49:49.193 | INFO     | app.services.sensor_sync:process_sensor_json:64 - ✅ Sensor processing complete. Total 10Hz rows: 1655
+2026-04-28 03:49:49.194 | INFO     | app.services.vision_service:analyze_video_for_server:151 - 🎥 Starting Video Analysis Pipeline...
+2026-04-28 03:49:49.243 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-04-28 03:50:07.594 | INFO     | app.services.vision_service:worker_yolo_extraction:89 - YOLO STARTING
+2026-04-28 03:50:07.596 | INFO     | app.services.vision_service:worker_yolo_extraction:89 - YOLO STARTING
+2026-04-28 03:50:07.596 | INFO     | app.services.vision_service:worker_yolo_extraction:89 - YOLO STARTING
+2026-04-28 03:50:07.597 | INFO     | app.services.vision_service:worker_yolo_extraction:89 - YOLO STARTING
+2026-04-28 04:11:46.859 | INFO     | app.services.vision_service:analyze_video_for_server:179 - ✅ YOLO Extraction Done. Starting Kalman & Filtering...
+2026-04-28 04:11:49.437 | INFO     | app.services.vision_service:analyze_video_for_server:252 - 🏁 Video Pipeline Complete. Total valid events: 372
+2026-04-28 04:11:49.440 | INFO     | app.services.vector_builder:build_feature_vector:17 - 🧬 Building Multi-Object Vector with Dead Reckoning (FOV handling)...
+2026-04-28 04:11:50.283 | INFO     | app.services.vector_builder:build_feature_vector:114 - ✅ Multi-Object Vector Built. Dimensions: (1655, 15), Features order: ['speed_kmh', 'jerk', 'car_distance', 'car_ttc', 'sign_type', 'sign_distance', 'sign_ttc']
+2026-04-28 04:11:50.288 | INFO     | app.routes.test_routes:evaluate_test:219 - Running M8 Production Model on 1626 windows...
+2026-04-28 04:11:51.173 | INFO     | app.routes.test_routes:evaluate_test:305 - 🎯 Evaluation Complete. Grade: 90 | Violation Events: 2 | Violation Types: [2, 3]
+2026-04-28 04:12:29.205 | INFO     | app.routes.student_routes:list_students:51 - 📋 Listed 2 students for jonhanak1@gmail.com
+2026-04-28 04:12:30.197 | INFO     | app.routes.test_routes:save_test:383 - 💾 Test saved | student: elad (216312345) | grade: 90 | by: jonhanak1@gmail.com
+2026-04-28 04:16:58.544 | INFO     | app.routes.test_routes:evaluate_test:159 - 📹 Video saved: 10.3 MB
+2026-04-28 04:16:58.545 | INFO     | app.routes.test_routes:evaluate_test:174 - 📊 Sensors saved: 12.0 KB
+2026-04-28 04:16:58.546 | INFO     | app.routes.test_routes:evaluate_test:179 - Starting analysis for Test TEST_1777339016234...
+2026-04-28 04:16:58.546 | INFO     | app.services.sensor_sync:process_sensor_json:13 - 🔄 Processing sensor data from: temp_99b31a82-0764-468f-be79-0995d99c9b68.json
+2026-04-28 04:16:58.554 | INFO     | app.services.sensor_sync:process_sensor_json:26 - 🎥 Video starts 536ms after sensors - will align timestamps
+2026-04-28 04:16:58.557 | INFO     | app.services.sensor_sync:process_sensor_json:38 - ⏱️ Resampling data to exactly 10Hz (100ms intervals)
+2026-04-28 04:16:58.561 | INFO     | app.services.sensor_sync:process_sensor_json:57 - 🗑️ Dropped 4 sensor rows recorded before video started
+2026-04-28 04:16:58.562 | INFO     | app.services.sensor_sync:process_sensor_json:64 - ✅ Sensor processing complete. Total 10Hz rows: 98
+2026-04-28 04:16:58.563 | INFO     | app.services.vision_service:analyze_video_for_server:151 - 🎥 Starting Video Analysis Pipeline...
+2026-04-28 04:16:58.584 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-04-28 04:17:09.881 | INFO     | app.services.vision_service:worker_yolo_extraction:89 - YOLO STARTING
+2026-04-28 04:17:09.888 | INFO     | app.services.vision_service:worker_yolo_extraction:89 - YOLO STARTING
+2026-04-28 04:17:09.892 | INFO     | app.services.vision_service:worker_yolo_extraction:89 - YOLO STARTING
+2026-04-28 04:17:09.899 | INFO     | app.services.vision_service:worker_yolo_extraction:89 - YOLO STARTING
+2026-04-28 04:18:20.043 | INFO     | app.services.vision_service:analyze_video_for_server:179 - ✅ YOLO Extraction Done. Starting Kalman & Filtering...
+2026-04-28 04:18:20.051 | INFO     | app.services.vision_service:analyze_video_for_server:252 - 🏁 Video Pipeline Complete. Total valid events: 1
+2026-04-28 04:18:20.052 | INFO     | app.services.vector_builder:build_feature_vector:17 - 🧬 Building Multi-Object Vector with Dead Reckoning (FOV handling)...
+2026-04-28 04:18:20.080 | INFO     | app.services.vector_builder:build_feature_vector:114 - ✅ Multi-Object Vector Built. Dimensions: (98, 15), Features order: ['speed_kmh', 'jerk', 'car_distance', 'car_ttc', 'sign_type', 'sign_distance', 'sign_ttc']
+2026-04-28 04:18:20.081 | INFO     | app.routes.test_routes:evaluate_test:219 - Running M8 Production Model on 69 windows...
+2026-04-28 04:18:20.189 | INFO     | app.routes.test_routes:evaluate_test:305 - 🎯 Evaluation Complete. Grade: 100 | Violation Events: 0 | Violation Types: []
+2026-04-28 04:18:22.199 | INFO     | app.routes.student_routes:list_students:51 - 📋 Listed 2 students for jonhanak1@gmail.com
+2026-04-28 04:18:23.032 | INFO     | app.routes.test_routes:save_test:383 - 💾 Test saved | student: ffdf (5565883) | grade: 100 | by: jonhanak1@gmail.com
+2026-04-28 04:25:31.861 | INFO     | main:lifespan:17 -  Server Shutting Down
+2026-04-28 04:25:31.865 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-04-28 12:44:50.615 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 12:44:51.050 | INFO     | main:lifespan:13 -  Server Starting Up
+2026-04-28 12:44:51.584 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-04-28 13:52:43.594 | INFO     | app.routes.test_routes:load_ai_models:134 - Loading Scaler and M8 Attention Production Model...
+2026-04-28 13:52:45.467 | INFO     | app.routes.test_routes:load_ai_models:140 - M8 Production Model & Scaler Loaded Successfully.
+2026-04-28 13:52:45.473 | INFO     | app.routes.test_routes:evaluate_test:184 - 📹 Video saved: 6.7 MB
+2026-04-28 13:52:45.475 | INFO     | app.routes.test_routes:evaluate_test:199 - 📊 Sensors saved: 8.3 KB
+2026-04-28 13:52:45.475 | INFO     | app.routes.test_routes:evaluate_test:205 - 🔄 [STAGE 2/5] Processing sensors for Test TEST_1777373560637...
+2026-04-28 13:52:45.477 | INFO     | app.services.sensor_sync:process_sensor_json:13 - 🔄 Processing sensor data from: temp_fe67d224-93fe-41c9-864e-2287d2567393.json
+2026-04-28 13:52:45.485 | INFO     | app.services.sensor_sync:process_sensor_json:26 - 🎥 Video starts 658ms after sensors - will align timestamps
+2026-04-28 13:52:45.516 | INFO     | app.services.sensor_sync:process_sensor_json:38 - ⏱️ Resampling data to exactly 10Hz (100ms intervals)
+2026-04-28 13:52:45.535 | INFO     | app.services.sensor_sync:process_sensor_json:57 - 🗑️ Dropped 5 sensor rows recorded before video started
+2026-04-28 13:52:45.537 | INFO     | app.services.sensor_sync:process_sensor_json:64 - ✅ Sensor processing complete. Total 10Hz rows: 65
+2026-04-28 13:52:45.537 | INFO     | app.routes.test_routes:evaluate_test:210 - 🎥 [STAGE 3/5] Running YOLO + Kalman tracking...
+2026-04-28 13:52:45.538 | INFO     | app.services.vision_service:analyze_video_for_server:160 - 🎥 Starting Video Analysis Pipeline...
+2026-04-28 13:52:45.752 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-04-28 13:53:47.269 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 13:53:47.570 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 13:53:47.577 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 13:53:47.617 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 13:53:47.667 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 13:53:47.673 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 13:53:47.811 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 13:53:47.894 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 13:53:48.154 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 13:53:48.711 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 13:53:50.548 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 13:53:59.538 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 13:54:01.285 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 13:54:02.839 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 13:54:05.995 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 13:54:09.056 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 13:54:10.720 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 13:54:11.311 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 13:54:12.818 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 13:54:12.844 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 13:54:23.453 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 13:55:04.402 | INFO     | app.services.vision_service:analyze_video_for_server:186 - ✅ YOLO Extraction Done. Starting Kalman & Filtering...
+2026-04-28 13:55:04.421 | INFO     | app.services.vision_service:analyze_video_for_server:259 - 🏁 Video Pipeline Complete. Total valid events: 0
+2026-04-28 13:55:04.434 | INFO     | app.routes.test_routes:evaluate_test:215 - 🧬 [STAGE 4/5] Building feature vector...
+2026-04-28 13:55:04.439 | INFO     | app.services.vector_builder:build_feature_vector:17 - 🧬 Building Multi-Object Vector with Dead Reckoning (FOV handling)...
+2026-04-28 13:55:04.518 | WARNING  | app.services.vector_builder:build_feature_vector:36 - ⚠️ No video events. Returning clean sensor vector.
+2026-04-28 13:55:04.597 | INFO     | app.routes.test_routes:evaluate_test:249 - 🧠 [STAGE 5/5] Running M8 LSTM on 36 windows...
+2026-04-28 13:55:06.104 | INFO     | app.routes.test_routes:evaluate_test:372 - 🎯 Evaluation Complete. Grade: 100 | Violation Events: 0 | Violation Types: [] | Sequences: 0
+2026-04-28 14:30:19.305 | INFO     | app.routes.test_routes:evaluate_test:184 - 📹 Video saved: 4.4 MB
+2026-04-28 14:30:19.309 | INFO     | app.routes.test_routes:evaluate_test:199 - 📊 Sensors saved: 5.4 KB
+2026-04-28 14:30:19.312 | INFO     | app.routes.test_routes:evaluate_test:205 - 🔄 [STAGE 2/5] Processing sensors for Test TEST_1777375817100...
+2026-04-28 14:30:19.315 | INFO     | app.services.sensor_sync:process_sensor_json:13 - 🔄 Processing sensor data from: temp_b85c36a4-8829-44be-9c7f-4cd5c782b306.json
+2026-04-28 14:30:19.337 | INFO     | app.services.sensor_sync:process_sensor_json:26 - 🎥 Video starts 231ms after sensors - will align timestamps
+2026-04-28 14:30:19.349 | INFO     | app.services.sensor_sync:process_sensor_json:38 - ⏱️ Resampling data to exactly 10Hz (100ms intervals)
+2026-04-28 14:30:19.390 | INFO     | app.services.sensor_sync:process_sensor_json:57 - 🗑️ Dropped 2 sensor rows recorded before video started
+2026-04-28 14:30:19.390 | INFO     | app.services.sensor_sync:process_sensor_json:64 - ✅ Sensor processing complete. Total 10Hz rows: 44
+2026-04-28 14:30:19.392 | INFO     | app.routes.test_routes:evaluate_test:210 - 🎥 [STAGE 3/5] Running YOLO + Kalman tracking...
+2026-04-28 14:30:19.392 | INFO     | app.services.vision_service:analyze_video_for_server:160 - 🎥 Starting Video Analysis Pipeline...
+2026-04-28 14:30:19.517 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-04-28 14:31:32.817 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 14:31:34.463 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 14:31:37.508 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 14:31:41.982 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 14:31:54.074 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 14:31:55.118 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 14:31:55.347 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 14:31:55.343 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 14:31:57.197 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 14:31:58.021 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 14:31:58.721 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 14:32:12.960 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 14:32:14.090 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 14:32:14.766 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 14:32:14.931 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 14:32:23.104 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 14:32:56.661 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 14:32:57.756 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 14:32:57.983 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 14:32:58.053 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 14:33:05.466 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 14:34:25.143 | INFO     | app.services.vision_service:analyze_video_for_server:186 - ✅ YOLO Extraction Done. Starting Kalman & Filtering...
+2026-04-28 14:34:25.162 | INFO     | app.services.vision_service:analyze_video_for_server:259 - 🏁 Video Pipeline Complete. Total valid events: 0
+2026-04-28 14:34:25.171 | INFO     | app.routes.test_routes:evaluate_test:215 - 🧬 [STAGE 4/5] Building feature vector...
+2026-04-28 14:34:25.173 | INFO     | app.services.vector_builder:build_feature_vector:17 - 🧬 Building Multi-Object Vector with Dead Reckoning (FOV handling)...
+2026-04-28 14:34:25.230 | WARNING  | app.services.vector_builder:build_feature_vector:36 - ⚠️ No video events. Returning clean sensor vector.
+2026-04-28 14:34:25.266 | INFO     | app.routes.test_routes:evaluate_test:249 - 🧠 [STAGE 5/5] Running M8 LSTM on 15 windows...
+2026-04-28 14:34:25.862 | INFO     | app.routes.test_routes:evaluate_test:372 - 🎯 Evaluation Complete. Grade: 100 | Violation Events: 0 | Violation Types: [] | Sequences: 0
+2026-04-28 14:34:30.867 | INFO     | app.routes.student_routes:list_students:51 - 📋 Listed 2 students for jonhanak1@gmail.com
+2026-04-28 14:34:32.501 | INFO     | app.routes.test_routes:save_test:460 - 💾 Test saved | student: ffdf (5565883) | grade: 100 | by: jonhanak1@gmail.com
+2026-04-28 15:26:25.501 | INFO     | main:lifespan:17 -  Server Shutting Down
+2026-04-28 15:26:25.516 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-04-28 16:20:43.189 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 16:20:43.604 | INFO     | main:lifespan:13 -  Server Starting Up
+2026-04-28 16:20:43.918 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-04-28 16:42:27.108 | INFO     | main:lifespan:17 -  Server Shutting Down
+2026-04-28 16:42:27.110 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-04-28 16:42:42.581 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 16:42:42.914 | INFO     | main:lifespan:13 -  Server Starting Up
+2026-04-28 16:42:42.937 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-04-28 17:17:01.578 | INFO     | main:lifespan:17 -  Server Shutting Down
+2026-04-28 17:17:01.591 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-04-28 17:17:21.363 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 17:17:21.878 | INFO     | main:lifespan:13 -  Server Starting Up
+2026-04-28 17:17:21.978 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-04-28 17:19:37.279 | INFO     | app.routes.test_routes:load_ai_models:130 - Loading Scaler and M8 Attention Production Model...
+2026-04-28 17:19:38.220 | INFO     | app.routes.test_routes:load_ai_models:136 - M8 Production Model & Scaler Loaded Successfully.
+2026-04-28 17:19:38.228 | INFO     | app.routes.test_routes:evaluate_test:180 - 📹 Video saved: 5.8 MB
+2026-04-28 17:19:38.229 | INFO     | app.routes.test_routes:evaluate_test:195 - 📊 Sensors saved: 7.3 KB
+2026-04-28 17:19:38.231 | INFO     | app.routes.test_routes:evaluate_test:201 - 🔄 [STAGE 2/5] Processing sensors for Test TEST_1777385975133...
+2026-04-28 17:19:38.231 | INFO     | app.services.sensor_sync:process_sensor_json:13 - 🔄 Processing sensor data from: temp_ed774647-effb-421e-9275-7592bdab9c2b.json
+2026-04-28 17:19:38.237 | INFO     | app.services.sensor_sync:process_sensor_json:26 - 🎥 Video starts 608ms after sensors - will align timestamps
+2026-04-28 17:19:38.272 | INFO     | app.services.sensor_sync:process_sensor_json:38 - ⏱️ Resampling data to exactly 10Hz (100ms intervals)
+2026-04-28 17:19:38.293 | INFO     | app.services.sensor_sync:process_sensor_json:57 - 🗑️ Dropped 5 sensor rows recorded before video started
+2026-04-28 17:19:38.293 | INFO     | app.services.sensor_sync:process_sensor_json:64 - ✅ Sensor processing complete. Total 10Hz rows: 56
+2026-04-28 17:19:38.294 | INFO     | app.routes.test_routes:evaluate_test:206 - 🎥 [STAGE 3/5] Running YOLO + Kalman tracking...
+2026-04-28 17:19:38.294 | INFO     | app.services.vision_service:analyze_video_for_server:171 - 🎥 Starting Video Analysis Pipeline...
+2026-04-28 17:19:38.468 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-04-28 17:19:57.838 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 17:19:57.838 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 17:19:57.839 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 17:19:57.841 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 17:20:13.387 | INFO     | app.services.vision_service:analyze_video_for_server:208 - ✅ YOLO Extraction Done. Starting Kalman & Filtering...
+2026-04-28 17:20:13.400 | INFO     | app.services.vision_service:analyze_video_for_server:290 - 🏁 Video Pipeline Complete. Total valid events: 0
+2026-04-28 17:20:13.401 | INFO     | app.routes.test_routes:evaluate_test:213 - 🧬 [STAGE 4/5] Building feature vector...
+2026-04-28 17:20:13.402 | INFO     | app.services.vector_builder:build_feature_vector:17 - 🧬 Building Multi-Object Vector with Dead Reckoning (FOV handling)...
+2026-04-28 17:20:13.410 | WARNING  | app.services.vector_builder:build_feature_vector:36 - ⚠️ No video events. Returning clean sensor vector.
+2026-04-28 17:20:13.423 | INFO     | app.routes.test_routes:evaluate_test:247 - 🧠 [STAGE 5/5] Running M8 LSTM on 27 windows...
+2026-04-28 17:20:14.071 | INFO     | app.routes.test_routes:evaluate_test:390 - 🎯 Evaluation Complete. Grade: 100 | Violation Events: 0 | Violation Types: [] | Sequences: 0
+2026-04-28 17:20:19.237 | INFO     | app.routes.student_routes:list_students:51 - 📋 Listed 2 students for jonhanak1@gmail.com
+2026-04-28 17:20:19.986 | INFO     | app.routes.test_routes:save_test:496 - 💾 Test saved | student: ffdf (5565883) | grade: 100 | by: jonhanak1@gmail.com
+2026-04-28 17:22:30.452 | INFO     | app.routes.test_routes:evaluate_test:180 - 📹 Video saved: 21.1 MB
+2026-04-28 17:22:30.454 | INFO     | app.routes.test_routes:evaluate_test:195 - 📊 Sensors saved: 23.5 KB
+2026-04-28 17:22:30.454 | INFO     | app.routes.test_routes:evaluate_test:201 - 🔄 [STAGE 2/5] Processing sensors for Test TEST_1777386147936...
+2026-04-28 17:22:30.454 | INFO     | app.services.sensor_sync:process_sensor_json:13 - 🔄 Processing sensor data from: temp_7687d46e-c09c-40f9-8c53-c453fcfe411d.json
+2026-04-28 17:22:30.465 | INFO     | app.services.sensor_sync:process_sensor_json:26 - 🎥 Video starts 234ms after sensors - will align timestamps
+2026-04-28 17:22:30.469 | INFO     | app.services.sensor_sync:process_sensor_json:38 - ⏱️ Resampling data to exactly 10Hz (100ms intervals)
+2026-04-28 17:22:30.475 | INFO     | app.services.sensor_sync:process_sensor_json:57 - 🗑️ Dropped 2 sensor rows recorded before video started
+2026-04-28 17:22:30.476 | INFO     | app.services.sensor_sync:process_sensor_json:64 - ✅ Sensor processing complete. Total 10Hz rows: 199
+2026-04-28 17:22:30.476 | INFO     | app.routes.test_routes:evaluate_test:206 - 🎥 [STAGE 3/5] Running YOLO + Kalman tracking...
+2026-04-28 17:22:30.476 | INFO     | app.services.vision_service:analyze_video_for_server:171 - 🎥 Starting Video Analysis Pipeline...
+2026-04-28 17:22:30.509 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-04-28 17:22:47.796 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 17:22:47.802 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 17:22:47.805 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 17:22:47.817 | INFO     | app.services.vision_service:<module>:15 - YOLO STARTING
+2026-04-28 17:23:32.610 | INFO     | app.services.vision_service:analyze_video_for_server:208 - ✅ YOLO Extraction Done. Starting Kalman & Filtering...
+2026-04-28 17:23:32.659 | INFO     | app.services.vision_service:analyze_video_for_server:290 - 🏁 Video Pipeline Complete. Total valid events: 1
+2026-04-28 17:23:32.659 | INFO     | app.routes.test_routes:evaluate_test:213 - 🧬 [STAGE 4/5] Building feature vector...
+2026-04-28 17:23:32.659 | INFO     | app.services.vector_builder:build_feature_vector:17 - 🧬 Building Multi-Object Vector with Dead Reckoning (FOV handling)...
+2026-04-28 17:23:32.799 | INFO     | app.services.vector_builder:build_feature_vector:114 - ✅ Multi-Object Vector Built. Dimensions: (199, 15), Features order: ['speed_kmh', 'jerk', 'car_distance', 'car_ttc', 'sign_type', 'sign_distance', 'sign_ttc']
+2026-04-28 17:23:32.801 | INFO     | app.routes.test_routes:evaluate_test:247 - 🧠 [STAGE 5/5] Running M8 LSTM on 170 windows...
+2026-04-28 17:23:34.163 | INFO     | app.routes.test_routes:evaluate_test:390 - 🎯 Evaluation Complete. Grade: 100 | Violation Events: 0 | Violation Types: [] | Sequences: 0
+2026-04-28 17:23:40.332 | INFO     | app.routes.student_routes:list_students:51 - 📋 Listed 2 students for jonhanak1@gmail.com
+2026-04-28 17:23:40.932 | INFO     | app.routes.test_routes:save_test:496 - 💾 Test saved | student: ffdf (5565883) | grade: 100 | by: jonhanak1@gmail.com
+2026-04-28 17:36:13.230 | INFO     | main:lifespan:17 -  Server Shutting Down
+2026-04-28 17:36:13.245 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-04-28 17:36:35.737 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-04-28 17:36:36.126 | INFO     | main:lifespan:13 -  Server Starting Up
+2026-04-28 17:36:36.203 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-04-28 17:37:13.005 | INFO     | app.routes.test_routes:load_ai_models:130 - Loading Scaler and M8 Attention Production Model...
+2026-04-28 17:37:13.547 | INFO     | app.routes.test_routes:load_ai_models:136 - M8 Production Model & Scaler Loaded Successfully.
+2026-04-28 17:37:13.556 | INFO     | app.routes.test_routes:evaluate_test:180 - 📹 Video saved: 9.8 MB
+2026-04-28 17:37:13.557 | INFO     | app.routes.test_routes:evaluate_test:195 - 📊 Sensors saved: 11.4 KB
+2026-04-28 17:37:13.557 | INFO     | app.routes.test_routes:evaluate_test:201 - 🔄 [STAGE 2/5] Processing sensors for Test TEST_1777387030080...
+2026-04-28 17:37:13.558 | INFO     | app.services.sensor_sync:process_sensor_json:13 - 🔄 Processing sensor data from: temp_2ffd7a97-fdb6-495d-8938-5f780a7898e9.json
+2026-04-28 17:37:13.568 | INFO     | app.services.sensor_sync:process_sensor_json:26 - 🎥 Video starts 361ms after sensors - will align timestamps
+2026-04-28 17:37:13.578 | INFO     | app.services.sensor_sync:process_sensor_json:38 - ⏱️ Resampling data to exactly 10Hz (100ms intervals)
+2026-04-28 17:37:13.605 | INFO     | app.services.sensor_sync:process_sensor_json:57 - 🗑️ Dropped 3 sensor rows recorded before video started
+2026-04-28 17:37:13.606 | INFO     | app.services.sensor_sync:process_sensor_json:64 - ✅ Sensor processing complete. Total 10Hz rows: 94
+2026-04-28 17:37:13.606 | INFO     | app.routes.test_routes:evaluate_test:206 - 🎥 [STAGE 3/5] Running YOLO + Kalman tracking...
+2026-04-28 17:37:13.606 | INFO     | app.services.vision_service:analyze_video_for_server:177 - 🎥 Starting Video Analysis Pipeline...
+2026-04-28 17:37:13.683 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-04-28 17:37:30.507 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-04-28 17:37:30.507 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-04-28 17:37:30.507 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-04-28 17:37:30.518 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-04-28 17:37:54.623 | INFO     | app.services.vision_service:analyze_video_for_server:219 - ✅ YOLO Done. Starting Tracking...
+2026-04-28 17:37:54.639 | INFO     | app.services.vision_service:analyze_video_for_server:296 - 🏁 Pipeline Complete. Total valid events: 0
+2026-04-28 17:37:54.639 | INFO     | app.routes.test_routes:evaluate_test:213 - 🧬 [STAGE 4/5] Building feature vector...
+2026-04-28 17:37:54.639 | INFO     | app.services.vector_builder:build_feature_vector:17 - 🧬 Building Multi-Object Vector with Dead Reckoning (FOV handling)...
+2026-04-28 17:37:54.640 | WARNING  | app.services.vector_builder:build_feature_vector:36 - ⚠️ No video events. Returning clean sensor vector.
+2026-04-28 17:37:54.646 | INFO     | app.routes.test_routes:evaluate_test:247 - 🧠 [STAGE 5/5] Running M8 LSTM on 65 windows...
+2026-04-28 17:37:55.772 | INFO     | app.routes.test_routes:evaluate_test:390 - 🎯 Evaluation Complete. Grade: 100 | Violation Events: 0 | Violation Types: [] | Sequences: 0
+2026-04-28 17:38:01.140 | INFO     | app.routes.student_routes:list_students:51 - 📋 Listed 2 students for jonhanak1@gmail.com
+2026-04-28 17:38:02.019 | INFO     | app.routes.test_routes:save_test:496 - 💾 Test saved | student: ffdf (5565883) | grade: 100 | by: jonhanak1@gmail.com
+2026-04-28 17:38:32.770 | INFO     | app.routes.test_routes:evaluate_test:180 - 📹 Video saved: 23.8 MB
+2026-04-28 17:38:32.771 | INFO     | app.routes.test_routes:evaluate_test:195 - 📊 Sensors saved: 26.2 KB
+2026-04-28 17:38:32.771 | INFO     | app.routes.test_routes:evaluate_test:201 - 🔄 [STAGE 2/5] Processing sensors for Test TEST_1777387109566...
+2026-04-28 17:38:32.771 | INFO     | app.services.sensor_sync:process_sensor_json:13 - 🔄 Processing sensor data from: temp_cfb844cf-141e-4891-9dc8-a0769f680470.json
+2026-04-28 17:38:32.781 | INFO     | app.services.sensor_sync:process_sensor_json:26 - 🎥 Video starts 302ms after sensors - will align timestamps
+2026-04-28 17:38:32.784 | INFO     | app.services.sensor_sync:process_sensor_json:38 - ⏱️ Resampling data to exactly 10Hz (100ms intervals)
+2026-04-28 17:38:32.786 | INFO     | app.services.sensor_sync:process_sensor_json:57 - 🗑️ Dropped 3 sensor rows recorded before video started
+2026-04-28 17:38:32.787 | INFO     | app.services.sensor_sync:process_sensor_json:64 - ✅ Sensor processing complete. Total 10Hz rows: 224
+2026-04-28 17:38:32.787 | INFO     | app.routes.test_routes:evaluate_test:206 - 🎥 [STAGE 3/5] Running YOLO + Kalman tracking...
+2026-04-28 17:38:32.787 | INFO     | app.services.vision_service:analyze_video_for_server:177 - 🎥 Starting Video Analysis Pipeline...
+2026-04-28 17:38:32.810 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-04-28 17:38:47.137 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-04-28 17:38:47.203 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-04-28 17:38:47.210 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-04-28 17:38:47.263 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-04-28 17:39:39.927 | INFO     | app.services.vision_service:analyze_video_for_server:219 - ✅ YOLO Done. Starting Tracking...
+2026-04-28 17:39:40.069 | INFO     | app.services.vision_service:analyze_video_for_server:296 - 🏁 Pipeline Complete. Total valid events: 0
+2026-04-28 17:39:40.072 | INFO     | app.routes.test_routes:evaluate_test:213 - 🧬 [STAGE 4/5] Building feature vector...
+2026-04-28 17:39:40.075 | INFO     | app.services.vector_builder:build_feature_vector:17 - 🧬 Building Multi-Object Vector with Dead Reckoning (FOV handling)...
+2026-04-28 17:39:40.078 | WARNING  | app.services.vector_builder:build_feature_vector:36 - ⚠️ No video events. Returning clean sensor vector.
+2026-04-28 17:39:40.083 | INFO     | app.routes.test_routes:evaluate_test:247 - 🧠 [STAGE 5/5] Running M8 LSTM on 195 windows...
+2026-04-28 17:39:40.882 | INFO     | app.routes.test_routes:evaluate_test:390 - 🎯 Evaluation Complete. Grade: 100 | Violation Events: 0 | Violation Types: [] | Sequences: 0
+2026-04-28 18:18:12.537 | INFO     | app.routes.test_routes:evaluate_test:180 - 📹 Video saved: 7.2 MB
+2026-04-28 18:18:12.541 | INFO     | app.routes.test_routes:evaluate_test:195 - 📊 Sensors saved: 8.8 KB
+2026-04-28 18:18:12.541 | INFO     | app.routes.test_routes:evaluate_test:201 - 🔄 [STAGE 2/5] Processing sensors for Test TEST_1777389489824...
+2026-04-28 18:18:12.542 | INFO     | app.services.sensor_sync:process_sensor_json:13 - 🔄 Processing sensor data from: temp_b7d0ae52-377e-4cc0-ae24-814c65613dd8.json
+2026-04-28 18:18:12.552 | INFO     | app.services.sensor_sync:process_sensor_json:26 - 🎥 Video starts 647ms after sensors - will align timestamps
+2026-04-28 18:18:12.571 | INFO     | app.services.sensor_sync:process_sensor_json:38 - ⏱️ Resampling data to exactly 10Hz (100ms intervals)
+2026-04-28 18:18:12.589 | INFO     | app.services.sensor_sync:process_sensor_json:57 - 🗑️ Dropped 5 sensor rows recorded before video started
+2026-04-28 18:18:12.590 | INFO     | app.services.sensor_sync:process_sensor_json:64 - ✅ Sensor processing complete. Total 10Hz rows: 69
+2026-04-28 18:18:12.591 | INFO     | app.routes.test_routes:evaluate_test:206 - 🎥 [STAGE 3/5] Running YOLO + Kalman tracking...
+2026-04-28 18:18:12.591 | INFO     | app.services.vision_service:analyze_video_for_server:177 - 🎥 Starting Video Analysis Pipeline...
+2026-04-28 18:18:12.643 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-04-28 18:18:40.784 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-04-28 18:18:40.784 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-04-28 18:18:40.785 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-04-28 18:18:40.785 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-04-28 18:18:54.356 | INFO     | app.services.vision_service:analyze_video_for_server:219 - ✅ YOLO Done. Starting Tracking...
+2026-04-28 18:18:54.369 | INFO     | app.services.vision_service:analyze_video_for_server:296 - 🏁 Pipeline Complete. Total valid events: 0
+2026-04-28 18:18:54.371 | INFO     | app.routes.test_routes:evaluate_test:213 - 🧬 [STAGE 4/5] Building feature vector...
+2026-04-28 18:18:54.371 | INFO     | app.services.vector_builder:build_feature_vector:17 - 🧬 Building Multi-Object Vector with Dead Reckoning (FOV handling)...
+2026-04-28 18:18:54.376 | WARNING  | app.services.vector_builder:build_feature_vector:36 - ⚠️ No video events. Returning clean sensor vector.
+2026-04-28 18:18:54.387 | INFO     | app.routes.test_routes:evaluate_test:247 - 🧠 [STAGE 5/5] Running M8 LSTM on 40 windows...
+2026-04-28 18:18:54.973 | INFO     | app.routes.test_routes:evaluate_test:390 - 🎯 Evaluation Complete. Grade: 100 | Violation Events: 0 | Violation Types: [] | Sequences: 0
+2026-04-28 18:18:58.558 | INFO     | app.routes.student_routes:list_students:51 - 📋 Listed 2 students for jonhanak1@gmail.com
+2026-04-28 18:18:59.595 | INFO     | app.routes.test_routes:save_test:496 - 💾 Test saved | student: ffdf (5565883) | grade: 100 | by: jonhanak1@gmail.com
+2026-04-28 18:23:02.469 | INFO     | app.routes.test_routes:evaluate_test:180 - 📹 Video saved: 7.5 MB
+2026-04-28 18:23:02.470 | INFO     | app.routes.test_routes:evaluate_test:195 - 📊 Sensors saved: 8.8 KB
+2026-04-28 18:23:02.470 | INFO     | app.routes.test_routes:evaluate_test:201 - 🔄 [STAGE 2/5] Processing sensors for Test TEST_1777389780430...
+2026-04-28 18:23:02.471 | INFO     | app.services.sensor_sync:process_sensor_json:13 - 🔄 Processing sensor data from: temp_8ed97797-2e97-4913-96bb-fe63f3225d29.json
+2026-04-28 18:23:02.477 | INFO     | app.services.sensor_sync:process_sensor_json:26 - 🎥 Video starts 420ms after sensors - will align timestamps
+2026-04-28 18:23:02.480 | INFO     | app.services.sensor_sync:process_sensor_json:38 - ⏱️ Resampling data to exactly 10Hz (100ms intervals)
+2026-04-28 18:23:02.487 | INFO     | app.services.sensor_sync:process_sensor_json:57 - 🗑️ Dropped 4 sensor rows recorded before video started
+2026-04-28 18:23:02.488 | INFO     | app.services.sensor_sync:process_sensor_json:64 - ✅ Sensor processing complete. Total 10Hz rows: 70
+2026-04-28 18:23:02.488 | INFO     | app.routes.test_routes:evaluate_test:206 - 🎥 [STAGE 3/5] Running YOLO + Kalman tracking...
+2026-04-28 18:23:02.488 | INFO     | app.services.vision_service:analyze_video_for_server:177 - 🎥 Starting Video Analysis Pipeline...
+2026-04-28 18:23:02.512 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-04-28 18:23:15.828 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-04-28 18:23:15.828 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-04-28 18:23:15.828 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-04-28 18:23:15.828 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-04-28 18:23:29.799 | INFO     | app.services.vision_service:analyze_video_for_server:219 - ✅ YOLO Done. Starting Tracking...
+2026-04-28 18:23:29.800 | INFO     | app.services.vision_service:analyze_video_for_server:296 - 🏁 Pipeline Complete. Total valid events: 0
+2026-04-28 18:23:29.801 | INFO     | app.routes.test_routes:evaluate_test:213 - 🧬 [STAGE 4/5] Building feature vector...
+2026-04-28 18:23:29.801 | INFO     | app.services.vector_builder:build_feature_vector:17 - 🧬 Building Multi-Object Vector with Dead Reckoning (FOV handling)...
+2026-04-28 18:23:29.803 | WARNING  | app.services.vector_builder:build_feature_vector:36 - ⚠️ No video events. Returning clean sensor vector.
+2026-04-28 18:23:29.806 | INFO     | app.routes.test_routes:evaluate_test:247 - 🧠 [STAGE 5/5] Running M8 LSTM on 41 windows...
+2026-04-28 18:23:30.021 | INFO     | app.routes.test_routes:evaluate_test:390 - 🎯 Evaluation Complete. Grade: 100 | Violation Events: 0 | Violation Types: [] | Sequences: 0
+2026-04-28 18:24:27.060 | INFO     | app.routes.student_routes:list_students:51 - 📋 Listed 2 students for jonhanak1@gmail.com
+2026-04-28 18:24:27.807 | INFO     | app.routes.test_routes:save_test:496 - 💾 Test saved | student: ffdf (5565883) | grade: 100 | by: jonhanak1@gmail.com
+2026-04-28 18:29:08.966 | INFO     | app.routes.test_routes:evaluate_test:180 - 📹 Video saved: 6.1 MB
+2026-04-28 18:29:08.968 | INFO     | app.routes.test_routes:evaluate_test:195 - 📊 Sensors saved: 7.4 KB
+2026-04-28 18:29:08.968 | INFO     | app.routes.test_routes:evaluate_test:201 - 🔄 [STAGE 2/5] Processing sensors for Test TEST_1777390146878...
+2026-04-28 18:29:08.968 | INFO     | app.services.sensor_sync:process_sensor_json:13 - 🔄 Processing sensor data from: temp_54883888-cdef-4e9f-8220-70029ce5ee2c.json
+2026-04-28 18:29:08.979 | INFO     | app.services.sensor_sync:process_sensor_json:26 - 🎥 Video starts 348ms after sensors - will align timestamps
+2026-04-28 18:29:08.982 | INFO     | app.services.sensor_sync:process_sensor_json:38 - ⏱️ Resampling data to exactly 10Hz (100ms intervals)
+2026-04-28 18:29:08.986 | INFO     | app.services.sensor_sync:process_sensor_json:57 - 🗑️ Dropped 3 sensor rows recorded before video started
+2026-04-28 18:29:08.986 | INFO     | app.services.sensor_sync:process_sensor_json:64 - ✅ Sensor processing complete. Total 10Hz rows: 59
+2026-04-28 18:29:08.987 | INFO     | app.routes.test_routes:evaluate_test:206 - 🎥 [STAGE 3/5] Running YOLO + Kalman tracking...
+2026-04-28 18:29:08.987 | INFO     | app.services.vision_service:analyze_video_for_server:177 - 🎥 Starting Video Analysis Pipeline...
+2026-04-28 18:29:09.011 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-04-28 18:29:21.671 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-04-28 18:29:21.675 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-04-28 18:29:21.780 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-04-28 18:29:33.566 | INFO     | app.services.vision_service:analyze_video_for_server:219 - ✅ YOLO Done. Starting Tracking...
+2026-04-28 18:29:33.567 | INFO     | app.services.vision_service:analyze_video_for_server:296 - 🏁 Pipeline Complete. Total valid events: 0
+2026-04-28 18:29:33.567 | INFO     | app.routes.test_routes:evaluate_test:213 - 🧬 [STAGE 4/5] Building feature vector...
+2026-04-28 18:29:33.567 | INFO     | app.services.vector_builder:build_feature_vector:17 - 🧬 Building Multi-Object Vector with Dead Reckoning (FOV handling)...
+2026-04-28 18:29:33.570 | WARNING  | app.services.vector_builder:build_feature_vector:36 - ⚠️ No video events. Returning clean sensor vector.
+2026-04-28 18:29:33.572 | INFO     | app.routes.test_routes:evaluate_test:247 - 🧠 [STAGE 5/5] Running M8 LSTM on 30 windows...
+2026-04-28 18:29:33.687 | INFO     | app.routes.test_routes:evaluate_test:390 - 🎯 Evaluation Complete. Grade: 100 | Violation Events: 0 | Violation Types: [] | Sequences: 0
+2026-04-28 18:40:33.279 | INFO     | main:lifespan:17 -  Server Shutting Down
+2026-04-28 18:40:33.303 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-04-28 18:40:48.041 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-04-28 18:40:48.448 | INFO     | main:lifespan:13 -  Server Starting Up
+2026-04-28 18:40:48.752 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-04-28 18:41:45.737 | INFO     | app.routes.test_routes:load_ai_models:143 - Loading Scaler and M8 Attention Production Model...
+2026-04-28 18:41:46.440 | INFO     | app.routes.test_routes:load_ai_models:149 - M8 Production Model & Scaler Loaded Successfully.
+2026-04-28 18:41:46.446 | INFO     | app.routes.test_routes:evaluate_test:197 - 📹 Video saved: 5.5 MB
+2026-04-28 18:41:46.447 | INFO     | app.routes.test_routes:evaluate_test:212 - 📊 Sensors saved: 6.6 KB
+2026-04-28 18:41:46.447 | INFO     | app.routes.test_routes:evaluate_test:218 - 🔄 [STAGE 2/5] Processing sensors for Test TEST_1777390903744...
+2026-04-28 18:41:46.448 | INFO     | app.services.sensor_sync:process_sensor_json:13 - 🔄 Processing sensor data from: temp_c5bea908-ca7d-4f0b-b3b7-abb3817e1b2f.json
+2026-04-28 18:41:46.455 | INFO     | app.services.sensor_sync:process_sensor_json:26 - 🎥 Video starts 283ms after sensors - will align timestamps
+2026-04-28 18:41:46.457 | INFO     | app.services.sensor_sync:process_sensor_json:38 - ⏱️ Resampling data to exactly 10Hz (100ms intervals)
+2026-04-28 18:41:46.461 | INFO     | app.services.sensor_sync:process_sensor_json:57 - 🗑️ Dropped 2 sensor rows recorded before video started
+2026-04-28 18:41:46.462 | INFO     | app.services.sensor_sync:process_sensor_json:64 - ✅ Sensor processing complete. Total 10Hz rows: 54
+2026-04-28 18:41:46.468 | INFO     | app.routes.test_routes:evaluate_test:226 - 🎥 [STAGE 3/5] Running YOLO + Kalman tracking...
+2026-04-28 18:41:46.468 | INFO     | app.services.vision_service:analyze_video_for_server:177 - 🎥 Starting Video Analysis Pipeline...
+2026-04-28 18:41:46.494 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-04-28 18:41:56.693 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-04-28 18:41:56.697 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-04-28 18:41:56.712 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-04-28 18:42:07.134 | INFO     | app.services.vision_service:analyze_video_for_server:219 - ✅ YOLO Done. Starting Tracking...
+2026-04-28 18:42:07.140 | INFO     | app.services.vision_service:analyze_video_for_server:296 - 🏁 Pipeline Complete. Total valid events: 0
+2026-04-28 18:42:07.141 | INFO     | app.routes.test_routes:evaluate_test:233 - 🧬 [STAGE 4/5] Building feature vector...
+2026-04-28 18:42:07.141 | INFO     | app.services.vector_builder:build_feature_vector:17 - 🧬 Building Multi-Object Vector with Dead Reckoning (FOV handling)...
+2026-04-28 18:42:07.148 | WARNING  | app.services.vector_builder:build_feature_vector:36 - ⚠️ No video events. Returning clean sensor vector.
+2026-04-28 18:42:07.154 | INFO     | app.routes.test_routes:evaluate_test:270 - 🧠 [STAGE 5/5] Running M8 LSTM on 25 windows...
+2026-04-28 18:42:07.682 | INFO     | app.routes.test_routes:evaluate_test:425 - 🎯 Evaluation Complete. Grade: 100 | Violation Events: 0 | Violation Types: [] | Sequences: 0
+2026-04-28 18:53:21.861 | INFO     | app.routes.student_routes:list_students:51 - 📋 Listed 2 students for jonhanak1@gmail.com
+2026-04-28 18:53:25.395 | INFO     | main:lifespan:17 -  Server Shutting Down
+2026-04-28 18:53:25.396 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-04-28 18:53:39.234 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-04-28 18:53:39.529 | INFO     | main:lifespan:13 -  Server Starting Up
+2026-04-28 18:53:39.558 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-04-28 18:54:28.821 | INFO     | app.routes.test_routes:load_ai_models:112 - Loading Scaler and M8 Attention Production Model...
+2026-04-28 18:54:29.140 | INFO     | app.routes.test_routes:load_ai_models:118 - M8 Production Model & Scaler Loaded Successfully.
+2026-04-28 18:54:29.152 | INFO     | app.services.sensor_sync:process_sensor_json:13 - 🔄 Processing sensor data from: temp_6d6bc81e-e0ca-4208-add7-4e78a89df778.json
+2026-04-28 18:54:29.161 | INFO     | app.services.sensor_sync:process_sensor_json:28 - ℹ️ No video_offset_ms in JSON (legacy format) - assuming perfect sync
+2026-04-28 18:54:29.164 | INFO     | app.services.sensor_sync:process_sensor_json:38 - ⏱️ Resampling data to exactly 10Hz (100ms intervals)
+2026-04-28 18:54:29.167 | INFO     | app.services.sensor_sync:process_sensor_json:64 - ✅ Sensor processing complete. Total 10Hz rows: 109
+2026-04-28 18:54:29.171 | INFO     | app.services.vision_service:analyze_video_for_server:177 - 🎥 Starting Video Analysis Pipeline...
+2026-04-28 18:54:29.217 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-04-28 18:54:39.657 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-04-28 18:54:39.672 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-04-28 18:54:39.708 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-04-28 18:54:39.775 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-04-28 18:55:00.590 | INFO     | app.services.vision_service:analyze_video_for_server:219 - ✅ YOLO Done. Starting Tracking...
+2026-04-28 18:55:00.594 | INFO     | app.services.vision_service:analyze_video_for_server:296 - 🏁 Pipeline Complete. Total valid events: 0
+2026-04-28 18:55:00.595 | INFO     | app.services.vector_builder:build_feature_vector:17 - 🧬 Building Multi-Object Vector with Dead Reckoning (FOV handling)...
+2026-04-28 18:55:00.600 | WARNING  | app.services.vector_builder:build_feature_vector:36 - ⚠️ No video events. Returning clean sensor vector.
+2026-04-28 18:55:01.440 | INFO     | app.routes.test_routes:evaluate_test:310 - 🎯 Evaluation Complete. Grade: 100 | Violation Events: 0 | Violation Types: [] | Sequences: 0
+2026-04-28 18:55:07.247 | INFO     | app.routes.student_routes:list_students:51 - 📋 Listed 2 students for jonhanak1@gmail.com
+2026-04-28 18:55:08.210 | INFO     | app.routes.test_routes:save_test:401 - 💾 Test saved | student: elad (216312345) | grade: 100 | by: jonhanak1@gmail.com
+2026-05-02 19:45:21.623 | INFO     | main:lifespan:17 -  Server Shutting Down
+2026-05-02 19:45:21.776 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-05-02 19:46:11.606 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-05-02 19:46:12.172 | INFO     | main:lifespan:13 -  Server Starting Up
+2026-05-02 19:46:12.857 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-05-02 20:13:46.640 | INFO     | app.routes.test_routes:load_ai_models:112 - Loading Scaler and M8 Attention Production Model...
+2026-05-02 20:13:49.988 | INFO     | app.routes.test_routes:load_ai_models:118 - M8 Production Model & Scaler Loaded Successfully.
+2026-05-02 20:13:50.297 | INFO     | app.services.sensor_sync:process_sensor_json:13 - 🔄 Processing sensor data from: temp_b9feb85a-cca0-4d27-bc5f-8fb12c98f7c2.json
+2026-05-02 20:13:50.324 | INFO     | app.services.sensor_sync:process_sensor_json:26 - 🎥 Video starts 327ms after sensors - will align timestamps
+2026-05-02 20:13:50.436 | INFO     | app.services.sensor_sync:process_sensor_json:38 - ⏱️ Resampling data to exactly 10Hz (100ms intervals)
+2026-05-02 20:13:50.506 | INFO     | app.services.sensor_sync:process_sensor_json:57 - 🗑️ Dropped 3 sensor rows recorded before video started
+2026-05-02 20:13:50.510 | INFO     | app.services.sensor_sync:process_sensor_json:64 - ✅ Sensor processing complete. Total 10Hz rows: 1153
+2026-05-02 20:13:50.548 | INFO     | app.services.vision_service:analyze_video_for_server:177 - 🎥 Starting Video Analysis Pipeline...
+2026-05-02 20:13:50.973 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-05-02 20:14:15.310 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-05-02 20:14:15.446 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-05-02 20:14:15.449 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-05-02 20:14:15.466 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-05-02 20:17:56.359 | INFO     | app.services.vision_service:analyze_video_for_server:219 - ✅ YOLO Done. Starting Tracking...
+2026-05-02 20:17:58.309 | INFO     | app.services.vision_service:analyze_video_for_server:296 - 🏁 Pipeline Complete. Total valid events: 173
+2026-05-02 20:17:58.317 | INFO     | app.services.vector_builder:build_feature_vector:17 - 🧬 Building Multi-Object Vector with Dead Reckoning (FOV handling)...
+2026-05-02 20:17:59.378 | INFO     | app.services.vector_builder:build_feature_vector:114 - ✅ Multi-Object Vector Built. Dimensions: (1153, 15), Features order: ['speed_kmh', 'jerk', 'car_distance', 'car_ttc', 'sign_type', 'sign_distance', 'sign_ttc']
+2026-05-02 20:18:05.974 | INFO     | app.routes.test_routes:evaluate_test:310 - 🎯 Evaluation Complete. Grade: 95 | Violation Events: 1 | Violation Types: [3] | Sequences: 0
+2026-05-02 20:21:15.972 | INFO     | main:lifespan:17 -  Server Shutting Down
+2026-05-02 20:21:16.003 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-05-02 20:21:43.200 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-05-02 20:21:43.716 | INFO     | main:lifespan:13 -  Server Starting Up
+2026-05-02 20:21:43.810 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-05-02 20:25:40.036 | INFO     | app.routes.test_routes:load_ai_models:112 - Loading Scaler and M8 Attention Production Model...
+2026-05-02 20:25:40.929 | INFO     | app.routes.test_routes:load_ai_models:118 - M8 Production Model & Scaler Loaded Successfully.
+2026-05-02 20:25:40.941 | INFO     | app.services.sensor_sync:process_sensor_json:13 - 🔄 Processing sensor data from: temp_a90b5b54-f7bd-4b02-a204-e9635c3df780.json
+2026-05-02 20:25:40.977 | INFO     | app.services.sensor_sync:process_sensor_json:26 - 🎥 Video starts 556ms after sensors - will align timestamps
+2026-05-02 20:25:41.001 | INFO     | app.services.sensor_sync:process_sensor_json:38 - ⏱️ Resampling data to exactly 10Hz (100ms intervals)
+2026-05-02 20:25:41.031 | INFO     | app.services.sensor_sync:process_sensor_json:57 - 🗑️ Dropped 4 sensor rows recorded before video started
+2026-05-02 20:25:41.033 | INFO     | app.services.sensor_sync:process_sensor_json:64 - ✅ Sensor processing complete. Total 10Hz rows: 46
+2026-05-02 20:25:41.041 | INFO     | app.services.vision_service:analyze_video_for_server:177 - 🎥 Starting Video Analysis Pipeline...
+2026-05-02 20:25:41.181 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-05-02 20:25:57.288 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-05-02 20:25:57.288 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-05-02 20:25:57.288 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-05-02 20:26:07.094 | INFO     | app.services.vision_service:analyze_video_for_server:219 - ✅ YOLO Done. Starting Tracking...
+2026-05-02 20:26:07.095 | INFO     | app.services.vision_service:analyze_video_for_server:296 - 🏁 Pipeline Complete. Total valid events: 0
+2026-05-02 20:26:07.096 | INFO     | app.services.vector_builder:build_feature_vector:17 - 🧬 Building Multi-Object Vector with Dead Reckoning (FOV handling)...
+2026-05-02 20:26:07.100 | WARNING  | app.services.vector_builder:build_feature_vector:36 - ⚠️ No video events. Returning clean sensor vector.
+2026-05-02 20:26:07.970 | INFO     | app.routes.test_routes:evaluate_test:310 - 🎯 Evaluation Complete. Grade: 100 | Violation Events: 0 | Violation Types: [] | Sequences: 0
+2026-05-02 20:29:01.383 | INFO     | app.services.sensor_sync:process_sensor_json:13 - 🔄 Processing sensor data from: temp_ea4f86f9-6e8a-4799-bc86-bd850abf41ce.json
+2026-05-02 20:29:01.406 | INFO     | app.services.sensor_sync:process_sensor_json:26 - 🎥 Video starts 363ms after sensors - will align timestamps
+2026-05-02 20:29:01.420 | INFO     | app.services.sensor_sync:process_sensor_json:38 - ⏱️ Resampling data to exactly 10Hz (100ms intervals)
+2026-05-02 20:29:01.433 | INFO     | app.services.sensor_sync:process_sensor_json:57 - 🗑️ Dropped 3 sensor rows recorded before video started
+2026-05-02 20:29:01.435 | INFO     | app.services.sensor_sync:process_sensor_json:64 - ✅ Sensor processing complete. Total 10Hz rows: 1403
+2026-05-02 20:29:01.447 | INFO     | app.services.vision_service:analyze_video_for_server:177 - 🎥 Starting Video Analysis Pipeline...
+2026-05-02 20:29:01.488 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-05-02 20:29:16.794 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-05-02 20:29:16.794 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-05-02 20:29:16.794 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-05-02 20:29:16.795 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-05-02 20:32:38.617 | INFO     | app.services.vision_service:analyze_video_for_server:219 - ✅ YOLO Done. Starting Tracking...
+2026-05-02 20:32:40.919 | INFO     | app.services.vision_service:analyze_video_for_server:296 - 🏁 Pipeline Complete. Total valid events: 223
+2026-05-02 20:32:40.922 | INFO     | app.services.vector_builder:build_feature_vector:17 - 🧬 Building Multi-Object Vector with Dead Reckoning (FOV handling)...
+2026-05-02 20:32:41.920 | INFO     | app.services.vector_builder:build_feature_vector:114 - ✅ Multi-Object Vector Built. Dimensions: (1403, 15), Features order: ['speed_kmh', 'jerk', 'car_distance', 'car_ttc', 'sign_type', 'sign_distance', 'sign_ttc']
+2026-05-02 20:32:47.182 | INFO     | app.routes.test_routes:evaluate_test:310 - 🎯 Evaluation Complete. Grade: 95 | Violation Events: 1 | Violation Types: [2] | Sequences: 0
+2026-05-02 20:33:00.876 | INFO     | app.routes.student_routes:list_students:51 - 📋 Listed 2 students for jonhanak1@gmail.com
+2026-05-02 20:33:02.777 | INFO     | app.routes.test_routes:save_test:401 - 💾 Test saved | student: elad (216312345) | grade: 95 | by: jonhanak1@gmail.com
+2026-05-02 20:38:38.210 | INFO     | app.services.sensor_sync:process_sensor_json:13 - 🔄 Processing sensor data from: temp_25ddad55-3d16-46a6-8ac8-5f497280b666.json
+2026-05-02 20:38:38.233 | INFO     | app.services.sensor_sync:process_sensor_json:26 - 🎥 Video starts 585ms after sensors - will align timestamps
+2026-05-02 20:38:38.246 | INFO     | app.services.sensor_sync:process_sensor_json:38 - ⏱️ Resampling data to exactly 10Hz (100ms intervals)
+2026-05-02 20:38:38.262 | INFO     | app.services.sensor_sync:process_sensor_json:57 - 🗑️ Dropped 5 sensor rows recorded before video started
+2026-05-02 20:38:38.264 | INFO     | app.services.sensor_sync:process_sensor_json:64 - ✅ Sensor processing complete. Total 10Hz rows: 1430
+2026-05-02 20:38:38.278 | INFO     | app.services.vision_service:analyze_video_for_server:177 - 🎥 Starting Video Analysis Pipeline...
+2026-05-02 20:38:38.379 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-05-02 20:39:00.303 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-05-02 20:39:00.303 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-05-02 20:39:00.304 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-05-02 20:39:00.304 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-05-02 20:42:29.713 | INFO     | app.services.vision_service:analyze_video_for_server:219 - ✅ YOLO Done. Starting Tracking...
+2026-05-02 20:42:31.582 | INFO     | app.services.vision_service:analyze_video_for_server:296 - 🏁 Pipeline Complete. Total valid events: 212
+2026-05-02 20:42:31.584 | INFO     | app.services.vector_builder:build_feature_vector:17 - 🧬 Building Multi-Object Vector with Dead Reckoning (FOV handling)...
+2026-05-02 20:42:32.556 | INFO     | app.services.vector_builder:build_feature_vector:114 - ✅ Multi-Object Vector Built. Dimensions: (1430, 15), Features order: ['speed_kmh', 'jerk', 'car_distance', 'car_ttc', 'sign_type', 'sign_distance', 'sign_ttc']
+2026-05-02 20:42:37.109 | INFO     | app.routes.test_routes:evaluate_test:310 - 🎯 Evaluation Complete. Grade: 100 | Violation Events: 0 | Violation Types: [] | Sequences: 0
+2026-05-02 20:46:27.206 | INFO     | app.services.sensor_sync:process_sensor_json:13 - 🔄 Processing sensor data from: temp_cb85ac5f-818b-4917-b173-50d4cacfc825.json
+2026-05-02 20:46:27.241 | INFO     | app.services.sensor_sync:process_sensor_json:26 - 🎥 Video starts 572ms after sensors - will align timestamps
+2026-05-02 20:46:27.254 | INFO     | app.services.sensor_sync:process_sensor_json:38 - ⏱️ Resampling data to exactly 10Hz (100ms intervals)
+2026-05-02 20:46:27.262 | INFO     | app.services.sensor_sync:process_sensor_json:57 - 🗑️ Dropped 5 sensor rows recorded before video started
+2026-05-02 20:46:27.263 | INFO     | app.services.sensor_sync:process_sensor_json:64 - ✅ Sensor processing complete. Total 10Hz rows: 1064
+2026-05-02 20:46:27.274 | INFO     | app.services.vision_service:analyze_video_for_server:177 - 🎥 Starting Video Analysis Pipeline...
+2026-05-02 20:46:27.312 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-05-02 20:46:45.083 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-05-02 20:46:45.083 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-05-02 20:46:45.083 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-05-02 20:46:45.084 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-05-02 20:49:11.085 | INFO     | app.services.vision_service:analyze_video_for_server:219 - ✅ YOLO Done. Starting Tracking...
+2026-05-02 20:49:12.816 | INFO     | app.services.vision_service:analyze_video_for_server:296 - 🏁 Pipeline Complete. Total valid events: 194
+2026-05-02 20:49:12.818 | INFO     | app.services.vector_builder:build_feature_vector:17 - 🧬 Building Multi-Object Vector with Dead Reckoning (FOV handling)...
+2026-05-02 20:49:13.706 | INFO     | app.services.vector_builder:build_feature_vector:114 - ✅ Multi-Object Vector Built. Dimensions: (1064, 15), Features order: ['speed_kmh', 'jerk', 'car_distance', 'car_ttc', 'sign_type', 'sign_distance', 'sign_ttc']
+2026-05-02 20:49:17.935 | INFO     | app.routes.test_routes:evaluate_test:310 - 🎯 Evaluation Complete. Grade: 100 | Violation Events: 0 | Violation Types: [] | Sequences: 0
+2026-05-02 20:50:35.424 | INFO     | app.routes.student_routes:list_students:51 - 📋 Listed 2 students for jonhanak1@gmail.com
+2026-05-02 20:50:36.125 | INFO     | app.routes.test_routes:save_test:401 - 💾 Test saved | student: elad (216312345) | grade: 100 | by: jonhanak1@gmail.com
+2026-05-02 20:53:10.023 | INFO     | app.services.sensor_sync:process_sensor_json:13 - 🔄 Processing sensor data from: temp_24d0aec0-5fe7-4dbe-9af1-6f61b1a2e870.json
+2026-05-02 20:53:10.044 | INFO     | app.services.sensor_sync:process_sensor_json:26 - 🎥 Video starts 173ms after sensors - will align timestamps
+2026-05-02 20:53:10.055 | INFO     | app.services.sensor_sync:process_sensor_json:38 - ⏱️ Resampling data to exactly 10Hz (100ms intervals)
+2026-05-02 20:53:10.067 | INFO     | app.services.sensor_sync:process_sensor_json:57 - 🗑️ Dropped 1 sensor rows recorded before video started
+2026-05-02 20:53:10.068 | INFO     | app.services.sensor_sync:process_sensor_json:64 - ✅ Sensor processing complete. Total 10Hz rows: 1270
+2026-05-02 20:53:10.078 | INFO     | app.services.vision_service:analyze_video_for_server:177 - 🎥 Starting Video Analysis Pipeline...
+2026-05-02 20:53:10.115 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-05-02 20:53:25.257 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-05-02 20:53:25.258 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-05-02 20:53:25.258 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-05-02 20:53:25.258 | INFO     | app.services.vision_service:<module>:17 - YOLO STARTING
+2026-05-02 20:57:23.681 | INFO     | app.services.vision_service:analyze_video_for_server:219 - ✅ YOLO Done. Starting Tracking...
+2026-05-02 20:57:25.352 | INFO     | app.services.vision_service:analyze_video_for_server:296 - 🏁 Pipeline Complete. Total valid events: 157
+2026-05-02 20:57:25.355 | INFO     | app.services.vector_builder:build_feature_vector:17 - 🧬 Building Multi-Object Vector with Dead Reckoning (FOV handling)...
+2026-05-02 20:57:26.162 | INFO     | app.services.vector_builder:build_feature_vector:114 - ✅ Multi-Object Vector Built. Dimensions: (1270, 15), Features order: ['speed_kmh', 'jerk', 'car_distance', 'car_ttc', 'sign_type', 'sign_distance', 'sign_ttc']
+2026-05-02 20:57:30.272 | INFO     | app.routes.test_routes:evaluate_test:310 - 🎯 Evaluation Complete. Grade: 35 | Violation Events: 13 | Violation Types: [2, 3, 4] | Sequences: 4
+2026-05-02 20:59:07.556 | INFO     | app.routes.student_routes:list_students:51 - 📋 Listed 2 students for jonhanak1@gmail.com
+2026-05-02 20:59:08.719 | INFO     | app.routes.test_routes:save_test:401 - 💾 Test saved | student: elad (216312345) | grade: 35 | by: jonhanak1@gmail.com
+2026-05-02 21:40:58.038 | INFO     | main:lifespan:17 -  Server Shutting Down
+2026-05-02 21:40:58.191 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-05-02 23:30:07.859 | INFO     | app.services.vision_service:<module>:16 - YOLO STARTING
+2026-05-02 23:30:08.334 | INFO     | main:lifespan:13 -  Server Starting Up
+2026-05-02 23:30:08.741 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-05-02 23:35:45.832 | INFO     | main:lifespan:17 -  Server Shutting Down
+2026-05-02 23:35:45.843 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-05-02 23:35:59.388 | INFO     | app.services.vision_service:<module>:16 - YOLO STARTING
+2026-05-02 23:35:59.684 | INFO     | main:lifespan:13 -  Server Starting Up
+2026-05-02 23:35:59.724 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-05-02 23:38:42.831 | INFO     | app.routes.auth_routes:login:67 - Login attempt: jonhanak1@gmail.com
+2026-05-02 23:38:43.487 | WARNING  | app.routes.auth_routes:login:70 - Failed login: jonhanak1@gmail.com
+2026-05-02 23:38:49.444 | INFO     | app.routes.auth_routes:login:67 - Login attempt: jonhanak1@gmail.com
+2026-05-02 23:38:49.647 | INFO     | app.routes.auth_routes:login:73 - Successful login: jonathan nakache
+2026-05-03 00:05:19.498 | INFO     | app.routes.test_routes:load_ai_models:122 - Loading Scaler and M8 Model...
+2026-05-03 00:05:22.121 | INFO     | app.routes.test_routes:load_ai_models:128 - M8 Model + Scaler ready.
+2026-05-03 00:05:22.158 | INFO     | app.routes.test_routes:evaluate_test:177 - ✅ Integrity verified for TEST_1777755917825
+2026-05-03 00:05:22.161 | INFO     | app.services.sensor_sync:process_sensor_json:12 - 🔄 Processing sensor data: temp_da04e376-ee54-4437-b2d2-7f0b9c088284.json
+2026-05-03 00:05:22.161 | INFO     | app.services.sensor_sync:process_sensor_json:24 - 🎥 Video offset: 603ms
+2026-05-03 00:05:22.228 | INFO     | app.services.sensor_sync:process_sensor_json:30 - ⏱️ Resampling to 10Hz
+2026-05-03 00:05:22.278 | INFO     | app.services.sensor_sync:process_sensor_json:49 - 🪛 Tier-3 plateau smoothing: 0 rows interpolated
+2026-05-03 00:05:22.285 | INFO     | app.services.sensor_sync:process_sensor_json:63 - 🗑️ Dropped 5 pre-video rows
+2026-05-03 00:05:22.286 | INFO     | app.services.sensor_sync:process_sensor_json:74 - ✅ Sensor processing done. Rows: 42
+2026-05-03 00:05:22.322 | INFO     | app.services.vision_service:analyze_video_for_server:212 - 🎥 Starting Video Analysis Pipeline...
+2026-05-03 00:05:22.549 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-05-03 00:05:23.318 | INFO     | app.services.vision_service:get_yolo:39 - 🟢 YOLO singleton initialized & warmed
+2026-05-03 00:05:30.426 | INFO     | app.services.vision_service:analyze_video_for_server:247 - ✅ YOLO Done. Starting Tracking...
+2026-05-03 00:05:30.460 | INFO     | app.services.vision_service:analyze_video_for_server:363 - 🏁 Pipeline Complete. Events: 0
+2026-05-03 00:05:30.462 | INFO     | app.services.vector_builder:build_feature_vector:11 - 🧬 Building vector with geometric DR invalidation...
+2026-05-03 00:05:30.468 | WARNING  | app.services.vector_builder:build_feature_vector:24 - ⚠️ No video events. Returning clean vector.
+2026-05-03 00:05:31.448 | INFO     | app.routes.test_routes:evaluate_test:398 - 🎯 Done. Grade: 100 | Events: 0 | PositiveActions: 0 | Tester: jonhanak1@gmail.com
+2026-05-03 01:38:11.840 | INFO     | main:lifespan:17 -  Server Shutting Down
+2026-05-03 01:38:11.891 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-05-03 01:38:34.618 | INFO     | app.services.vision_service:<module>:16 - YOLO STARTING
+2026-05-03 01:38:35.080 | INFO     | main:lifespan:13 -  Server Starting Up
+2026-05-03 01:38:35.226 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-05-03 01:39:25.452 | INFO     | main:lifespan:17 -  Server Shutting Down
+2026-05-03 01:39:25.457 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-05-03 01:49:55.290 | INFO     | app.services.vision_service:<module>:16 - YOLO STARTING
+2026-05-03 01:49:55.901 | INFO     | main:lifespan:13 -  Server Starting Up
+2026-05-03 01:49:56.107 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-05-03 01:52:44.661 | INFO     | app.routes.test_routes:load_ai_models:122 - Loading Scaler and M8 Model...
+2026-05-03 01:52:45.528 | INFO     | app.routes.test_routes:load_ai_models:128 - M8 Model + Scaler ready.
+2026-05-03 01:52:45.893 | INFO     | app.routes.test_routes:evaluate_test:177 - ✅ Integrity verified for TEST_1777762356243
+2026-05-03 01:52:45.895 | INFO     | app.services.sensor_sync:process_sensor_json:12 - 🔄 Processing sensor data: temp_571a50ee-8b2e-457f-9252-2838921dc097.json
+2026-05-03 01:52:45.900 | INFO     | app.services.sensor_sync:process_sensor_json:24 - 🎥 Video offset: 502ms
+2026-05-03 01:52:45.925 | INFO     | app.services.sensor_sync:process_sensor_json:30 - ⏱️ Resampling to 10Hz
+2026-05-03 01:52:45.941 | INFO     | app.services.sensor_sync:process_sensor_json:49 - 🪛 Tier-3 plateau smoothing: 0 rows interpolated
+2026-05-03 01:52:45.946 | INFO     | app.services.sensor_sync:process_sensor_json:63 - 🗑️ Dropped 4 pre-video rows
+2026-05-03 01:52:45.948 | INFO     | app.services.sensor_sync:process_sensor_json:74 - ✅ Sensor processing done. Rows: 639
+2026-05-03 01:52:45.965 | INFO     | app.services.vision_service:analyze_video_for_server:212 - 🎥 Starting Video Analysis Pipeline...
+2026-05-03 01:52:46.147 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-05-03 01:52:47.768 | INFO     | app.services.vision_service:get_yolo:39 - 🟢 YOLO singleton initialized & warmed
+2026-05-03 01:55:24.673 | INFO     | app.services.vision_service:analyze_video_for_server:247 - ✅ YOLO Done. Starting Tracking...
+2026-05-03 01:55:25.854 | INFO     | app.services.vision_service:analyze_video_for_server:363 - 🏁 Pipeline Complete. Events: 78
+2026-05-03 01:55:25.855 | INFO     | app.services.vector_builder:build_feature_vector:11 - 🧬 Building vector with geometric DR invalidation...
+2026-05-03 01:55:26.241 | INFO     | app.services.vector_builder:build_feature_vector:104 - ✅ Vector built. Shape: (639, 16)
+2026-05-03 01:55:29.124 | INFO     | app.routes.test_routes:evaluate_test:398 - 🎯 Done. Grade: 100 | Events: 0 | PositiveActions: 0 | Tester: jonhanak1@gmail.com
+2026-05-03 01:55:38.987 | INFO     | app.routes.student_routes:list_students:53 - 📋 Listed 2 students for jonhanak1@gmail.com
+2026-05-03 01:55:40.313 | INFO     | app.routes.test_routes:save_test:487 - 💾 Test saved | ffdf (5565883) | grade: 100 | by: jonhanak1@gmail.com
+2026-05-03 02:00:11.375 | INFO     | app.routes.test_routes:evaluate_test:177 - ✅ Integrity verified for TEST_1777762806171
+2026-05-03 02:00:11.376 | INFO     | app.services.sensor_sync:process_sensor_json:12 - 🔄 Processing sensor data: temp_7905400d-e78f-4104-935a-bc7507f7548b.json
+2026-05-03 02:00:11.378 | INFO     | app.services.sensor_sync:process_sensor_json:24 - 🎥 Video offset: 304ms
+2026-05-03 02:00:11.384 | INFO     | app.services.sensor_sync:process_sensor_json:30 - ⏱️ Resampling to 10Hz
+2026-05-03 02:00:11.391 | INFO     | app.services.sensor_sync:process_sensor_json:49 - 🪛 Tier-3 plateau smoothing: 0 rows interpolated
+2026-05-03 02:00:11.396 | INFO     | app.services.sensor_sync:process_sensor_json:63 - 🗑️ Dropped 3 pre-video rows
+2026-05-03 02:00:11.398 | INFO     | app.services.sensor_sync:process_sensor_json:74 - ✅ Sensor processing done. Rows: 522
+2026-05-03 02:00:11.405 | INFO     | app.services.vision_service:analyze_video_for_server:212 - 🎥 Starting Video Analysis Pipeline...
+2026-05-03 02:00:11.429 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-05-03 02:01:37.509 | INFO     | app.services.vision_service:analyze_video_for_server:247 - ✅ YOLO Done. Starting Tracking...
+2026-05-03 02:01:38.519 | INFO     | app.services.vision_service:analyze_video_for_server:363 - 🏁 Pipeline Complete. Events: 58
+2026-05-03 02:01:38.520 | INFO     | app.services.vector_builder:build_feature_vector:11 - 🧬 Building vector with geometric DR invalidation...
+2026-05-03 02:01:38.884 | INFO     | app.services.vector_builder:build_feature_vector:104 - ✅ Vector built. Shape: (522, 16)
+2026-05-03 02:01:40.628 | INFO     | app.routes.test_routes:evaluate_test:398 - 🎯 Done. Grade: 100 | Events: 0 | PositiveActions: 10 | Tester: jonhanak1@gmail.com
+2026-05-03 02:01:44.791 | INFO     | app.routes.student_routes:list_students:53 - 📋 Listed 2 students for jonhanak1@gmail.com
+2026-05-03 02:01:50.083 | INFO     | app.routes.student_routes:list_students:53 - 📋 Listed 2 students for jonhanak1@gmail.com
+2026-05-03 02:01:51.027 | INFO     | app.routes.test_routes:save_test:487 - 💾 Test saved | elad (216312345) | grade: 100 | by: jonhanak1@gmail.com
+2026-05-03 02:04:08.069 | INFO     | app.routes.test_routes:evaluate_test:177 - ✅ Integrity verified for TEST_1777763044426
+2026-05-03 02:04:08.070 | INFO     | app.services.sensor_sync:process_sensor_json:12 - 🔄 Processing sensor data: temp_f849d1df-cfd1-4825-85f8-faa0e6f2f435.json
+2026-05-03 02:04:08.072 | INFO     | app.services.sensor_sync:process_sensor_json:24 - 🎥 Video offset: 243ms
+2026-05-03 02:04:08.078 | INFO     | app.services.sensor_sync:process_sensor_json:30 - ⏱️ Resampling to 10Hz
+2026-05-03 02:04:08.085 | INFO     | app.services.sensor_sync:process_sensor_json:49 - 🪛 Tier-3 plateau smoothing: 0 rows interpolated
+2026-05-03 02:04:08.088 | INFO     | app.services.sensor_sync:process_sensor_json:63 - 🗑️ Dropped 2 pre-video rows
+2026-05-03 02:04:08.090 | INFO     | app.services.sensor_sync:process_sensor_json:74 - ✅ Sensor processing done. Rows: 387
+2026-05-03 02:04:08.098 | INFO     | app.services.vision_service:analyze_video_for_server:212 - 🎥 Starting Video Analysis Pipeline...
+2026-05-03 02:04:08.170 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-05-03 02:05:14.078 | INFO     | app.services.vision_service:analyze_video_for_server:247 - ✅ YOLO Done. Starting Tracking...
+2026-05-03 02:05:14.758 | INFO     | app.services.vision_service:analyze_video_for_server:363 - 🏁 Pipeline Complete. Events: 53
+2026-05-03 02:05:14.759 | INFO     | app.services.vector_builder:build_feature_vector:11 - 🧬 Building vector with geometric DR invalidation...
+2026-05-03 02:05:15.075 | INFO     | app.services.vector_builder:build_feature_vector:104 - ✅ Vector built. Shape: (387, 16)
+2026-05-03 02:05:16.600 | INFO     | app.routes.test_routes:evaluate_test:398 - 🎯 Done. Grade: 95 | Events: 1 | PositiveActions: 0 | Tester: jonhanak1@gmail.com
+2026-05-03 02:07:01.855 | INFO     | app.routes.student_routes:list_students:53 - 📋 Listed 2 students for jonhanak1@gmail.com
+2026-05-03 02:07:05.015 | INFO     | app.routes.test_routes:save_test:487 - 💾 Test saved | ffdf (5565883) | grade: 95 | by: jonhanak1@gmail.com
+2026-05-03 02:11:05.758 | INFO     | app.routes.test_routes:evaluate_test:177 - ✅ Integrity verified for TEST_1777763460177
+2026-05-03 02:11:05.759 | INFO     | app.services.sensor_sync:process_sensor_json:12 - 🔄 Processing sensor data: temp_1c9184d2-b794-4262-ac04-6d6023de186e.json
+2026-05-03 02:11:05.762 | INFO     | app.services.sensor_sync:process_sensor_json:24 - 🎥 Video offset: 218ms
+2026-05-03 02:11:05.769 | INFO     | app.services.sensor_sync:process_sensor_json:30 - ⏱️ Resampling to 10Hz
+2026-05-03 02:11:05.774 | INFO     | app.services.sensor_sync:process_sensor_json:49 - 🪛 Tier-3 plateau smoothing: 0 rows interpolated
+2026-05-03 02:11:05.777 | INFO     | app.services.sensor_sync:process_sensor_json:63 - 🗑️ Dropped 2 pre-video rows
+2026-05-03 02:11:05.778 | INFO     | app.services.sensor_sync:process_sensor_json:74 - ✅ Sensor processing done. Rows: 750
+2026-05-03 02:11:05.787 | INFO     | app.services.vision_service:analyze_video_for_server:212 - 🎥 Starting Video Analysis Pipeline...
+2026-05-03 02:11:05.813 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-05-03 02:13:11.996 | INFO     | app.services.vision_service:analyze_video_for_server:247 - ✅ YOLO Done. Starting Tracking...
+2026-05-03 02:13:13.660 | INFO     | app.services.vision_service:analyze_video_for_server:363 - 🏁 Pipeline Complete. Events: 91
+2026-05-03 02:13:13.662 | INFO     | app.services.vector_builder:build_feature_vector:11 - 🧬 Building vector with geometric DR invalidation...
+2026-05-03 02:13:14.189 | INFO     | app.services.vector_builder:build_feature_vector:104 - ✅ Vector built. Shape: (750, 16)
+2026-05-03 02:13:16.509 | INFO     | app.routes.test_routes:evaluate_test:398 - 🎯 Done. Grade: 100 | Events: 0 | PositiveActions: 0 | Tester: jonhanak1@gmail.com
+2026-05-03 02:14:31.843 | INFO     | app.routes.student_routes:list_students:53 - 📋 Listed 2 students for jonhanak1@gmail.com
+2026-05-03 02:14:34.188 | INFO     | app.routes.test_routes:save_test:487 - 💾 Test saved | ffdf (5565883) | grade: 100 | by: jonhanak1@gmail.com
+2026-05-03 02:17:46.983 | INFO     | main:lifespan:17 -  Server Shutting Down
+2026-05-03 02:17:46.989 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-05-03 02:18:12.193 | INFO     | app.services.vision_service:<module>:16 - YOLO STARTING
+2026-05-03 02:18:12.717 | INFO     | main:lifespan:13 -  Server Starting Up
+2026-05-03 02:18:12.825 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-05-03 02:18:52.510 | INFO     | app.routes.test_routes:load_ai_models:122 - Loading Scaler and M8 Model...
+2026-05-03 02:18:53.061 | INFO     | app.routes.test_routes:load_ai_models:128 - M8 Model + Scaler ready.
+2026-05-03 02:18:53.202 | INFO     | app.routes.test_routes:evaluate_test:177 - ✅ Integrity verified for TEST_1777763930190
+2026-05-03 02:18:53.204 | INFO     | app.services.sensor_sync:process_sensor_json:12 - 🔄 Processing sensor data: temp_d7781c6c-ad7f-4a92-bc14-55488ef234f2.json
+2026-05-03 02:18:53.207 | INFO     | app.services.sensor_sync:process_sensor_json:24 - 🎥 Video offset: 379ms
+2026-05-03 02:18:53.212 | INFO     | app.services.sensor_sync:process_sensor_json:30 - ⏱️ Resampling to 10Hz
+2026-05-03 02:18:53.217 | INFO     | app.services.sensor_sync:process_sensor_json:49 - 🪛 Tier-3 plateau smoothing: 0 rows interpolated
+2026-05-03 02:18:53.221 | INFO     | app.services.sensor_sync:process_sensor_json:63 - 🗑️ Dropped 3 pre-video rows
+2026-05-03 02:18:53.222 | INFO     | app.services.sensor_sync:process_sensor_json:74 - ✅ Sensor processing done. Rows: 303
+2026-05-03 02:18:53.231 | INFO     | app.services.vision_service:analyze_video_for_server:212 - 🎥 Starting Video Analysis Pipeline...
+2026-05-03 02:18:53.287 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-05-03 02:18:53.732 | INFO     | app.services.vision_service:get_yolo:39 - 🟢 YOLO singleton initialized & warmed
+2026-05-03 02:19:42.497 | INFO     | app.services.vision_service:analyze_video_for_server:247 - ✅ YOLO Done. Starting Tracking...
+2026-05-03 02:19:42.887 | INFO     | app.services.vision_service:analyze_video_for_server:363 - 🏁 Pipeline Complete. Events: 40
+2026-05-03 02:19:42.888 | INFO     | app.services.vector_builder:build_feature_vector:11 - 🧬 Building vector with geometric DR invalidation...
+2026-05-03 02:19:43.082 | INFO     | app.services.vector_builder:build_feature_vector:104 - ✅ Vector built. Shape: (303, 16)
+2026-05-03 02:19:44.516 | INFO     | app.routes.test_routes:evaluate_test:398 - 🎯 Done. Grade: 100 | Events: 2 | PositiveActions: 8 | Tester: jonhanak1@gmail.com
+2026-05-03 02:22:29.018 | INFO     | app.routes.student_routes:list_students:53 - 📋 Listed 2 students for jonhanak1@gmail.com
+2026-05-03 02:22:29.601 | INFO     | app.routes.test_routes:save_test:487 - 💾 Test saved | ffdf (5565883) | grade: 100 | by: jonhanak1@gmail.com
+2026-05-03 02:28:55.211 | INFO     | app.routes.test_routes:evaluate_test:177 - ✅ Integrity verified for TEST_1777764534931
+2026-05-03 02:28:55.212 | INFO     | app.services.sensor_sync:process_sensor_json:12 - 🔄 Processing sensor data: temp_3771cfc2-d00a-44a7-994c-f7a2f0269fdc.json
+2026-05-03 02:28:55.212 | INFO     | app.services.sensor_sync:process_sensor_json:24 - 🎥 Video offset: 252ms
+2026-05-03 02:28:55.215 | INFO     | app.services.sensor_sync:process_sensor_json:30 - ⏱️ Resampling to 10Hz
+2026-05-03 02:28:55.220 | INFO     | app.services.sensor_sync:process_sensor_json:49 - 🪛 Tier-3 plateau smoothing: 0 rows interpolated
+2026-05-03 02:28:55.222 | INFO     | app.services.sensor_sync:process_sensor_json:63 - 🗑️ Dropped 2 pre-video rows
+2026-05-03 02:28:55.222 | INFO     | app.services.sensor_sync:process_sensor_json:74 - ✅ Sensor processing done. Rows: 19
+2026-05-03 02:28:55.226 | INFO     | app.services.vision_service:analyze_video_for_server:212 - 🎥 Starting Video Analysis Pipeline...
+2026-05-03 02:28:55.256 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-05-03 02:28:57.900 | INFO     | app.services.vision_service:analyze_video_for_server:247 - ✅ YOLO Done. Starting Tracking...
+2026-05-03 02:28:57.953 | INFO     | app.services.vision_service:analyze_video_for_server:363 - 🏁 Pipeline Complete. Events: 3
+2026-05-03 02:28:57.953 | INFO     | app.services.vector_builder:build_feature_vector:11 - 🧬 Building vector with geometric DR invalidation...
+2026-05-03 02:28:57.962 | INFO     | app.services.vector_builder:build_feature_vector:104 - ✅ Vector built. Shape: (19, 16)
+2026-05-03 02:28:57.967 | INFO     | app.routes.test_routes:evaluate_test:398 - 🎯 Done. Grade: 100 | Events: 0 | PositiveActions: 0 | Tester: jonhanak1@gmail.com
+2026-05-03 02:29:51.339 | INFO     | app.routes.test_routes:evaluate_test:177 - ✅ Integrity verified for TEST_1777764588309
+2026-05-03 02:29:51.341 | INFO     | app.services.sensor_sync:process_sensor_json:12 - 🔄 Processing sensor data: temp_c936d3c2-8886-49a5-97f9-ff8bb1bdc77e.json
+2026-05-03 02:29:51.343 | INFO     | app.services.sensor_sync:process_sensor_json:24 - 🎥 Video offset: 255ms
+2026-05-03 02:29:51.349 | INFO     | app.services.sensor_sync:process_sensor_json:30 - ⏱️ Resampling to 10Hz
+2026-05-03 02:29:51.356 | INFO     | app.services.sensor_sync:process_sensor_json:49 - 🪛 Tier-3 plateau smoothing: 0 rows interpolated
+2026-05-03 02:29:51.358 | INFO     | app.services.sensor_sync:process_sensor_json:63 - 🗑️ Dropped 2 pre-video rows
+2026-05-03 02:29:51.359 | INFO     | app.services.sensor_sync:process_sensor_json:74 - ✅ Sensor processing done. Rows: 308
+2026-05-03 02:29:51.367 | INFO     | app.services.vision_service:analyze_video_for_server:212 - 🎥 Starting Video Analysis Pipeline...
+2026-05-03 02:29:51.391 | INFO     | app.services.vision_filter:__init__:18 - 🚦 Loaded 72 traffic lights from JSON.
+2026-05-03 02:30:41.474 | INFO     | app.services.vision_service:analyze_video_for_server:247 - ✅ YOLO Done. Starting Tracking...
+2026-05-03 02:30:41.979 | INFO     | app.services.vision_service:analyze_video_for_server:363 - 🏁 Pipeline Complete. Events: 21
+2026-05-03 02:30:41.981 | INFO     | app.services.vector_builder:build_feature_vector:11 - 🧬 Building vector with geometric DR invalidation...
+2026-05-03 02:30:42.194 | INFO     | app.services.vector_builder:build_feature_vector:104 - ✅ Vector built. Shape: (308, 16)
+2026-05-03 02:30:43.290 | INFO     | app.routes.test_routes:evaluate_test:398 - 🎯 Done. Grade: 90 | Events: 2 | PositiveActions: 0 | Tester: jonhanak1@gmail.com
+2026-05-03 03:06:18.615 | INFO     | main:lifespan:17 -  Server Shutting Down
+2026-05-03 03:06:18.710 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed

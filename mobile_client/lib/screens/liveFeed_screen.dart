@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:camera/camera.dart';
 import '../providers/sensor_provider.dart';
-import '../services/api_service.dart';
+import 'processing_screen.dart';
 
 class LivefeedScreen extends StatefulWidget {
   const LivefeedScreen({super.key});
@@ -62,7 +62,12 @@ class _LivefeedScreenState extends State<LivefeedScreen> {
 
   @override
   void dispose() {
-    // שחרור משאבי המצלמה כשהמסך נסגר
+    // ✅ עוצרים הקלטה אם עדיין רצה (למנוע קבצי וידאו corrupt)
+    if (_cameraController != null &&
+        _cameraController!.value.isInitialized &&
+        _cameraController!.value.isRecordingVideo) {
+      _cameraController!.stopVideoRecording().catchError((_) => XFile(''));
+    }
     _cameraController?.dispose();
 
     // החזרת המסך למצב רגיל (Portrait)
@@ -76,6 +81,17 @@ class _LivefeedScreenState extends State<LivefeedScreen> {
   // הפונקציה שמופעלת בלחיצה על "START / STOP"
   void _toggleTest() async {
     final sensorProvider = Provider.of<SensorProvider>(context, listen: false);
+
+    // ✅ התיקון של קלאוד: חוסמים התחלת טסט עד שיש נעילת GPS תקינה (למניעת 0,0)
+    if (!_isTesting && !sensorProvider.hasGpsFix) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Waiting for GPS lock... please move outdoors."),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return; // יוצא מהפונקציה ולא מתחיל את הטסט
+    }
 
     if (_isTesting) {
       // ===== עצירת הטסט =====
@@ -91,33 +107,31 @@ class _LivefeedScreenState extends State<LivefeedScreen> {
         final XFile videoFile = await _cameraController!.stopVideoRecording();
         print("✅ Video saved locally at: ${videoFile.path}");
 
-        // 3. שליחת הנתונים לשרת ול-MongoDB
-        if (jsonPath != null) {
+        // ✅ החזרת ה-orientation ל-Portrait לפני המעבר למסך הבא
+        await SystemChrome.setPreferredOrientations([
+          DeviceOrientation.portraitUp,
+          DeviceOrientation.portraitDown,
+        ]);
+        await Future.delayed(const Duration(milliseconds: 200));
+
+        // 3. מעבר למסך העיבוד החדש
+        if (jsonPath != null && mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ProcessingScreen(
+                videoPath: videoFile.path,
+                jsonPath: jsonPath,
+              ),
+            ),
+          );
+        } else if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Uploading and processing... ⏳')),
+            const SnackBar(
+              content: Text('Failed to save sensor data ❌'),
+              backgroundColor: Colors.red,
+            ),
           );
-
-          bool success = await ApiService.uploadTestFiles(
-            videoFile.path,
-            jsonPath,
-            "123456789", // תעודת הזהות של התלמיד
-          );
-
-          if (success) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Test saved to DataBase! 🎉'),
-                backgroundColor: Colors.green,
-              ),
-            );
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Server Error ❌'),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
         }
       }
     } else {
@@ -132,6 +146,8 @@ class _LivefeedScreenState extends State<LivefeedScreen> {
       if (_cameraController != null &&
           !_cameraController!.value.isRecordingVideo) {
         await _cameraController!.startVideoRecording();
+        // ✅ סימון הזמן המדויק שהוידאו החל - לסנכרון עם החיישנים
+        sensorProvider.markVideoStart();
       }
     }
   }
