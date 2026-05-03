@@ -3,10 +3,28 @@ import numpy as np
 from app.utils.logger import log
 
 
+def _normalize_sign_type(raw_type: str) -> str:
+    """Normalize YOLO/vision-filter sign labels to the numeric vocabulary expected by M8."""
+    t = str(raw_type or "").lower().replace("-", "_").replace(" ", "_")
+
+    if "stop" in t:
+        return "stop_sign"
+    if "yield" in t:
+        return "yield_sign"
+    if "no_entry" in t or "noentry" in t or "entry" in t:
+        return "no_entry"
+    return "none"
+
+
 def build_feature_vector(sensor_df: pd.DataFrame, video_events: list) -> pd.DataFrame:
     """
     Multi-object vector with Dead Reckoning + lateral-acceleration
     geometric invalidation (turn detection).
+
+    PATCHES:
+    - Keep no_entry/NO-ENTRY signs instead of dropping them before M8.
+    - Do not map every non-stop sign to yield.
+    - Make dead-reckoning invalidation tolerant to small accel.x noise/spikes.
     """
     log.info("🧬 Building vector with geometric DR invalidation...")
 
@@ -26,12 +44,19 @@ def build_feature_vector(sensor_df: pd.DataFrame, video_events: list) -> pd.Data
         return df[FINAL_COLUMNS]
 
     events_df = pd.DataFrame(video_events)
+    if events_df.empty or 'type' not in events_df.columns or 'time_sec' not in events_df.columns:
+        log.warning("⚠️ Video events are missing required columns. Returning clean vector.")
+        df['sign_type'] = 0
+        return df[FINAL_COLUMNS]
 
     virtual_sign_type = "none"
     virtual_sign_dist = 99.0
-    heading_drift = 0.0  # 🆕 lateral velocity integrated since last YOLO confirm
-    HEADING_INVALIDATE = 0.4  # m/s lateral ≈ 25° heading change at urban speeds
+    heading_drift = 0.0
 
+    # PATCH: previous value 0.4 was too sensitive; normal bumps/lane shifts erased signs.
+    HEADING_INVALIDATE = 1.8
+    LATERAL_ACCEL_DEADZONE_G = 0.12
+    HEADING_DRIFT_DECAY = 0.05
     dt = 0.1
 
     for idx, row in df.iterrows():
@@ -44,20 +69,25 @@ def build_feature_vector(sensor_df: pd.DataFrame, video_events: list) -> pd.Data
 
         if not window.empty:
             cars = window[window['type'].str.contains('car|vehicle', case=False, na=False)]
-            signs = window[window['type'].str.contains('stop|yield', case=False, na=False)]
+
+            # PATCH: include no_entry/NO-ENTRY/no-entry signs in the feature vector.
+            signs = window[
+                window['type'].str.contains('stop|yield|no_entry|no-entry|noentry|entry',
+                                            case=False, na=False)
+            ]
 
             if not cars.empty:
                 closest_car = cars.loc[cars['distance_meters'].idxmin()]
-                df.at[idx, 'car_distance'] = round(closest_car['distance_meters'], 2)
+                df.at[idx, 'car_distance'] = round(float(closest_car['distance_meters']), 2)
                 if speed_ms > 0.5:
-                    df.at[idx, 'car_ttc'] = round(closest_car['distance_meters'] / speed_ms, 2)
+                    df.at[idx, 'car_ttc'] = round(float(closest_car['distance_meters']) / speed_ms, 2)
 
             if not signs.empty:
                 closest_sign = signs.loc[signs['distance_meters'].idxmin()]
-                virtual_sign_type = "stop_sign" if "stop" in closest_sign['type'].lower() else "yield_sign"
-                virtual_sign_dist = closest_sign['distance_meters']
-                yolo_saw_sign = True
-                heading_drift = 0.0  # 🆕 fresh confirm resets drift
+                virtual_sign_type = _normalize_sign_type(closest_sign['type'])
+                virtual_sign_dist = float(closest_sign['distance_meters'])
+                yolo_saw_sign = virtual_sign_type != "none"
+                heading_drift = 0.0  # fresh YOLO confirmation resets drift
 
         # ====================================================
         # Dead Reckoning + lateral drift check
@@ -65,8 +95,12 @@ def build_feature_vector(sensor_df: pd.DataFrame, video_events: list) -> pd.Data
         if not yolo_saw_sign and virtual_sign_dist < 15.0:
             virtual_sign_dist -= (speed_ms * dt)
 
-            # 🆕 integrate lateral velocity during DR
-            heading_drift += abs(a_lat) * 9.81 * dt
+            # PATCH: ignore tiny accelerometer noise and decay drift when stable.
+            abs_lat_g = abs(a_lat)
+            if abs_lat_g > LATERAL_ACCEL_DEADZONE_G:
+                heading_drift += (abs_lat_g - LATERAL_ACCEL_DEADZONE_G) * 9.81 * dt
+            else:
+                heading_drift = max(0.0, heading_drift - HEADING_DRIFT_DECAY)
 
             if heading_drift > HEADING_INVALIDATE:
                 log.debug(f"🔄 DR invalidated t={current_time:.2f}s "
@@ -84,11 +118,11 @@ def build_feature_vector(sensor_df: pd.DataFrame, video_events: list) -> pd.Data
             df.at[idx, 'sign_type'] = virtual_sign_type
             df.at[idx, 'sign_distance'] = round(max(0.0, virtual_sign_dist), 2)
             if speed_ms > 0.5:
-                df.at[idx, 'sign_ttc'] = round(virtual_sign_dist / speed_ms, 2)
+                df.at[idx, 'sign_ttc'] = round(max(0.0, virtual_sign_dist) / speed_ms, 2)
             else:
                 df.at[idx, 'sign_ttc'] = 99.0
 
-    # Forward-fill car blinks
+    # Forward-fill car blinks only. Do not forward-fill sign_type; signs are handled by DR above.
     df.replace(99.0, np.nan, inplace=True)
     df['car_distance'] = df['car_distance'].ffill(limit=5)
     df['car_ttc'] = df['car_ttc'].ffill(limit=5)

@@ -344,12 +344,14 @@ async def analyze_video_for_server(input_path: str,
             closest_idx = (sensor_df['time_seconds'] - current_time_sec).abs().idxmin()
             current_lat = sensor_df.loc[closest_idx, 'lat']
             current_lon = sensor_df.loc[closest_idx, 'lon']
+            current_speed_kmh = sensor_df.loc[closest_idx, 'speed_kmh']
 
             filtered_objects = vision_filter.filter_detections(
                 current_time=current_time_sec,
                 current_lat=current_lat,
                 current_lon=current_lon,
                 frame_detections=raw_frame_objects,
+                current_speed_kmh=current_speed_kmh,
             )
 
             for obj in filtered_objects:

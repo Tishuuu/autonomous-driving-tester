@@ -241,40 +241,72 @@ async def evaluate_test(
                 smoothed.append(int(mode_))
 
             # ============================================================
-            # 🆕 Positive action detection (Correct Stop)
+            # Positive action detection — CorrectStop once per contiguous STOP sequence
             # ============================================================
             SIGN_PROXIMITY_M = 8.0
             STOP_SPEED_KMH = 1.0
             STOP_DURATION_S = 0.5
-            sign_active_since = None
+            GRACE_AFTER_SIGN_LOST_S = 1.5
+
+            active_start_idx = None
+            last_sign_seen_idx = None
+            stop_start_idx = None
+            correct_stop_emitted = False
 
             for i in range(len(combined_df)):
                 row = combined_df.iloc[i]
                 st = int(row['sign_type'])
                 sd = float(row['sign_distance'])
                 spd = float(row['speed_kmh'])
-                in_proximity = st != 0 and sd < SIGN_PROXIMITY_M
+                current_ts = float(row['time_seconds'])
 
-                if in_proximity and sign_active_since is None:
-                    sign_active_since = (i, st)
+                # CorrectStop is valid only for STOP signs, not yield/no_entry.
+                raw_in_stop_zone = (st == 1 and sd < SIGN_PROXIMITY_M)
+                in_stop_zone = raw_in_stop_zone
 
-                if sign_active_since is not None and spd < STOP_SPEED_KMH:
-                    start_idx, sign_code = sign_active_since
-                    look_len = int(STOP_DURATION_S / 0.1)
-                    look = combined_df.iloc[i:min(i + look_len, len(combined_df))]
-                    if len(look) >= 5 and (look['speed_kmh'] < STOP_SPEED_KMH).all():
+                if raw_in_stop_zone:
+                    if active_start_idx is None:
+                        active_start_idx = i
+                        stop_start_idx = None
+                        correct_stop_emitted = False
+                    last_sign_seen_idx = i
+                elif active_start_idx is not None and last_sign_seen_idx is not None:
+                    last_seen_ts = float(combined_df.iloc[last_sign_seen_idx]['time_seconds'])
+                    if (current_ts - last_seen_ts) <= GRACE_AFTER_SIGN_LOST_S:
+                        # YOLO sometimes loses the sign just before the vehicle fully stops.
+                        in_stop_zone = True
+                    else:
+                        active_start_idx = None
+                        last_sign_seen_idx = None
+                        stop_start_idx = None
+                        correct_stop_emitted = False
+                        continue
+                else:
+                    continue
+
+                if not in_stop_zone or active_start_idx is None:
+                    continue
+
+                if spd < STOP_SPEED_KMH:
+                    if stop_start_idx is None:
+                        stop_start_idx = i
+
+                    stop_start_ts = float(combined_df.iloc[stop_start_idx]['time_seconds'])
+                    stopped_duration_s = current_ts - stop_start_ts + 0.1
+
+                    if stopped_duration_s >= STOP_DURATION_S and not correct_stop_emitted:
                         positive_actions.append({
-                            "timestamp_sec": round(float(row['time_seconds']), 2),
+                            "timestamp_sec": round(stop_start_ts, 2),
                             "type": "CorrectStop",
-                            "sign_code": sign_code,
+                            "sign_code": 1,
                             "approach_distance_m": round(
-                                float(combined_df.iloc[start_idx]['sign_distance']), 1
+                                float(combined_df.iloc[active_start_idx]['sign_distance']), 1
                             ),
                         })
-                        sign_active_since = None
-
-                if not in_proximity and sign_active_since is not None:
-                    sign_active_since = None
+                        correct_stop_emitted = True
+                else:
+                    # Moving again before reaching STOP_DURATION_S resets only the stop timer.
+                    stop_start_idx = None
 
             # ============================================================
             # 🆕 Temporal merging — replaces in_violation flag
@@ -376,11 +408,15 @@ async def evaluate_test(
                     i += 1
 
             POINTS_PER_VIOLATION = 5
-            final_grade = max(0, 100 - (total_violation_events * POINTS_PER_VIOLATION))
-
-            # Reward correct stops
             POINTS_PER_POSITIVE = 2
-            final_grade = min(100, final_grade + len(positive_actions) * POINTS_PER_POSITIVE)
+            MAX_POSITIVE_BONUS = 6
+
+            base_grade = max(0, 100 - (total_violation_events * POINTS_PER_VIOLATION))
+
+            # Positive actions are useful for the timeline/report, but should not hide violations.
+            # When there are no violations, keep a small capped bonus for correct behavior.
+            positive_bonus = min(len(positive_actions) * POINTS_PER_POSITIVE, MAX_POSITIVE_BONUS)
+            final_grade = base_grade if total_violation_events > 0 else min(100, base_grade + positive_bonus)
 
             # Export thought log
             with open(os.path.join(test_export_path, "3_model_thought.json"), "w", encoding="utf-8") as f:
