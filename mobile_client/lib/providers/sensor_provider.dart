@@ -4,27 +4,36 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:math';
 import 'dart:typed_data';
+
 import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:sensors_plus/sensors_plus.dart';
+import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:flutter_bluetooth_serial/flutter_bluetooth_serial.dart';
+import 'package:sensors_plus/sensors_plus.dart';
 
 class SensorProvider extends ChangeNotifier {
   bool _isObdConnected = false;
-  bool _isGpsLocked = false;
   bool _isCameraReady = false;
   bool _isMonitoring = false;
 
   double _speedKmh = 0.0;
   double _rpm = 0.0;
 
-  // 🆕 Nullable GPS — guarantees no 0,0 leak into dataset
+  // GPS
   double? _lat;
   double? _lon;
+  double? _gpsAccuracyMeters;
+  double? _gpsSpeedKmh;
   bool _hasGpsFix = false;
   DateTime? _lastFixAt;
+  int _gpsUpdateCount = 0;
+  Timer? _gpsWatchdogTimer;
+  DateTime? _lastGpsStreamRestartAt;
+
+  static const Duration _gpsStaleThreshold = Duration(seconds: 5);
+  static const Duration _gpsRestartCooldown = Duration(seconds: 8);
 
   double _accelX = 0.0, _accelY = 0.0, _accelZ = 0.0;
 
@@ -45,10 +54,11 @@ class SensorProvider extends ChangeNotifier {
   static const Duration _obdStaleThreshold = Duration(seconds: 2);
   bool _obdIsStale = false;
 
-  // 🆕 Isolate parser
+  // Isolate parser
   Isolate? _parserIsolate;
   SendPort? _parserSend;
   ReceivePort? _parserRecv;
+  StreamSubscription? _parserRecvSub;
 
   // RTT
   Timer? _rttPingTimer;
@@ -66,24 +76,36 @@ class SensorProvider extends ChangeNotifier {
   DateTime? _imuStopAt;
   final List<_TimedAccelSample> _accelBuffer = [];
 
-  // Tier
+  // Tier: 1=OBD, 2=IMU, 3=GPS
   int _activeTier = 3;
   int get activeTier => _activeTier;
 
   // Getters
   bool get isGpsListening => _gpsSubscription != null;
   bool get isObdConnected => _isObdConnected && !_obdIsStale;
-  bool get isGpsLocked => _isGpsLocked;
-  bool get hasGpsFix => _hasGpsFix; // 🆕
+  bool get isGpsStale {
+    if (!_hasGpsFix || _lastFixAt == null) return true;
+    return DateTime.now().difference(_lastFixAt!) > _gpsStaleThreshold;
+  }
+
+  bool get isGpsLocked => _hasGpsFix && !isGpsStale;
+  bool get hasGpsFix => isGpsLocked;
   bool get isCameraReady => _isCameraReady;
   bool get isImuActive => _accelSubscription != null;
-  bool get isSystemReady => isCameraReady && hasGpsFix && isImuActive;
+  bool get isSystemReady => isCameraReady && isGpsLocked && isImuActive;
   bool get isMonitoring => _isMonitoring;
 
   double get speed => _speedKmh;
   double get rpm => _rpm;
   double? get lat => _lat;
   double? get lon => _lon;
+  double? get gpsAccuracyMeters => _gpsAccuracyMeters;
+  double? get gpsSpeedKmh => _gpsSpeedKmh;
+  int get gpsUpdateCount => _gpsUpdateCount;
+  int? get gpsAgeMs => _lastFixAt == null
+      ? null
+      : DateTime.now().difference(_lastFixAt!).inMilliseconds;
+
   double get totalGForce =>
       sqrt(pow(_accelX, 2) + pow(_accelY, 2) + pow(_accelZ, 2));
   double get obdLatencyMs => _obdLatencyMs;
@@ -91,13 +113,13 @@ class SensorProvider extends ChangeNotifier {
   String get speedSourceLabel {
     switch (_activeTier) {
       case 1:
-        return "OBD";
+        return 'OBD';
       case 2:
-        return "IMU";
+        return 'IMU';
       case 3:
-        return "GPS";
+        return 'GPS';
       default:
-        return "—";
+        return '—';
     }
   }
 
@@ -105,7 +127,7 @@ class SensorProvider extends ChangeNotifier {
   // OBD Connect
   // ==========================================
   Future<bool> connectToOBD(BluetoothDevice device) async {
-    debugPrint("[OBD] 🔌 Connecting to ${device.name}");
+    debugPrint('[OBD] Connecting to ${device.name}');
     try {
       _obdConnection = await BluetoothConnection.toAddress(device.address);
       _isObdConnected = true;
@@ -117,24 +139,23 @@ class SensorProvider extends ChangeNotifier {
       await _spawnParserIsolate();
       _startObdStream();
 
-      _sendObdCommand("ATZ\r");
+      _sendObdCommand('ATZ\r');
       await Future.delayed(const Duration(milliseconds: 800));
-      _sendObdCommand("ATE0\r");
+      _sendObdCommand('ATE0\r');
       await Future.delayed(const Duration(milliseconds: 200));
-      _sendObdCommand("ATL0\r");
+      _sendObdCommand('ATL0\r');
       await Future.delayed(const Duration(milliseconds: 200));
-      _sendObdCommand("ATS0\r");
+      _sendObdCommand('ATS0\r');
       await Future.delayed(const Duration(milliseconds: 200));
-      _sendObdCommand("ATSP0\r");
+      _sendObdCommand('ATSP0\r');
       await Future.delayed(const Duration(milliseconds: 500));
 
       _startPollingLoop();
       _startRttMeasurementLoop();
       return true;
     } catch (e) {
-      debugPrint("[OBD] ❌ Connection failed: $e");
-      _isObdConnected = false;
-      notifyListeners();
+      debugPrint('[OBD] Connection failed: $e');
+      await disconnectOBD();
       return false;
     }
   }
@@ -144,29 +165,25 @@ class SensorProvider extends ChangeNotifier {
       if (_obdConnection == null || !_obdConnection!.isConnected) return;
       _obdConnection!.output.add(utf8.encode(command));
     } catch (e) {
-      debugPrint("[OBD] ❌ Send error: $e");
+      debugPrint('[OBD] Send error: $e');
     }
   }
 
-  // ==========================================
-  // 🆕 Spawn long-lived parser isolate
-  // ==========================================
   Future<void> _spawnParserIsolate() async {
+    await _parserRecvSub?.cancel();
+    _parserRecv?.close();
+    _parserIsolate?.kill(priority: Isolate.immediate);
+
     _parserRecv = ReceivePort();
-    _parserIsolate = await Isolate.spawn(
-      _obdParserEntry,
-      _parserRecv!.sendPort,
-    );
+    _parserIsolate = await Isolate.spawn(_obdParserEntry, _parserRecv!.sendPort);
 
     final completer = Completer<SendPort>();
-    _parserRecv!.listen((msg) {
+    _parserRecvSub = _parserRecv!.listen((msg) {
       if (msg is SendPort && !completer.isCompleted) {
         completer.complete(msg);
         return;
       }
-      if (msg is Map) {
-        _handleParsedFromIsolate(msg);
-      }
+      if (msg is Map) _handleParsedFromIsolate(msg);
     });
     _parserSend = await completer.future;
   }
@@ -184,6 +201,7 @@ class SensorProvider extends ChangeNotifier {
       }
       return;
     }
+
     if (type == 'speed') {
       final v = (msg['value'] as num).toDouble();
       if (v >= 0 && v <= 300) {
@@ -211,10 +229,10 @@ class SensorProvider extends ChangeNotifier {
           _obdIsStale = false;
           notifyListeners();
         }
-        _parserSend?.send(data); // hand off, return immediately
+        _parserSend?.send(data);
       },
       onError: (e) {
-        debugPrint("[OBD] ❌ Stream error: $e");
+        debugPrint('[OBD] Stream error: $e');
         _handleDisconnect();
       },
       onDone: _handleDisconnect,
@@ -222,9 +240,6 @@ class SensorProvider extends ChangeNotifier {
     );
   }
 
-  // ==========================================
-  // Polling loop
-  // ==========================================
   void _startPollingLoop() {
     _obdPollTimer?.cancel();
     _obdPollTimer = Timer.periodic(const Duration(milliseconds: 300), (timer) {
@@ -232,21 +247,20 @@ class SensorProvider extends ChangeNotifier {
         timer.cancel();
         return;
       }
+
       if (_lastObdResponseTime != null) {
         final since = DateTime.now().difference(_lastObdResponseTime!);
         if (since > _obdStaleThreshold && !_obdIsStale) {
           _obdIsStale = true;
+          _activeTier = isGpsLocked ? 3 : 2;
           notifyListeners();
         }
       }
-      try {
-        _sendObdCommand("010C\r");
-        Future.delayed(const Duration(milliseconds: 130), () {
-          if (_isObdListening && _isObdConnected) _sendObdCommand("010D\r");
-        });
-      } catch (e) {
-        debugPrint("[OBD] ❌ Poll error: $e");
-      }
+
+      _sendObdCommand('010C\r');
+      Future.delayed(const Duration(milliseconds: 130), () {
+        if (_isObdListening && _isObdConnected) _sendObdCommand('010D\r');
+      });
     });
   }
 
@@ -260,7 +274,7 @@ class SensorProvider extends ChangeNotifier {
       if (_waitingForRttResponse) _waitingForRttResponse = false;
       _lastRttPingSent = DateTime.now();
       _waitingForRttResponse = true;
-      _sendObdCommand("ATRV\r");
+      _sendObdCommand('ATRV\r');
     });
   }
 
@@ -272,49 +286,11 @@ class SensorProvider extends ChangeNotifier {
 
   void _addCorrectedSample(double speedKmh) {
     final correctionMs = (_obdLatencyMs / 2).round();
-    final correctedTime = DateTime.now().subtract(
-      Duration(milliseconds: correctionMs),
-    );
-    _sensorBuffer.add(
-      _TimedSensorSample(
-        time: correctedTime,
-        speedKmh: speedKmh,
-        source: 'OBD',
-      ),
-    );
-    final cutoff = DateTime.now().subtract(
-      Duration(seconds: _bufferMaxSeconds),
-    );
+    final correctedTime = DateTime.now().subtract(Duration(milliseconds: correctionMs));
+    _sensorBuffer.add(_TimedSensorSample(time: correctedTime, speedKmh: speedKmh, source: 'OBD'));
+
+    final cutoff = DateTime.now().subtract(Duration(seconds: _bufferMaxSeconds));
     _sensorBuffer.removeWhere((s) => s.time.isBefore(cutoff));
-  }
-
-  // IMU stop signature
-  void _checkImuStopSignature() {
-    final cutoff = DateTime.now().subtract(const Duration(milliseconds: 1500));
-    _accelBuffer.removeWhere((s) => s.time.isBefore(cutoff));
-    if (_accelBuffer.length < 8) return;
-
-    int decelCount = 0;
-    for (int i = 0; i < _accelBuffer.length - 3; i++) {
-      if (_accelBuffer[i].accelY < -0.1) decelCount++;
-    }
-    final wasDecelerating = decelCount >= 4;
-
-    final recent = _accelBuffer.sublist(_accelBuffer.length - 3);
-    final avgRecent =
-        recent.map((s) => s.accelY.abs()).reduce((a, b) => a + b) / 3;
-    final nowAtZero = avgRecent < 0.05;
-
-    if (wasDecelerating && nowAtZero && !_imuStopDetected) {
-      _imuStopDetected = true;
-      _imuStopAt = DateTime.now();
-      if (!_isObdConnected || _obdIsStale) {
-        _activeTier = 2;
-        _speedKmh = 0;
-        notifyListeners();
-      }
-    }
-    if (avgRecent > 0.15) _imuStopDetected = false;
   }
 
   void _handleDisconnect() {
@@ -329,7 +305,7 @@ class SensorProvider extends ChangeNotifier {
     _rttPingTimer?.cancel();
     _rttPingTimer = null;
     _waitingForRttResponse = false;
-    _activeTier = _isGpsLocked ? 3 : 2;
+    _activeTier = isGpsLocked ? 3 : 2;
     notifyListeners();
   }
 
@@ -347,6 +323,8 @@ class SensorProvider extends ChangeNotifier {
 
     _parserIsolate?.kill(priority: Isolate.immediate);
     _parserIsolate = null;
+    await _parserRecvSub?.cancel();
+    _parserRecvSub = null;
     _parserRecv?.close();
     _parserRecv = null;
     _parserSend = null;
@@ -356,7 +334,7 @@ class SensorProvider extends ChangeNotifier {
     _speedKmh = 0;
     _rpm = 0;
     _waitingForRttResponse = false;
-    _activeTier = _isGpsLocked ? 3 : 2;
+    _activeTier = isGpsLocked ? 3 : 2;
     _obdLatencyMs = 0;
     notifyListeners();
   }
@@ -366,25 +344,22 @@ class SensorProvider extends ChangeNotifier {
   // ==========================================
   void startImu() {
     if (_accelSubscription != null) return;
-    _accelSubscription =
-        userAccelerometerEventStream(
-          samplingPeriod: SensorInterval.gameInterval,
-        ).listen((UserAccelerometerEvent event) {
-          _accelX = event.x / 9.8;
-          _accelY = event.y / 9.8;
-          _accelZ = event.z / 9.8;
-          _accelBuffer.add(
-            _TimedAccelSample(
-              time: DateTime.now(),
-              accelX: _accelX,
-              accelY: _accelY,
-              accelZ: _accelZ,
-            ),
-          );
-          if (_accelBuffer.length > 100) _accelBuffer.removeAt(0);
-          _checkImuStopSignature();
-          notifyListeners();
-        });
+    _accelSubscription = userAccelerometerEventStream(
+      samplingPeriod: SensorInterval.gameInterval,
+    ).listen((UserAccelerometerEvent event) {
+      _accelX = event.x / 9.8;
+      _accelY = event.y / 9.8;
+      _accelZ = event.z / 9.8;
+      _accelBuffer.add(_TimedAccelSample(
+        time: DateTime.now(),
+        accelX: _accelX,
+        accelY: _accelY,
+        accelZ: _accelZ,
+      ));
+      if (_accelBuffer.length > 100) _accelBuffer.removeAt(0);
+      _checkImuStopSignature();
+      notifyListeners();
+    });
     notifyListeners();
   }
 
@@ -397,81 +372,213 @@ class SensorProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void _checkImuStopSignature() {
+    final cutoff = DateTime.now().subtract(const Duration(milliseconds: 1500));
+    _accelBuffer.removeWhere((s) => s.time.isBefore(cutoff));
+    if (_accelBuffer.length < 8) return;
+
+    int decelCount = 0;
+    for (int i = 0; i < _accelBuffer.length - 3; i++) {
+      if (_accelBuffer[i].accelY < -0.1) decelCount++;
+    }
+    final wasDecelerating = decelCount >= 4;
+
+    final recent = _accelBuffer.sublist(_accelBuffer.length - 3);
+    final avgRecent = recent.map((s) => s.accelY.abs()).reduce((a, b) => a + b) / 3;
+    final nowAtZero = avgRecent < 0.05;
+
+    if (wasDecelerating && nowAtZero && !_imuStopDetected) {
+      _imuStopDetected = true;
+      _imuStopAt = DateTime.now();
+      if (!_isObdConnected || _obdIsStale) {
+        _activeTier = 2;
+        _speedKmh = 0;
+        notifyListeners();
+      }
+    }
+    if (avgRecent > 0.15) _imuStopDetected = false;
+  }
+
   // ==========================================
-  // GPS — fix gate prevents 0,0 race
+  // GPS
   // ==========================================
-  Future<bool> startGps() async {
-    // Allow re-prime if previous run never got a fix
-    if (_gpsSubscription != null && _hasGpsFix) return true;
-    if (_gpsSubscription != null && !_hasGpsFix) {
-      await _gpsSubscription!.cancel();
-      _gpsSubscription = null;
+  bool _isUsableGpsFix(Position position, {Duration? maxAge}) {
+    if (position.latitude == 0.0 && position.longitude == 0.0) return false;
+    if (position.latitude.abs() > 90 || position.longitude.abs() > 180) return false;
+    if (position.accuracy.isNaN || position.accuracy <= 0 || position.accuracy > 60) return false;
+
+    if (maxAge != null) {
+      final age = DateTime.now().difference(position.timestamp);
+      if (age > maxAge) return false;
+    }
+    return true;
+  }
+
+  LocationSettings _gpsSettings() {
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      return AndroidSettings(
+        accuracy: LocationAccuracy.bestForNavigation,
+        distanceFilter: 0,
+        intervalDuration: const Duration(seconds: 1),
+        forceLocationManager: false,
+      );
     }
 
-    if (!await Geolocator.isLocationServiceEnabled()) return false;
+    if (defaultTargetPlatform == TargetPlatform.iOS ||
+        defaultTargetPlatform == TargetPlatform.macOS) {
+      return AppleSettings(
+        accuracy: LocationAccuracy.bestForNavigation,
+        distanceFilter: 0,
+        activityType: ActivityType.automotiveNavigation,
+        pauseLocationUpdatesAutomatically: false,
+        showBackgroundLocationIndicator: true,
+      );
+    }
+
+    return const LocationSettings(
+      accuracy: LocationAccuracy.bestForNavigation,
+      distanceFilter: 0,
+    );
+  }
+
+  void _applyGpsFix(Position position, {required bool fresh}) {
+    _lat = position.latitude;
+    _lon = position.longitude;
+    _gpsAccuracyMeters = position.accuracy;
+    _gpsSpeedKmh = max(0, position.speed * 3.6);
+
+    if (fresh) {
+      _hasGpsFix = true;
+      _lastFixAt = DateTime.now();
+      _gpsUpdateCount++;
+    }
+  }
+
+  Future<bool> startGps() async {
+    if (_gpsSubscription != null && isGpsLocked) return true;
+
+    if (!await Geolocator.isLocationServiceEnabled()) {
+      debugPrint('[GPS] Location service is disabled');
+      return false;
+    }
+
     LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) return false;
     }
-    if (permission == LocationPermission.deniedForever) return false;
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
+      debugPrint('[GPS] Permission denied: $permission');
+      return false;
+    }
 
+    // Last-known is useful only for display. It must not unlock the system,
+    // because it can be old and cause a full drive with fixed coordinates.
     try {
       final lastKnown = await Geolocator.getLastKnownPosition();
-      if (lastKnown != null) {
-        _lat = lastKnown.latitude;
-        _lon = lastKnown.longitude;
-        _hasGpsFix = true;
-        _isGpsLocked = true;
-        _lastFixAt = DateTime.now();
+      if (lastKnown != null && _isUsableGpsFix(lastKnown, maxAge: const Duration(seconds: 5))) {
+        _applyGpsFix(lastKnown, fresh: false);
         notifyListeners();
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('[GPS] lastKnown failed: $e');
+    }
 
+    await _startGpsStream();
+
+    // Prime one fresh reading so the dashboard can become ready immediately.
     try {
       final current = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.medium,
-          timeLimit: Duration(seconds: 3),
-        ),
-      );
-      _lat = current.latitude;
-      _lon = current.longitude;
-      _hasGpsFix = true;
-      _isGpsLocked = true;
-      _lastFixAt = DateTime.now();
-      notifyListeners();
-    } catch (_) {}
+        locationSettings: _gpsSettings(),
+      ).timeout(const Duration(seconds: 12));
+      if (_isUsableGpsFix(current)) {
+        _onGpsPosition(current);
+      }
+    } catch (e) {
+      debugPrint('[GPS] getCurrentPosition failed: $e');
+    }
 
-    _gpsSubscription =
-        Geolocator.getPositionStream(
-          locationSettings: const LocationSettings(
-            accuracy: LocationAccuracy.medium,
-            distanceFilter: 0,
-          ),
-        ).listen((Position position) {
-          if (!_isObdConnected || _obdIsStale) {
-            if (!_imuStopDetected) {
-              _speedKmh = max(0, position.speed * 3.6);
-              _activeTier = 3;
-            }
-          }
-          _lat = position.latitude;
-          _lon = position.longitude;
-          _hasGpsFix = true;
-          _isGpsLocked = true;
-          _lastFixAt = DateTime.now();
-          notifyListeners();
-        }, onError: (e) => debugPrint("[GPS] ❌ Stream error: $e"));
+    _startGpsWatchdog();
+    notifyListeners();
+    return isGpsLocked;
+  }
+
+  Future<void> _startGpsStream() async {
+    await _gpsSubscription?.cancel();
+    _gpsSubscription = Geolocator.getPositionStream(
+      locationSettings: _gpsSettings(),
+    ).listen(
+      _onGpsPosition,
+      onError: (e) async {
+        debugPrint('[GPS] Stream error: $e');
+        _hasGpsFix = false;
+        notifyListeners();
+        await _restartGpsStreamIfNeeded();
+      },
+      cancelOnError: false,
+    );
+    _lastGpsStreamRestartAt = DateTime.now();
+  }
+
+  void _onGpsPosition(Position position) {
+    if (!_isUsableGpsFix(position)) return;
+
+    _applyGpsFix(position, fresh: true);
+
+    if (!_isObdConnected || _obdIsStale) {
+      if (!_imuStopDetected) {
+        _speedKmh = _gpsSpeedKmh ?? 0;
+        _activeTier = 3;
+      }
+    }
 
     notifyListeners();
-    return _hasGpsFix;
+  }
+
+  void _startGpsWatchdog() {
+    _gpsWatchdogTimer?.cancel();
+    _gpsWatchdogTimer = Timer.periodic(const Duration(seconds: 2), (_) async {
+      if (_gpsSubscription == null) return;
+
+      if (isGpsStale) {
+        if (_hasGpsFix) {
+          _hasGpsFix = false;
+          if (_activeTier == 3) _speedKmh = 0;
+          notifyListeners();
+        }
+        await _restartGpsStreamIfNeeded();
+      }
+    });
+  }
+
+  Future<void> _restartGpsStreamIfNeeded() async {
+    final now = DateTime.now();
+    if (_lastGpsStreamRestartAt != null &&
+        now.difference(_lastGpsStreamRestartAt!) < _gpsRestartCooldown) {
+      return;
+    }
+
+    debugPrint('[GPS] Restarting stale GPS stream');
+    try {
+      await _startGpsStream();
+    } catch (e) {
+      debugPrint('[GPS] Restart failed: $e');
+    }
   }
 
   void stopGps() {
+    _gpsWatchdogTimer?.cancel();
+    _gpsWatchdogTimer = null;
     _gpsSubscription?.cancel();
     _gpsSubscription = null;
-    _isGpsLocked = false;
+    _hasGpsFix = false;
+    _lastFixAt = null;
+    _lat = null;
+    _lon = null;
+    _gpsAccuracyMeters = null;
+    _gpsSpeedKmh = null;
+    _gpsUpdateCount = 0;
+    if (_activeTier == 3) _speedKmh = 0;
     notifyListeners();
   }
 
@@ -494,8 +601,12 @@ class SensorProvider extends ChangeNotifier {
   Future<void> startRealSensors() async {
     if (_isMonitoring) return;
     if (_accelSubscription == null) startImu();
-    if (_gpsSubscription == null || !_hasGpsFix) await startGps();
+    if (_gpsSubscription == null || !isGpsLocked) await startGps();
     if (!_isCameraReady) await activateCamera();
+
+    if (!isGpsLocked) {
+      throw StateError('Cannot start test without a fresh GPS fix');
+    }
 
     _isMonitoring = true;
     _testStartTime = DateTime.now();
@@ -513,24 +624,54 @@ class SensorProvider extends ChangeNotifier {
     _videoStartTime = DateTime.now();
   }
 
-  // 🆕 Skip rows until GPS fix lands
+  double _getSyncedSpeedKmhForLog(DateTime logTime) {
+    if (_activeTier != 1 || _sensorBuffer.isEmpty) return _speedKmh;
+
+    _TimedSensorSample best = _sensorBuffer.last;
+    int bestDiffMs = best.time.difference(logTime).inMilliseconds.abs();
+
+    for (int i = _sensorBuffer.length - 1; i >= 0; i--) {
+      final sample = _sensorBuffer[i];
+      final diffMs = sample.time.difference(logTime).inMilliseconds.abs();
+      if (diffMs < bestDiffMs) {
+        best = sample;
+        bestDiffMs = diffMs;
+      }
+      if (sample.time.isBefore(logTime) && diffMs > bestDiffMs) break;
+    }
+
+    if (bestDiffMs > 1500) return _speedKmh;
+    return best.speedKmh;
+  }
+
   void _logCurrentState() {
     if (_testStartTime == null) return;
-    if (!_hasGpsFix || _lat == null || _lon == null) return;
 
-    final t = DateTime.now().difference(_testStartTime!).inMilliseconds;
+    // This is the key GPS fix: never log stale GPS. If the stream stops,
+    // logging pauses instead of creating a full CSV with one fixed coordinate.
+    if (!isGpsLocked || _lat == null || _lon == null) return;
+
+    final now = DateTime.now();
+    final t = now.difference(_testStartTime!).inMilliseconds;
+    final syncedSpeedKmh = _getSyncedSpeedKmhForLog(now);
+    final gpsAge = gpsAgeMs ?? 0;
+
     _sensorLog.add({
-      "time_ms": t,
-      "speed_kmh": double.parse(_speedKmh.toStringAsFixed(2)),
-      "rpm": double.parse(_rpm.toStringAsFixed(2)),
-      "lat": _lat,
-      "lon": _lon,
-      "speed_source": _activeTier, // 🆕 Tier tag for server-side smoothing
-      "g_force": double.parse(totalGForce.toStringAsFixed(2)),
-      "accel": {
-        "x": double.parse(_accelX.toStringAsFixed(3)),
-        "y": double.parse(_accelY.toStringAsFixed(3)),
-        "z": double.parse(_accelZ.toStringAsFixed(3)),
+      'time_ms': t,
+      'speed_kmh': double.parse(syncedSpeedKmh.toStringAsFixed(2)),
+      'rpm': double.parse(_rpm.toStringAsFixed(2)),
+      'lat': double.parse(_lat!.toStringAsFixed(7)),
+      'lon': double.parse(_lon!.toStringAsFixed(7)),
+      'gps_accuracy': double.parse((_gpsAccuracyMeters ?? 999).toStringAsFixed(2)),
+      'gps_age_ms': gpsAge,
+      'gps_update_count': _gpsUpdateCount,
+      'speed_source': _activeTier,
+      'obd_latency_ms': double.parse(_obdLatencyMs.toStringAsFixed(1)),
+      'g_force': double.parse(totalGForce.toStringAsFixed(3)),
+      'accel': {
+        'x': double.parse(_accelX.toStringAsFixed(4)),
+        'y': double.parse(_accelY.toStringAsFixed(4)),
+        'z': double.parse(_accelZ.toStringAsFixed(4)),
       },
     });
   }
@@ -557,20 +698,20 @@ class SensorProvider extends ChangeNotifier {
           : 0;
 
       final out = {
-        "test_start_time": _testStartTime?.toIso8601String(),
-        "video_offset_ms": videoOffsetMs,
-        "total_duration_ms": _sensorLog.last["time_ms"],
-        "data": _sensorLog,
+        'test_start_time': _testStartTime?.toIso8601String(),
+        'video_offset_ms': videoOffsetMs,
+        'total_duration_ms': _sensorLog.last['time_ms'],
+        'gps_updates': _gpsUpdateCount,
+        'data': _sensorLog,
       };
       await file.writeAsString(jsonEncode(out));
       return file.path;
     } catch (e) {
-      debugPrint("[TEST] ❌ Export error: $e");
+      debugPrint('[TEST] Export error: $e');
       return null;
     }
   }
 
-  // 🆕 SHA-256 of file (used by api_service before upload)
   static Future<String> sha256OfFile(String path) async {
     final bytes = await File(path).readAsBytes();
     return sha256.convert(bytes).toString();
@@ -579,6 +720,7 @@ class SensorProvider extends ChangeNotifier {
   @override
   void dispose() {
     _loggingTimer?.cancel();
+    _gpsWatchdogTimer?.cancel();
     _obdPollTimer?.cancel();
     _rttPingTimer?.cancel();
     _obdStreamSub?.cancel();
@@ -586,18 +728,16 @@ class SensorProvider extends ChangeNotifier {
     _gpsSubscription?.cancel();
     _obdConnection?.dispose();
     _parserIsolate?.kill(priority: Isolate.immediate);
+    _parserRecvSub?.cancel();
     _parserRecv?.close();
     super.dispose();
   }
 }
 
-// ==========================================
-// Top-level isolate entry
-// ==========================================
 void _obdParserEntry(SendPort mainSend) {
   final port = ReceivePort();
   mainSend.send(port.sendPort);
-  String buffer = "";
+  String buffer = '';
 
   port.listen((data) {
     if (data is! Uint8List) return;
@@ -614,14 +754,14 @@ void _obdParserEntry(SendPort mainSend) {
       final hex = raw.replaceAll(RegExp(r'[\r\n ]'), '').toUpperCase();
       if (hex.isEmpty) continue;
 
-      // Every prompt return triggers RTT pong
       mainSend.send({'type': 'rtt_response'});
 
-      if (hex.contains("NODATA") ||
-          hex.contains("STOPPED") ||
-          hex.contains("?") ||
-          hex.length < 6)
+      if (hex.contains('NODATA') ||
+          hex.contains('STOPPED') ||
+          hex.contains('?') ||
+          hex.length < 6) {
         continue;
+      }
 
       final r = hex.indexOf('410C');
       if (r != -1 && hex.length >= r + 8) {
@@ -631,6 +771,7 @@ void _obdParserEntry(SendPort mainSend) {
           mainSend.send({'type': 'rpm', 'value': (a * 256 + b) / 4});
         } catch (_) {}
       }
+
       final s = hex.indexOf('410D');
       if (s != -1 && hex.length >= s + 6) {
         try {
@@ -646,6 +787,7 @@ class _TimedSensorSample {
   final DateTime time;
   final double speedKmh;
   final String source;
+
   _TimedSensorSample({
     required this.time,
     required this.speedKmh,
@@ -656,6 +798,7 @@ class _TimedSensorSample {
 class _TimedAccelSample {
   final DateTime time;
   final double accelX, accelY, accelZ;
+
   _TimedAccelSample({
     required this.time,
     required this.accelX,

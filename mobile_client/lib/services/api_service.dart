@@ -9,6 +9,13 @@ class ApiService {
   // 🆕 JWT token management
   // ==========================================
   static String? _token;
+  static String? lastError;
+
+  static void _setError(String message) {
+    lastError = message;
+    print("❌ $message");
+  }
+
   static void setToken(String? t) => _token = t;
   static String? get token => _token;
   static void clearToken() => _token = null;
@@ -32,6 +39,7 @@ class ApiService {
     String password,
   ) async {
     try {
+      lastError = null;
       final response = await http
           .post(
             Uri.parse('${ApiConfig.authBase}/login'),
@@ -44,9 +52,10 @@ class ApiService {
         _token = body["access_token"];
         return Map<String, dynamic>.from(body);
       }
+      _setError(_extractError(response.body, fallback: "Login failed: ${response.statusCode}"));
       return null;
     } catch (e) {
-      print("❌ login error: $e");
+      _setError("Login connection error: $e");
       return null;
     }
   }
@@ -57,6 +66,7 @@ class ApiService {
     String password,
   ) async {
     try {
+      lastError = null;
       final response = await http
           .post(
             Uri.parse('${ApiConfig.authBase}/register'),
@@ -73,9 +83,10 @@ class ApiService {
         _token = body["access_token"];
         return Map<String, dynamic>.from(body);
       }
+      _setError(_extractError(response.body, fallback: "Register failed: ${response.statusCode}"));
       return null;
     } catch (e) {
-      print("❌ register error: $e");
+      _setError("Register connection error: $e");
       return null;
     }
   }
@@ -88,6 +99,21 @@ class ApiService {
     return sha256.convert(bytes).toString();
   }
 
+  static String _extractError(String body, {required String fallback}) {
+    try {
+      final decoded = jsonDecode(body);
+      if (decoded is Map && decoded['detail'] != null) {
+        return decoded['detail'].toString();
+      }
+      if (decoded is Map && decoded['message'] != null) {
+        return decoded['message'].toString();
+      }
+      return decoded.toString();
+    } catch (_) {
+      return body.isNotEmpty ? body : fallback;
+    }
+  }
+
   // ==========================================
   // 1. Upload test files — with SHA256 integrity
   // ==========================================
@@ -98,10 +124,25 @@ class ApiService {
     String? testId,
     int maxAttempts = 2,
   }) async {
+    lastError = null;
+
+    if (_token == null) {
+      _setError("Missing login token. Please log in again.");
+      return null;
+    }
+    if (!await File(videoPath).exists()) {
+      _setError("Video file not found: $videoPath");
+      return null;
+    }
+    if (!await File(jsonPath).exists()) {
+      _setError("Sensor JSON not found: $jsonPath");
+      return null;
+    }
+
     final actualTestId =
         testId ?? "TEST_${DateTime.now().millisecondsSinceEpoch}";
 
-    // 🆕 Compute checksums once (even across retries)
+    // Compute checksums once (even across retries)
     final videoHash = await _sha256OfFile(videoPath);
     final jsonHash = await _sha256OfFile(jsonPath);
 
@@ -143,24 +184,24 @@ class ApiService {
 
         // 422 = checksum mismatch — don't retry, file is bad
         if (response.statusCode == 422) {
-          print("❌ Integrity failure (422): $body");
+          _setError(_extractError(body, fallback: "File integrity validation failed"));
           return null;
         }
 
         // 401 = token expired
         if (response.statusCode == 401) {
-          print("❌ Auth expired (401): $body");
+          _setError("Login expired. Please log in again.");
           return null;
         }
 
-        print("❌ Server Error: ${response.statusCode} - $body");
+        _setError(_extractError(body, fallback: "Server error: ${response.statusCode}"));
         if (response.statusCode >= 500 && attempt < maxAttempts) {
           await Future.delayed(const Duration(seconds: 3));
           continue;
         }
         return null;
       } catch (e) {
-        print("❌ Connection Error (attempt $attempt): $e");
+        _setError("Connection error on attempt $attempt: $e");
         if (attempt < maxAttempts) {
           await Future.delayed(const Duration(seconds: 3));
           continue;
@@ -202,6 +243,7 @@ class ApiService {
     String? testId,
     List<dynamic>? decisionLog,
     List<dynamic>? actionSequences,
+    List<dynamic>? positiveActions,
   }) async {
     try {
       final response = await http
@@ -221,14 +263,15 @@ class ApiService {
               "test_date": DateTime.now().toIso8601String(),
               "decision_log": decisionLog ?? [],
               "action_sequences": actionSequences ?? [],
+              "positive_actions": positiveActions ?? [],
             }),
           )
           .timeout(ApiConfig.mediumTimeout);
       if (response.statusCode == 200 || response.statusCode == 201) return true;
-      print("❌ Save failed: ${response.statusCode} - ${response.body}");
+      _setError(_extractError(response.body, fallback: "Save failed: ${response.statusCode}"));
       return false;
     } catch (e) {
-      print("❌ Save error: $e");
+      _setError("Save error: $e");
       return false;
     }
   }

@@ -234,4 +234,4 @@ def process_video(input_path, output_path):
 if __name__ == '__main__':
     KalmanBoxTracker.count = 0
     # שים לב לשנות פה את השם של הסרטון שלך אם צריך
-    process_video('input_video(4).mp4', 'output_processed.avi')
+    process_video('input_video copy.mp4', 'output_processed.avi')

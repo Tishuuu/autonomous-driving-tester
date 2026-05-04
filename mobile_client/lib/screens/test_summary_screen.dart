@@ -164,6 +164,7 @@ class _TestSummaryScreenState extends State<TestSummaryScreen> {
       testId: widget.result['test_id'],
       decisionLog: widget.result['decision_log'] ?? [],
       actionSequences: widget.result['action_sequences'] ?? [],
+      positiveActions: widget.result['positive_actions'] ?? [],
     );
 
     if (!mounted) return;

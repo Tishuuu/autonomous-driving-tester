@@ -3,3 +3,4 @@
 *.pt 
 *.env
 runs/ 
+analysis_exports/

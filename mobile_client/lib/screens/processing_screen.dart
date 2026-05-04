@@ -137,7 +137,7 @@ class _ProcessingScreenState extends State<ProcessingScreen>
     } else {
       setState(() {
         _hasError = true;
-        _errorMessage =
+        _errorMessage = ApiService.lastError ??
             "We couldn't reach the analysis server. Please check your connection and try again.";
       });
     }

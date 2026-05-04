@@ -2,7 +2,7 @@
 /// כל שינוי בכתובת ה-IP — רק כאן.
 class ApiConfig {
   /// כתובת המחשב המארח (USB tethering)
-  static const String host = "10.111.90.154";
+  static const String host = "10.111.90.49";
   static const int port = 8000;
 
   static const String baseUrl = "http://$host:$port";

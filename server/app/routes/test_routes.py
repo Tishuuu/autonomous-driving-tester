@@ -117,17 +117,32 @@ global_lstm_model = None
 
 
 def load_ai_models():
+    """Load scaler + LSTM once and fail loudly if either artifact is missing."""
     global global_scaler, global_lstm_model
-    if global_lstm_model is None:
-        log.info("Loading Scaler and M8 Model...")
-        try:
-            import joblib
-            global_scaler = joblib.load("app/ai_models/global_scaler.pkl")
-            base_model = keras.models.load_model("app/ai_models/final_model.keras")
-            global_lstm_model = build_attention_extractor(base_model)
-            log.info("M8 Model + Scaler ready.")
-        except Exception as e:
-            log.error(f"Failed to load models: {e}")
+    if global_scaler is not None and global_lstm_model is not None:
+        return
+
+    log.info("Loading Scaler and M8 Model...")
+    try:
+        import joblib
+
+        scaler_path = os.path.join(BASE_DIR, "app", "ai_models", "global_scaler.pkl")
+        model_path = os.path.join(BASE_DIR, "app", "ai_models", "final_model.keras")
+
+        if not os.path.exists(scaler_path):
+            raise FileNotFoundError(f"Scaler not found: {scaler_path}")
+        if not os.path.exists(model_path):
+            raise FileNotFoundError(f"LSTM model not found: {model_path}")
+
+        global_scaler = joblib.load(scaler_path)
+        base_model = keras.models.load_model(model_path)
+        global_lstm_model = build_attention_extractor(base_model)
+        log.info("M8 Model + Scaler ready.")
+    except Exception as e:
+        global_scaler = None
+        global_lstm_model = None
+        log.error(f"Failed to load models: {e}")
+        raise RuntimeError(f"AI model loading failed: {e}")
 
 
 # ==========================================================================
@@ -143,7 +158,10 @@ async def evaluate_test(
     sensors_sha256: str = Form(None),
     tester: dict = Depends(get_current_tester),
 ):
-    load_ai_models()
+    try:
+        load_ai_models()
+    except RuntimeError as e:
+        raise HTTPException(status_code=503, detail=str(e))
 
     test_export_path = os.path.join(EXPORT_BASE_DIR, test_id)
     os.makedirs(test_export_path, exist_ok=True)
@@ -176,6 +194,15 @@ async def evaluate_test(
                 )
         log.info(f"✅ Integrity verified for {test_id}")
 
+        # Keep a permanent copy of the uploaded video inside this test's export folder.
+        # The temp file in the server root is still cleaned in finally.
+        saved_input_video = os.path.join(test_export_path, "input_video.mp4")
+        try:
+            shutil.copyfile(temp_vid, saved_input_video)
+            log.info(f"🎞️ Saved original input video: {saved_input_video}")
+        except Exception as e:
+            log.warning(f"⚠️ Could not save original input video copy: {e}")
+
         # Sensor processing
         update_progress(test_id, 5, "Processing sensor data...")
         sensor_df = await asyncio.to_thread(process_sensor_json, temp_json)
@@ -183,7 +210,17 @@ async def evaluate_test(
 
         # 🆕 Async YOLO (singleton + semaphore inside vision_service)
         update_progress(test_id, 10, "Running YOLO detection...")
-        video_events = await analyze_video_for_server(temp_vid, sensor_df, test_id)
+        annotated_video_path = os.path.join(test_export_path, "yolo_annotated.mp4")
+        video_events = await analyze_video_for_server(
+            temp_vid,
+            sensor_df,
+            test_id,
+            output_video_path=annotated_video_path,
+        )
+
+        # Keep the post-filter YOLO/Kalman events too; this is critical for debugging.
+        with open(os.path.join(test_export_path, "1b_video_events.json"), "w", encoding="utf-8") as f:
+            json.dump(video_events, f, ensure_ascii=False, indent=2)
 
         # Vector build
         update_progress(test_id, 80, "Building feature vector...")
@@ -447,6 +484,8 @@ async def evaluate_test(
             "decision_log": decision_log,
             "action_sequences": action_sequences,
             "positive_actions": positive_actions,
+            "exported_video_path": os.path.join(test_export_path, "input_video.mp4"),
+            "annotated_video_path": os.path.join(test_export_path, "yolo_annotated.mp4"),
         }
 
     except HTTPException:
