@@ -92,7 +92,7 @@ class SensorProvider extends ChangeNotifier {
   bool get hasGpsFix => isGpsLocked;
   bool get isCameraReady => _isCameraReady;
   bool get isImuActive => _accelSubscription != null;
-  bool get isSystemReady => isCameraReady && isGpsLocked && isImuActive;
+  bool get isSystemReady => isCameraReady && isImuActive;
   bool get isMonitoring => _isMonitoring;
 
   double get speed => _speedKmh;
@@ -175,7 +175,10 @@ class SensorProvider extends ChangeNotifier {
     _parserIsolate?.kill(priority: Isolate.immediate);
 
     _parserRecv = ReceivePort();
-    _parserIsolate = await Isolate.spawn(_obdParserEntry, _parserRecv!.sendPort);
+    _parserIsolate = await Isolate.spawn(
+      _obdParserEntry,
+      _parserRecv!.sendPort,
+    );
 
     final completer = Completer<SendPort>();
     _parserRecvSub = _parserRecv!.listen((msg) {
@@ -286,10 +289,20 @@ class SensorProvider extends ChangeNotifier {
 
   void _addCorrectedSample(double speedKmh) {
     final correctionMs = (_obdLatencyMs / 2).round();
-    final correctedTime = DateTime.now().subtract(Duration(milliseconds: correctionMs));
-    _sensorBuffer.add(_TimedSensorSample(time: correctedTime, speedKmh: speedKmh, source: 'OBD'));
+    final correctedTime = DateTime.now().subtract(
+      Duration(milliseconds: correctionMs),
+    );
+    _sensorBuffer.add(
+      _TimedSensorSample(
+        time: correctedTime,
+        speedKmh: speedKmh,
+        source: 'OBD',
+      ),
+    );
 
-    final cutoff = DateTime.now().subtract(Duration(seconds: _bufferMaxSeconds));
+    final cutoff = DateTime.now().subtract(
+      Duration(seconds: _bufferMaxSeconds),
+    );
     _sensorBuffer.removeWhere((s) => s.time.isBefore(cutoff));
   }
 
@@ -344,22 +357,25 @@ class SensorProvider extends ChangeNotifier {
   // ==========================================
   void startImu() {
     if (_accelSubscription != null) return;
-    _accelSubscription = userAccelerometerEventStream(
-      samplingPeriod: SensorInterval.gameInterval,
-    ).listen((UserAccelerometerEvent event) {
-      _accelX = event.x / 9.8;
-      _accelY = event.y / 9.8;
-      _accelZ = event.z / 9.8;
-      _accelBuffer.add(_TimedAccelSample(
-        time: DateTime.now(),
-        accelX: _accelX,
-        accelY: _accelY,
-        accelZ: _accelZ,
-      ));
-      if (_accelBuffer.length > 100) _accelBuffer.removeAt(0);
-      _checkImuStopSignature();
-      notifyListeners();
-    });
+    _accelSubscription =
+        userAccelerometerEventStream(
+          samplingPeriod: SensorInterval.gameInterval,
+        ).listen((UserAccelerometerEvent event) {
+          _accelX = event.x / 9.8;
+          _accelY = event.y / 9.8;
+          _accelZ = event.z / 9.8;
+          _accelBuffer.add(
+            _TimedAccelSample(
+              time: DateTime.now(),
+              accelX: _accelX,
+              accelY: _accelY,
+              accelZ: _accelZ,
+            ),
+          );
+          if (_accelBuffer.length > 100) _accelBuffer.removeAt(0);
+          _checkImuStopSignature();
+          notifyListeners();
+        });
     notifyListeners();
   }
 
@@ -384,7 +400,8 @@ class SensorProvider extends ChangeNotifier {
     final wasDecelerating = decelCount >= 4;
 
     final recent = _accelBuffer.sublist(_accelBuffer.length - 3);
-    final avgRecent = recent.map((s) => s.accelY.abs()).reduce((a, b) => a + b) / 3;
+    final avgRecent =
+        recent.map((s) => s.accelY.abs()).reduce((a, b) => a + b) / 3;
     final nowAtZero = avgRecent < 0.05;
 
     if (wasDecelerating && nowAtZero && !_imuStopDetected) {
@@ -404,8 +421,12 @@ class SensorProvider extends ChangeNotifier {
   // ==========================================
   bool _isUsableGpsFix(Position position, {Duration? maxAge}) {
     if (position.latitude == 0.0 && position.longitude == 0.0) return false;
-    if (position.latitude.abs() > 90 || position.longitude.abs() > 180) return false;
-    if (position.accuracy.isNaN || position.accuracy <= 0 || position.accuracy > 60) return false;
+    if (position.latitude.abs() > 90 || position.longitude.abs() > 180)
+      return false;
+    if (position.accuracy.isNaN ||
+        position.accuracy <= 0 ||
+        position.accuracy > 60)
+      return false;
 
     if (maxAge != null) {
       final age = DateTime.now().difference(position.timestamp);
@@ -476,7 +497,8 @@ class SensorProvider extends ChangeNotifier {
     // because it can be old and cause a full drive with fixed coordinates.
     try {
       final lastKnown = await Geolocator.getLastKnownPosition();
-      if (lastKnown != null && _isUsableGpsFix(lastKnown, maxAge: const Duration(seconds: 5))) {
+      if (lastKnown != null &&
+          _isUsableGpsFix(lastKnown, maxAge: const Duration(seconds: 5))) {
         _applyGpsFix(lastKnown, fresh: false);
         notifyListeners();
       }
@@ -505,18 +527,17 @@ class SensorProvider extends ChangeNotifier {
 
   Future<void> _startGpsStream() async {
     await _gpsSubscription?.cancel();
-    _gpsSubscription = Geolocator.getPositionStream(
-      locationSettings: _gpsSettings(),
-    ).listen(
-      _onGpsPosition,
-      onError: (e) async {
-        debugPrint('[GPS] Stream error: $e');
-        _hasGpsFix = false;
-        notifyListeners();
-        await _restartGpsStreamIfNeeded();
-      },
-      cancelOnError: false,
-    );
+    _gpsSubscription =
+        Geolocator.getPositionStream(locationSettings: _gpsSettings()).listen(
+          _onGpsPosition,
+          onError: (e) async {
+            debugPrint('[GPS] Stream error: $e');
+            _hasGpsFix = false;
+            notifyListeners();
+            await _restartGpsStreamIfNeeded();
+          },
+          cancelOnError: false,
+        );
     _lastGpsStreamRestartAt = DateTime.now();
   }
 
@@ -662,7 +683,9 @@ class SensorProvider extends ChangeNotifier {
       'rpm': double.parse(_rpm.toStringAsFixed(2)),
       'lat': double.parse(_lat!.toStringAsFixed(7)),
       'lon': double.parse(_lon!.toStringAsFixed(7)),
-      'gps_accuracy': double.parse((_gpsAccuracyMeters ?? 999).toStringAsFixed(2)),
+      'gps_accuracy': double.parse(
+        (_gpsAccuracyMeters ?? 999).toStringAsFixed(2),
+      ),
       'gps_age_ms': gpsAge,
       'gps_update_count': _gpsUpdateCount,
       'speed_source': _activeTier,

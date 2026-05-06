@@ -1,0 +1,44 @@
+{
+  "model_id": "M11",
+  "n_timesteps": 30,
+  "n_features": 7,
+  "feature_names": [
+    "speed_kmh",
+    "jerk",
+    "car_distance",
+    "car_ttc",
+    "sign_type",
+    "sign_distance",
+    "sign_ttc"
+  ],
+  "classes": {
+    "0": "Normal Driving",
+    "1": "Tailgating",
+    "2": "Running Stop",
+    "3": "Failure to Yield",
+    "4": "No Entry Violation",
+    "5": "Correct Stop",
+    "6": "Correct Yield"
+  },
+  "sign_type_map": {
+    "0": "none",
+    "1": "stop_sign",
+    "2": "yield_sign",
+    "3": "no_entry"
+  },
+  "positive_action_classes": {
+    "5": "CorrectStop",
+    "6": "CorrectYield"
+  },
+  "violation_classes": {
+    "1": "Tailgating",
+    "2": "RunningStop",
+    "3": "FailureToYield",
+    "4": "NoEntryViolation"
+  },
+  "notes": {
+    "main_change_from_m10": "Added hard negatives for rolling/running stop near STOP sign.",
+    "running_stop_rule_in_training": "STOP active, close distance, speed remains above full-stop threshold.",
+    "correct_stop_rule_in_training": "STOP active, close distance, multiple frames <= 2 km/h."
+  }
+}

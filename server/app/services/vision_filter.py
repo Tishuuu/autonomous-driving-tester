@@ -12,11 +12,13 @@ class VisionFilter:
     1. Keep real hazards: cross traffic, cars that move toward the ego lane,
        and cars whose distance is decreasing.
     2. Drop parked/irrelevant curb-side cars so they do not enter the feature
-       vector and do not overload the LSTM decision stage.
+       vector and do not overload the AI decision stage.
     3. Keep STOP/YIELD/NO_ENTRY signs consistent with vector_builder.py.
+    4. For M12, attach raw vehicle context fields to kept car events:
+       relative_x, relative_y, motion_x, motion_y, static_score.
 
     Important: this filter runs AFTER YOLO/Kalman. It reduces events sent to
-    vector_builder/LSTM, not YOLO compute itself.
+    vector_builder/model, not YOLO compute itself.
     """
 
     def __init__(self, video_width=1280, video_height=None):
@@ -82,6 +84,9 @@ class VisionFilter:
         except (TypeError, ValueError):
             return default
 
+    def _clamp(self, value, lo, hi):
+        return max(lo, min(hi, value))
+
     def _normalize_class(self, class_name):
         cls_name = str(class_name or "").lower().replace('-', '_').replace(' ', '_')
 
@@ -134,19 +139,12 @@ class VisionFilter:
         ]
         return self.vehicle_history[track_id]
 
-    def _should_drop_parked_vehicle(self, bbox, track_id, current_time, distance_est, current_speed_kmh):
-        """
-        Returns True only for cars that are very likely parked/irrelevant.
+    def _vehicle_context_metrics(self, bbox, track_id, current_time, distance_est):
+        """Return raw vehicle context fields for M12 and filtering.
 
-        The filter is intentionally conservative:
-        - New tracks are kept until we have enough history.
-        - Vehicles in the driving corridor are kept.
-        - Vehicles whose distance is decreasing are kept.
-        - Vehicles moving from the side toward the center are kept.
+        These are measurements/context, not final labels. The model can learn from
+        them whether a vehicle looks parked/static/cross-traffic/lead-car.
         """
-        if bbox is None or len(bbox) != 4:
-            return False
-
         x1, y1, x2, y2 = [self._safe_float(v, 0.0) for v in bbox]
         center_x = (x1 + x2) / 2.0
         center_y = (y1 + y2) / 2.0
@@ -154,22 +152,37 @@ class VisionFilter:
         box_h = max(1.0, y2 - y1)
         box_area_ratio = (box_w * box_h) / max(1.0, self.video_width * self.video_height)
         distance = self._safe_float(distance_est, -1.0)
-        ego_speed = self._safe_float(current_speed_kmh, 0.0)
 
-        # Keep close or central vehicles. Even if parked, they may affect TTC/spacing.
-        in_drive_corridor = (0.30 * self.video_width) <= center_x <= (0.70 * self.video_width)
-        very_close = 0 < distance <= 7.0
-        large_in_frame = box_area_ratio >= 0.055
-        if in_drive_corridor or very_close or large_in_frame:
-            return False
+        relative_x = self._clamp(
+            (center_x - (self.video_width / 2.0)) / max(1.0, self.video_width / 2.0),
+            -1.0,
+            1.0,
+        )
+        relative_y = self._clamp(center_y / max(1.0, self.video_height), 0.0, 1.0)
 
-        # If no stable tracker id yet, keep it. Dropping new objects is unsafe.
+        metrics = {
+            'center_x': center_x,
+            'center_y': center_y,
+            'relative_x': relative_x,
+            'relative_y': relative_y,
+            'box_area_ratio': box_area_ratio,
+            'motion_x': 0.0,
+            'motion_y': 0.0,
+            'px_speed': 0.0,
+            'distance_delta': 0.0,
+            'distance_rate_mps': 0.0,
+            'history_len': 0,
+            'static_score': 0.5 if track_id is not None else 0.0,
+        }
+
         if track_id is None:
-            return False
+            return metrics
 
         history = self._update_vehicle_history(track_id, current_time, center_x, center_y, distance)
-        if len(history) < 4:
-            return False
+        metrics['history_len'] = len(history)
+
+        if len(history) < 2:
+            return metrics
 
         first = history[0]
         last = history[-1]
@@ -184,15 +197,76 @@ class VisionFilter:
         distance_delta = d1 - d0 if valid_distance else 0.0
         distance_rate_mps = distance_delta / dt if valid_distance else 0.0
 
+        # Normalized image motion per second. Small enough to be stable for ML.
+        motion_x = self._clamp((dx / max(1.0, self.video_width)) / dt, -2.0, 2.0)
+        motion_y = self._clamp((dy / max(1.0, self.video_height)) / dt, -2.0, 2.0)
+
+        # Static score is a raw heuristic for the model/debug, not a final relevance label.
+        # 1.0 ~= visually/static-distance stable; 0.0 ~= clearly moving/changing.
+        motion_activity = min(1.0, px_speed / 45.0)
+        distance_activity = min(1.0, abs(distance_delta) / 1.5) if valid_distance else 0.0
+        static_score = self._clamp(1.0 - max(motion_activity, distance_activity), 0.0, 1.0)
+
+        metrics.update({
+            'motion_x': motion_x,
+            'motion_y': motion_y,
+            'px_speed': px_speed,
+            'distance_delta': distance_delta,
+            'distance_rate_mps': distance_rate_mps,
+            'static_score': static_score,
+        })
+        return metrics
+
+    def _should_drop_parked_vehicle(self, bbox, track_id, current_time, distance_est, current_speed_kmh, metrics=None):
+        """
+        Returns True only for cars that are very likely parked/irrelevant.
+
+        The filter is intentionally conservative:
+        - New tracks are kept until we have enough history.
+        - Vehicles in the driving corridor are kept.
+        - Vehicles whose distance is decreasing are kept.
+        - Vehicles moving from the side toward the center are kept.
+        """
+        if bbox is None or len(bbox) != 4:
+            return False
+
+        if metrics is None:
+            metrics = self._vehicle_context_metrics(bbox, track_id, current_time, distance_est)
+
+        center_x = metrics['center_x']
+        box_area_ratio = metrics['box_area_ratio']
+        distance = self._safe_float(distance_est, -1.0)
+        ego_speed = self._safe_float(current_speed_kmh, 0.0)
+
+        # Keep central vehicles. Even if one is stopped/parked, it is an object ahead.
+        in_drive_corridor = (0.30 * self.video_width) <= center_x <= (0.70 * self.video_width)
+        very_close = 0 < distance <= 7.0
+        large_in_frame = box_area_ratio >= 0.055
+        if in_drive_corridor or very_close or large_in_frame:
+            return False
+
+        # If no stable tracker id yet, keep it. Dropping new objects is unsafe.
+        if track_id is None:
+            return False
+
+        if int(metrics.get('history_len', 0)) < 4:
+            return False
+
+        distance_delta = float(metrics.get('distance_delta', 0.0))
+        distance_rate_mps = float(metrics.get('distance_rate_mps', 0.0))
+        px_speed = float(metrics.get('px_speed', 0.0))
+        motion_x = float(metrics.get('motion_x', 0.0))
+
         in_left_curb_zone = center_x < (self.video_width * 0.28)
         in_right_curb_zone = center_x > (self.video_width * 0.72)
         in_curb_zone = in_left_curb_zone or in_right_curb_zone
 
+        # motion_x is normalized per second; convert the old pixel threshold to normalized-ish logic.
         moving_to_center = (
-            (in_left_curb_zone and dx > 18.0) or
-            (in_right_curb_zone and dx < -18.0)
+            (in_left_curb_zone and motion_x > 0.018) or
+            (in_right_curb_zone and motion_x < -0.018)
         )
-        approaching_fast = valid_distance and (distance_delta < -1.0 or distance_rate_mps < -0.8)
+        approaching_fast = distance_delta < -1.0 or distance_rate_mps < -0.8
         visually_moving = px_speed > 35.0
 
         # When ego vehicle is moving, curb-side parked cars usually remain side/static.
@@ -202,18 +276,14 @@ class VisionFilter:
 
         # Extra protection for long rows of parked cars at the far sides.
         far_side_object = in_curb_zone and distance > 12.0 and ego_speed > 3.0
-        almost_static = px_speed < 18.0 and (not valid_distance or abs(distance_delta) < 0.7)
+        almost_static = px_speed < 18.0 and abs(distance_delta) < 0.7
         if far_side_object and almost_static:
             return True
 
         return False
 
     def _sign_passes_production_gate(self, clean_type, confidence, distance_m):
-        """Class-specific sign gate after tracking.
-
-        This is a second safety net after YOLO thresholds. It prevents weak/far
-        signs, especially no_entry false positives, from reaching vector_builder.
-        """
+        """Class-specific sign gate after tracking."""
         conf = self._safe_float(confidence, 0.0)
         dist = self._safe_float(distance_m, 99.0)
 
@@ -224,7 +294,6 @@ class VisionFilter:
         if clean_type == "no_entry":
             return conf >= 0.25 and 0 < dist <= 25.0
         return True
-
 
     def _cleanup_sign_history(self, current_time):
         """Remove stale sign evidence/confirmation state."""
@@ -280,7 +349,6 @@ class VisionFilter:
         # Allow a very short continuation only after a sign has already been
         # confirmed by real observations. This helps keep annotations stable but
         # prevents one-frame ghosts from becoming events.
-        # V4: do not let far YIELD ghosts continue through Kalman prediction.
         if tsu > 1:
             if clean_type == "yield_sign" and dist > 30.0:
                 return False
@@ -307,29 +375,20 @@ class VisionFilter:
 
         confirmed = False
         if clean_type == "stop_sign":
-            # V8: STOP is emitted only after the sign gets very close.
-            # In the yield-only validation clip the false STOP track reached ~13.3m,
-            # so the close gate must sit below that. Real STOP clips continue much closer.
+            # STOP is emitted only after the sign gets very close.
             STOP_CLOSE_M = 11.5
             STOP_STRONG_SINGLE_M = 10.5
             STOP_VERY_CLOSE_M = 8.5
             confirmed = (
-                # Strong close STOP sign.
                 (conf >= 0.65 and dist <= STOP_STRONG_SINGLE_M) or
-                # Stable repeated STOP sign that got close enough.
                 (hits >= 3 and span >= 0.35 and max_conf >= 0.45 and min_dist <= STOP_CLOSE_M) or
-                # Approaching a confident STOP sign that crossed the close gate.
                 (hits >= 2 and span >= 0.20 and max_conf >= 0.60 and min_dist <= STOP_CLOSE_M and distance_decreased) or
-                # Very close weaker STOP sign; distance is more reliable than one weak frame.
                 (hits >= 2 and span >= 0.20 and min_dist <= STOP_VERY_CLOSE_M and max_conf >= 0.35)
             )
         elif clean_type == "yield_sign":
             confirmed = (
-                # Strong real YIELD sign, but only if not far away.
                 (conf >= 0.65 and dist <= 27.0) or
-                # Stable medium-confidence YIELD.
                 (hits >= 3 and span >= 0.45 and max_conf >= 0.20 and min_dist <= 31.0) or
-                # Weak YIELD signs are accepted only when they persist long enough.
                 (hits >= 4 and span >= 0.75 and avg_conf >= 0.14 and min_dist <= 26.0 and distance_decreased)
             )
         elif clean_type == "no_entry":
@@ -341,9 +400,6 @@ class VisionFilter:
             confirmed = True
 
         if confirmed:
-            # V4: a high-confidence but far single YIELD can still be a false
-            # positive. Keep its history so a real sign can become confirmed
-            # when it gets closer, but do not emit it into video_events yet.
             if clean_type == "yield_sign" and dist > 30.0:
                 log.debug(
                     f"🚧 Holding far confirmed-looking yield until closer "
@@ -360,6 +416,18 @@ class VisionFilter:
             f"avg_conf={avg_conf:.2f} min_dist={min_dist:.1f}m tsu={tsu}"
         )
         return False
+
+    def _vehicle_role_for_debug(self, metrics):
+        rel_x = float(metrics.get('relative_x', 0.0))
+        rel_y = float(metrics.get('relative_y', 0.0))
+        motion_x = float(metrics.get('motion_x', 0.0))
+        distance_delta = float(metrics.get('distance_delta', 0.0))
+
+        if abs(rel_x) <= 0.35 and rel_y >= 0.30:
+            return "lead_or_front_vehicle"
+        if abs(motion_x) >= 0.018 or distance_delta < -1.0:
+            return "dynamic_side_vehicle"
+        return "kept_vehicle"
 
     # ------------------------------------------------------------------
     # Main filter
@@ -403,6 +471,15 @@ class VisionFilter:
             center_y = (y1 + y2) / 2.0
             time_since_update = det.get("time_since_update", 0)
 
+            vehicle_metrics = None
+            if is_car:
+                vehicle_metrics = self._vehicle_context_metrics(
+                    bbox=bbox,
+                    track_id=track_id,
+                    current_time=current_time,
+                    distance_est=distance_est,
+                )
+
             # 1. Sign ROI: ignore only extreme-left signs that are probably from
             # the opposite/side lane. The old 35% cutoff deleted valid yield signs.
             if is_stop_sign or is_yield_sign or is_no_entry:
@@ -430,7 +507,7 @@ class VisionFilter:
                 log.debug(f"🚦 Skipped {clean_type} due to stationary traffic light override.")
                 continue
 
-            # 3. Parked-car filter. This is the main anti-overload filter for the LSTM vector.
+            # 3. Parked-car filter. This is the main anti-overload filter for the AI vector.
             if is_car:
                 if self._should_drop_parked_vehicle(
                     bbox=bbox,
@@ -438,17 +515,36 @@ class VisionFilter:
                     current_time=current_time,
                     distance_est=distance_est,
                     current_speed_kmh=current_speed_kmh,
+                    metrics=vehicle_metrics,
                 ):
-                    log.debug(f"🅿️ Dropped likely parked car id={track_id} t={current_time:.2f}s")
+                    log.debug(
+                        f"🅿️ Dropped likely parked car id={track_id} t={current_time:.2f}s "
+                        f"rel_x={vehicle_metrics.get('relative_x', 0.0):.2f} "
+                        f"static={vehicle_metrics.get('static_score', 0.0):.2f}"
+                    )
                     continue
 
-            filtered_events.append({
+            event = {
                 "time_sec": current_time,
                 "type": clean_type,
                 "distance_meters": distance_est,
                 "id": track_id,
                 "confidence": confidence,
                 "time_since_update": time_since_update,
-            })
+            }
+
+            if is_car and vehicle_metrics is not None:
+                event.update({
+                    "relative_x": round(float(vehicle_metrics.get('relative_x', 0.0)), 5),
+                    "relative_y": round(float(vehicle_metrics.get('relative_y', 0.0)), 5),
+                    "motion_x": round(float(vehicle_metrics.get('motion_x', 0.0)), 5),
+                    "motion_y": round(float(vehicle_metrics.get('motion_y', 0.0)), 5),
+                    "static_score": round(float(vehicle_metrics.get('static_score', 0.0)), 5),
+                    "box_area_ratio": round(float(vehicle_metrics.get('box_area_ratio', 0.0)), 6),
+                    "role": self._vehicle_role_for_debug(vehicle_metrics),
+                    "used_in_vector": True,
+                })
+
+            filtered_events.append(event)
 
         return filtered_events

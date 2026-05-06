@@ -1,7 +1,9 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import '../services/api_service.dart';
 import 'test_summary_screen.dart';
 
@@ -28,6 +30,7 @@ class _ProcessingScreenState extends State<ProcessingScreen>
   static const Color _errorRed = Color(0xFFFF4C4C);
 
   late final AnimationController _pulseController;
+
   Timer? _progressTimer;
   Timer? _elapsedTimer;
 
@@ -35,28 +38,26 @@ class _ProcessingScreenState extends State<ProcessingScreen>
   String _errorMessage = "";
   int _elapsedSeconds = 0;
 
-  // התקדמות אמיתית מהשרת
   int _currentStage = 0;
   int _percent = 0;
   String _stageMessage = "Preparing upload...";
 
   late final String _testId;
 
-  // אייקון לכל שלב
-  final List<IconData> _stageIcons = [
-    Icons.upload_rounded, // 1 - העלאה
-    Icons.sensors_rounded, // 2 - חיישנים
-    Icons.visibility_rounded, // 3 - YOLO
-    Icons.layers_rounded, // 4 - וקטור
-    Icons.psychology_rounded, // 5 - LSTM
+  final List<IconData> _stageIcons = const [
+    Icons.upload_rounded,
+    Icons.sensors_rounded,
+    Icons.visibility_rounded,
+    Icons.layers_rounded,
+    Icons.psychology_rounded,
   ];
 
-  final List<String> _stageTitles = [
+  final List<String> _stageTitles = const [
     "Uploading Files",
     "Processing Sensors",
     "Running YOLO Detection",
     "Building Feature Vector",
-    "Evaluating with M8 LSTM",
+    "Evaluating with M11",
   ];
 
   @override
@@ -82,63 +83,83 @@ class _ProcessingScreenState extends State<ProcessingScreen>
 
   void _startElapsedTimer() {
     _elapsedTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (mounted && !_hasError) {
-        setState(() => _elapsedSeconds++);
-      }
+      if (!mounted || _hasError) return;
+      setState(() => _elapsedSeconds++);
     });
   }
 
   void _startProgressPolling() {
-    // קוראים לשרת כל שנייה לקבל את ההתקדמות הנוכחית
     _progressTimer = Timer.periodic(const Duration(seconds: 1), (_) async {
       if (!mounted || _hasError) return;
-      final progress = await ApiService.getProgress(_testId);
-      if (progress != null && mounted) {
-        setState(() {
-          // השרת מחזיר עכשיו רק percent ו-message
-          _percent = (progress['percent'] ?? 0) as int;
-          _stageMessage = progress['message']?.toString() ?? "";
 
-          // מחשבים את השלב (1-5) מתוך האחוזים כדי שהאייקונים והנקודות יתעדכנו
-          if (_percent < 5) {
-            _currentStage = 1; // Uploading
-          } else if (_percent < 10) {
-            _currentStage = 2; // Sensors
-          } else if (_percent < 80) {
-            _currentStage = 3; // YOLO (החלק הארוך ביותר)
-          } else if (_percent < 85) {
-            _currentStage = 4; // Vector
-          } else {
-            _currentStage = 5; // LSTM (85-100%)
-          }
-        });
-      }
+      final progress = await ApiService.getProgress(_testId);
+
+      if (progress == null || !mounted) return;
+
+      final rawPercent = progress['percent'];
+      final parsedPercent = rawPercent is int
+          ? rawPercent
+          : rawPercent is double
+              ? rawPercent.round()
+              : int.tryParse(rawPercent?.toString() ?? "0") ?? 0;
+
+      setState(() {
+        _percent = parsedPercent.clamp(0, 100);
+        _stageMessage =
+            progress['message']?.toString() ?? "Processing analysis...";
+
+        if (_percent < 5) {
+          _currentStage = 1;
+        } else if (_percent < 10) {
+          _currentStage = 2;
+        } else if (_percent < 80) {
+          _currentStage = 3;
+        } else if (_percent < 85) {
+          _currentStage = 4;
+        } else {
+          _currentStage = 5;
+        }
+      });
     });
   }
 
   Future<void> _startAnalysis() async {
-    final result = await ApiService.uploadTestFiles(
-      widget.videoPath,
-      widget.jsonPath,
-      widget.studentId,
-      testId: _testId, // 🆕 שולחים test_id ידוע מראש
-    );
-
-    if (!mounted) return;
-
-    _progressTimer?.cancel();
-    _elapsedTimer?.cancel();
-
-    if (result != null) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => TestSummaryScreen(result: result)),
+    try {
+      final result = await ApiService.uploadTestFiles(
+        widget.videoPath,
+        widget.jsonPath,
+        widget.studentId,
+        testId: _testId,
       );
-    } else {
+
+      if (!mounted) return;
+
+      _progressTimer?.cancel();
+      _elapsedTimer?.cancel();
+
+      if (result != null) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => TestSummaryScreen(result: result),
+          ),
+        );
+      } else {
+        setState(() {
+          _hasError = true;
+          _errorMessage =
+              "We couldn't reach the analysis server. Please check your connection and try again.";
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+      _progressTimer?.cancel();
+      _elapsedTimer?.cancel();
+
       setState(() {
         _hasError = true;
-        _errorMessage = ApiService.lastError ??
-            "We couldn't reach the analysis server. Please check your connection and try again.";
+        _errorMessage = "Analysis failed: $e";
       });
     }
   }
@@ -152,21 +173,23 @@ class _ProcessingScreenState extends State<ProcessingScreen>
   }
 
   String _formatElapsed(int seconds) {
-    final m = (seconds ~/ 60).toString().padLeft(2, '0');
-    final s = (seconds % 60).toString().padLeft(2, '0');
-    return "$m:$s";
+    final minutes = (seconds ~/ 60).toString().padLeft(2, '0');
+    final remainingSeconds = (seconds % 60).toString().padLeft(2, '0');
+    return "$minutes:$remainingSeconds";
   }
 
   IconData _currentIcon() {
-    if (_currentStage == 0) return Icons.upload_rounded;
-    final idx = (_currentStage - 1).clamp(0, _stageIcons.length - 1);
-    return _stageIcons[idx];
+    if (_currentStage <= 0) return Icons.upload_rounded;
+
+    final index = (_currentStage - 1).clamp(0, _stageIcons.length - 1);
+    return _stageIcons[index];
   }
 
   String _currentTitle() {
-    if (_currentStage == 0) return "Starting...";
-    final idx = (_currentStage - 1).clamp(0, _stageTitles.length - 1);
-    return _stageTitles[idx];
+    if (_currentStage <= 0) return "Starting...";
+
+    final index = (_currentStage - 1).clamp(0, _stageTitles.length - 1);
+    return _stageTitles[index];
   }
 
   @override
@@ -179,7 +202,10 @@ class _ProcessingScreenState extends State<ProcessingScreen>
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFF314972), Color(0xFF233452)],
+            colors: [
+              Color(0xFF314972),
+              Color(0xFF233452),
+            ],
           ),
         ),
         child: SafeArea(
@@ -187,7 +213,6 @@ class _ProcessingScreenState extends State<ProcessingScreen>
             children: [
               const SizedBox(height: 30),
 
-              // ===== טיימר +  אחוז =====
               if (!_hasError)
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -203,9 +228,11 @@ class _ProcessingScreenState extends State<ProcessingScreen>
 
               const Spacer(),
 
-              // ===== אייקון מרכזי =====
               ScaleTransition(
-                scale: Tween(begin: 0.92, end: 1.08).animate(_pulseController),
+                scale: Tween<double>(
+                  begin: 0.92,
+                  end: 1.08,
+                ).animate(_pulseController),
                 child: Container(
                   padding: const EdgeInsets.all(35),
                   decoration: BoxDecoration(
@@ -236,9 +263,9 @@ class _ProcessingScreenState extends State<ProcessingScreen>
 
               const SizedBox(height: 36),
 
-              // ===== כותרת =====
               Text(
                 _hasError ? "Analysis Failed" : _currentTitle(),
+                textAlign: TextAlign.center,
                 style: GoogleFonts.lexend(
                   color: Colors.white,
                   fontSize: 24,
@@ -248,7 +275,6 @@ class _ProcessingScreenState extends State<ProcessingScreen>
 
               const SizedBox(height: 10),
 
-              // ===== הודעה מהשרת =====
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 40),
                 child: Text(
@@ -264,7 +290,6 @@ class _ProcessingScreenState extends State<ProcessingScreen>
 
               const SizedBox(height: 32),
 
-              // ===== Progress Bar אמיתי =====
               if (!_hasError)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 40),
@@ -282,13 +307,13 @@ class _ProcessingScreenState extends State<ProcessingScreen>
                         ),
                       ),
                       const SizedBox(height: 14),
-                      // נקודות שלב (5 שלבים)
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(5, (i) {
-                          final stageNum = i + 1;
-                          final bool isActive = stageNum == _currentStage;
-                          final bool isDone = stageNum < _currentStage;
+                        children: List.generate(5, (index) {
+                          final stageNumber = index + 1;
+                          final isActive = stageNumber == _currentStage;
+                          final isDone = stageNumber < _currentStage;
+
                           return AnimatedContainer(
                             duration: const Duration(milliseconds: 300),
                             margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -298,8 +323,8 @@ class _ProcessingScreenState extends State<ProcessingScreen>
                               color: isDone
                                   ? _activeGreen
                                   : isActive
-                                  ? _primaryBlue
-                                  : Colors.white24,
+                                      ? _primaryBlue
+                                      : Colors.white24,
                               borderRadius: BorderRadius.circular(4),
                             ),
                           );
@@ -357,7 +382,11 @@ class _ProcessingScreenState extends State<ProcessingScreen>
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: Colors.white54, size: 14),
+          Icon(
+            icon,
+            color: Colors.white54,
+            size: 14,
+          ),
           const SizedBox(width: 6),
           Text(
             text,

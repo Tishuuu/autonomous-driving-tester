@@ -2379,3 +2379,364 @@
 2026-05-04 19:55:26.911 | INFO     | app.services.vector_builder:build_feature_vector:366 - ✅ Vector built. Shape: (273, 16) | sign_counts={0: 223, 1: 27, 2: 23}
 2026-05-04 19:55:26.913 | INFO     | app.routes.test_routes:load_ai_models:125 - Loading Scaler and M8 Model...
 2026-05-04 19:55:27.734 | INFO     | app.routes.test_routes:load_ai_models:140 - M8 Model + Scaler ready.
+2026-05-05 04:16:06.968 | INFO     | app.services.vision_service:<module>:21 - YOLO STARTING
+2026-05-05 04:16:16.187 | INFO     | app.routes.test_routes:load_ai_models:167 - Loading M10 scaler + model...
+2026-05-05 04:16:17.506 | INFO     | app.routes.test_routes:load_ai_models:188 - M10 Model + Scaler ready. Classes 1-4=violations, 5-6=positive actions.
+2026-05-05 04:23:36.196 | INFO     | app.services.vision_service:<module>:21 - YOLO STARTING
+2026-05-05 04:23:39.836 | INFO     | app.routes.test_routes:load_ai_models:206 - Loading M10 scaler + model...
+2026-05-05 04:23:40.546 | INFO     | app.routes.test_routes:load_ai_models:227 - M10 Model + Scaler ready. Classes 1-4=violations, 5-6=positive actions.
+2026-05-05 04:29:38.288 | INFO     | app.services.vision_service:<module>:21 - YOLO STARTING
+2026-05-05 04:29:41.913 | INFO     | app.routes.test_routes:load_ai_models:206 - Loading M10 scaler + model...
+2026-05-05 04:29:42.612 | INFO     | app.routes.test_routes:load_ai_models:227 - M10 Model + Scaler ready. Classes 1-4=violations, 5-6=positive actions.
+2026-05-05 04:54:07.980 | INFO     | app.services.vision_service:<module>:21 - YOLO STARTING
+2026-05-05 04:55:03.480 | INFO     | app.services.vision_service:<module>:21 - YOLO STARTING
+2026-05-05 05:00:48.063 | INFO     | app.services.vision_service:<module>:21 - YOLO STARTING
+2026-05-05 05:00:53.262 | INFO     | app.routes.test_routes:load_ai_models:206 - Loading M11 scaler + model...
+2026-05-05 05:00:54.129 | ERROR    | app.routes.test_routes:load_ai_models:232 - Failed to load M11 model artifacts: Layer dense_1_clone weight shape (288, 96) is not compatible with provided weight shape (432, 96).
+2026-05-05 05:04:33.605 | INFO     | app.services.vision_service:<module>:21 - YOLO STARTING
+2026-05-05 05:04:37.129 | INFO     | app.routes.test_routes:load_ai_models:273 - Loading M11 scaler + model...
+2026-05-05 05:04:37.847 | INFO     | app.routes.test_routes:load_ai_models:294 - M11 Model + Scaler ready. Classes 1-4=violations, 5-6=positive actions.
+2026-05-05 05:35:35.673 | INFO     | app.services.vision_service:<module>:21 - YOLO STARTING
+2026-05-05 05:35:42.458 | INFO     | app.routes.test_routes:load_ai_models:277 - Loading M11 scaler + model...
+2026-05-05 05:35:43.418 | INFO     | app.routes.test_routes:load_ai_models:298 - M11 Model + Scaler ready. Classes 1-4=violations, 5-6=positive actions.
+2026-05-05 05:44:50.280 | INFO     | app.services.vision_service:<module>:21 - YOLO STARTING
+2026-05-05 05:44:54.064 | INFO     | app.routes.test_routes:load_ai_models:277 - Loading M11 scaler + model...
+2026-05-05 05:44:54.825 | INFO     | app.routes.test_routes:load_ai_models:298 - M11 Model + Scaler ready. Classes 1-4=violations, 5-6=positive actions.
+2026-05-05 17:08:19.483 | INFO     | app.services.vision_service:<module>:21 - YOLO STARTING
+2026-05-05 17:08:31.197 | INFO     | app.services.vision_service:analyze_video_for_server:596 - 🎥 Starting Video Analysis Pipeline...
+2026-05-05 17:08:31.391 | INFO     | app.services.vision_service:analyze_video_for_server:617 - 🎞️ YOLO annotated video will be saved to: C:\MyProject\auto_tester\server\analysis_exports\TEST_ONLYSTOP_M12_VECTORBUILD_V1\yolo_annotated.mp4
+2026-05-05 17:08:31.403 | INFO     | app.services.vision_filter:__init__:40 - 🚦 Loaded 72 traffic lights from JSON.
+2026-05-05 17:08:32.018 | INFO     | app.services.vision_service:get_yolo:72 - 🟢 YOLO singleton initialized & warmed
+2026-05-05 17:08:32.019 | INFO     | app.services.vision_service:get_yolo:73 - YOLO class names: {0: 'NO-ENTRY', 1: 'car-detection - vdataset jonathans-workspace-b4ela', 2: 'stop_sign', 3: 'yield_sign'}
+2026-05-05 17:15:19.606 | INFO     | app.services.vision_service:analyze_video_for_server:653 - 🔎 YOLO low-conf raw counts: {'car': 3780, 'no_entry': 162, 'stop_sign': 877, 'yield_sign': 26}
+2026-05-05 17:15:19.608 | INFO     | app.services.vision_service:analyze_video_for_server:654 - 🔎 YOLO after threshold counts: {'car': 753, 'stop_sign': 588, 'yield_sign': 20, 'no_entry': 77}
+2026-05-05 17:15:19.609 | INFO     | app.services.vision_service:analyze_video_for_server:655 - 🔎 YOLO after geometry counts: {'car': 719, 'yield_sign': 20, 'stop_sign': 508}
+2026-05-05 17:15:19.609 | INFO     | app.services.vision_service:analyze_video_for_server:656 - 🔎 YOLO after dedup counts: {'car': 704, 'yield_sign': 20, 'stop_sign': 498}
+2026-05-05 17:15:19.609 | INFO     | app.services.vision_service:analyze_video_for_server:657 - ✅ YOLO Done. Starting Tracking...
+2026-05-05 17:15:38.076 | INFO     | app.services.vision_service:analyze_video_for_server:838 - 🔎 Saved YOLO debug counts: C:\MyProject\auto_tester\server\analysis_exports\TEST_ONLYSTOP_M12_VECTORBUILD_V1\0_yolo_debug_counts.json
+2026-05-05 17:15:38.076 | INFO     | app.services.vision_service:analyze_video_for_server:842 - 🔎 Tracked counts: {'car': 1176, 'yield_sign': 173, 'stop_sign': 879}
+2026-05-05 17:15:38.076 | INFO     | app.services.vision_service:analyze_video_for_server:843 - 🔎 Filtered counts: {'car': 1176, 'stop_sign': 97}
+2026-05-05 17:15:38.077 | INFO     | app.services.vision_service:analyze_video_for_server:844 - 🔎 Final event counts before prune: {'car': 42, 'stop_sign': 2}
+2026-05-05 17:15:38.077 | INFO     | app.services.vision_service:analyze_video_for_server:845 - 🔎 Final event counts after prune: {'car': 42, 'stop_sign': 2}
+2026-05-05 17:15:38.077 | INFO     | app.services.vision_service:analyze_video_for_server:846 - 🏁 Pipeline Complete. Events: 44
+2026-05-05 17:15:38.077 | INFO     | app.services.vision_service:analyze_video_for_server:848 - 🎞️ Saved YOLO annotated video: C:\MyProject\auto_tester\server\analysis_exports\TEST_ONLYSTOP_M12_VECTORBUILD_V1\yolo_annotated.mp4
+2026-05-05 17:15:38.080 | INFO     | app.services.vector_builder:build_feature_vector:439 - 🧬 Building M12-ready vector with sign memory + vehicle context...
+2026-05-05 17:15:38.111 | INFO     | app.services.vector_builder:build_feature_vector:468 - 🚦 Sign segments kept: 2
+2026-05-05 17:15:38.445 | INFO     | app.services.vector_builder:build_feature_vector:552 - ✅ M12 vector built. Shape: (442, 19) | sign_counts={0: 415, 1: 27} | memory_sign_counts={0: 331, 1: 111}
+2026-05-05 17:15:38.453 | INFO     | app.routes.test_routes:load_ai_models:277 - Loading M11 scaler + model...
+2026-05-05 17:15:40.110 | INFO     | app.routes.test_routes:load_ai_models:298 - M11 Model + Scaler ready. Classes 1-4=violations, 5-6=positive actions.
+2026-05-05 18:41:22.399 | INFO     | app.services.vision_service:<module>:21 - YOLO STARTING
+2026-05-05 18:41:22.949 | INFO     | main:lifespan:13 -  Server Starting Up
+2026-05-05 18:41:23.445 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-05-05 18:48:07.554 | INFO     | app.services.vision_service:<module>:21 - YOLO STARTING
+2026-05-05 18:49:21.132 | INFO     | app.services.vision_service:<module>:21 - YOLO STARTING
+2026-05-05 18:50:19.717 | INFO     | app.services.vision_service:<module>:21 - YOLO STARTING
+2026-05-05 18:50:23.178 | INFO     | app.routes.test_routes:load_ai_models:390 - Loading M12 scaler + model...
+2026-05-05 18:50:24.260 | INFO     | app.routes.test_routes:load_ai_models:418 - M12 Model + Scaler ready. Classes: 1=ignored warning, 2/3/4=fail, 5/6=positive actions.
+2026-05-05 19:03:24.827 | INFO     | app.services.vision_service:<module>:21 - YOLO STARTING
+2026-05-05 19:03:29.094 | INFO     | app.services.vision_service:analyze_video_for_server:596 - 🎥 Starting Video Analysis Pipeline...
+2026-05-05 19:03:29.285 | INFO     | app.services.vision_service:analyze_video_for_server:617 - 🎞️ YOLO annotated video will be saved to: C:\MyProject\auto_tester\server\analysis_exports\TEST_STOPSIGN2_M12_REPLAY_V1\yolo_annotated.mp4
+2026-05-05 19:03:29.287 | INFO     | app.services.vision_filter:__init__:40 - 🚦 Loaded 72 traffic lights from JSON.
+2026-05-05 19:03:29.736 | INFO     | app.services.vision_service:get_yolo:72 - 🟢 YOLO singleton initialized & warmed
+2026-05-05 19:03:29.736 | INFO     | app.services.vision_service:get_yolo:73 - YOLO class names: {0: 'NO-ENTRY', 1: 'car-detection - vdataset jonathans-workspace-b4ela', 2: 'stop_sign', 3: 'yield_sign'}
+2026-05-05 19:09:43.354 | INFO     | app.services.vision_service:analyze_video_for_server:653 - 🔎 YOLO low-conf raw counts: {'car': 6823, 'stop_sign': 505, 'no_entry': 14, 'yield_sign': 1}
+2026-05-05 19:09:43.355 | INFO     | app.services.vision_service:analyze_video_for_server:654 - 🔎 YOLO after threshold counts: {'car': 1329, 'stop_sign': 340, 'no_entry': 1}
+2026-05-05 19:09:43.355 | INFO     | app.services.vision_service:analyze_video_for_server:655 - 🔎 YOLO after geometry counts: {'car': 1294, 'stop_sign': 226}
+2026-05-05 19:09:43.355 | INFO     | app.services.vision_service:analyze_video_for_server:656 - 🔎 YOLO after dedup counts: {'car': 1251, 'stop_sign': 226}
+2026-05-05 19:09:43.356 | INFO     | app.services.vision_service:analyze_video_for_server:657 - ✅ YOLO Done. Starting Tracking...
+2026-05-05 19:09:57.450 | INFO     | app.services.vision_service:analyze_video_for_server:838 - 🔎 Saved YOLO debug counts: C:\MyProject\auto_tester\server\analysis_exports\TEST_STOPSIGN2_M12_REPLAY_V1\0_yolo_debug_counts.json
+2026-05-05 19:09:57.451 | INFO     | app.services.vision_service:analyze_video_for_server:842 - 🔎 Tracked counts: {'car': 2248, 'stop_sign': 560}
+2026-05-05 19:09:57.451 | INFO     | app.services.vision_service:analyze_video_for_server:843 - 🔎 Filtered counts: {'car': 2213, 'stop_sign': 72}
+2026-05-05 19:09:57.451 | INFO     | app.services.vision_service:analyze_video_for_server:844 - 🔎 Final event counts before prune: {'car': 75, 'stop_sign': 2}
+2026-05-05 19:09:57.451 | INFO     | app.services.vision_service:analyze_video_for_server:845 - 🔎 Final event counts after prune: {'car': 75, 'stop_sign': 2}
+2026-05-05 19:09:57.451 | INFO     | app.services.vision_service:analyze_video_for_server:846 - 🏁 Pipeline Complete. Events: 77
+2026-05-05 19:09:57.452 | INFO     | app.services.vision_service:analyze_video_for_server:848 - 🎞️ Saved YOLO annotated video: C:\MyProject\auto_tester\server\analysis_exports\TEST_STOPSIGN2_M12_REPLAY_V1\yolo_annotated.mp4
+2026-05-05 19:09:57.454 | INFO     | app.services.vector_builder:build_feature_vector:439 - 🧬 Building M12-ready vector with sign memory + vehicle context...
+2026-05-05 19:09:57.473 | INFO     | app.services.vector_builder:build_feature_vector:468 - 🚦 Sign segments kept: 2
+2026-05-05 19:09:57.765 | INFO     | app.services.vector_builder:build_feature_vector:552 - ✅ M12 vector built. Shape: (396, 19) | sign_counts={0: 369, 1: 27} | memory_sign_counts={0: 285, 1: 111}
+2026-05-05 19:09:57.771 | INFO     | app.routes.test_routes:load_ai_models:390 - Loading M12 scaler + model...
+2026-05-05 19:09:58.671 | INFO     | app.routes.test_routes:load_ai_models:418 - M12 Model + Scaler ready. Classes: 1=ignored warning, 2/3/4=fail, 5/6=positive actions.
+2026-05-05 19:51:05.108 | INFO     | app.services.vision_service:<module>:21 - YOLO STARTING
+2026-05-05 19:51:10.178 | INFO     | app.routes.test_routes:load_ai_models:390 - Loading M12 scaler + model...
+2026-05-05 19:51:11.038 | INFO     | app.routes.test_routes:load_ai_models:418 - M12 Model + Scaler ready. Classes: 1=ignored warning, 2/3/4=fail, 5/6=positive actions.
+2026-05-06 01:01:53.652 | INFO     | main:lifespan:17 -  Server Shutting Down
+2026-05-06 01:01:53.703 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-05-06 01:02:12.653 | INFO     | app.services.vision_service:<module>:21 - YOLO STARTING
+2026-05-06 01:02:13.018 | INFO     | main:lifespan:13 -  Server Starting Up
+2026-05-06 01:02:13.134 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-05-06 01:05:30.036 | INFO     | app.routes.test_routes:load_ai_models:390 - Loading M12 scaler + model...
+2026-05-06 01:05:31.108 | INFO     | app.routes.test_routes:load_ai_models:418 - M12 Model + Scaler ready. Classes: 1=ignored warning, 2/3/4=fail, 5/6=positive actions.
+2026-05-06 01:05:31.148 | INFO     | app.routes.test_routes:evaluate_test:1135 - ✅ Integrity verified for TEST_1778018728448
+2026-05-06 01:05:31.155 | INFO     | app.routes.test_routes:evaluate_test:1140 - 🎞️ Saved original input video: C:\MyProject\auto_tester\server\analysis_exports\TEST_1778018728448\input_video.mp4
+2026-05-06 01:05:31.157 | INFO     | app.services.sensor_sync:process_sensor_json:64 - 🔄 Processing sensor data: temp_697affa6-3d59-4f43-a3d8-df7f92d51251.json
+2026-05-06 01:05:31.179 | INFO     | app.services.sensor_sync:process_sensor_json:69 - 🎥 Video offset: 643ms
+2026-05-06 01:05:31.204 | INFO     | app.services.sensor_sync:process_sensor_json:123 - ⏱️ Resampling to 10Hz
+2026-05-06 01:05:31.219 | INFO     | app.services.sensor_sync:process_sensor_json:140 - 🪛 Tier-3 plateau smoothing: 75 rows interpolated
+2026-05-06 01:05:31.221 | INFO     | app.services.sensor_sync:process_sensor_json:153 - 🗑️ Dropped 5 pre-video rows
+2026-05-06 01:05:31.227 | INFO     | app.services.sensor_sync:process_sensor_json:183 - ✅ Sensor processing done. Rows: 115
+2026-05-06 01:05:31.234 | INFO     | app.services.vision_service:analyze_video_for_server:596 - 🎥 Starting Video Analysis Pipeline...
+2026-05-06 01:05:31.327 | INFO     | app.services.vision_service:analyze_video_for_server:617 - 🎞️ YOLO annotated video will be saved to: C:\MyProject\auto_tester\server\analysis_exports\TEST_1778018728448\yolo_annotated.mp4
+2026-05-06 01:05:31.329 | INFO     | app.services.vision_filter:__init__:40 - 🚦 Loaded 72 traffic lights from JSON.
+2026-05-06 01:05:31.872 | INFO     | app.services.vision_service:get_yolo:72 - 🟢 YOLO singleton initialized & warmed
+2026-05-06 01:05:31.873 | INFO     | app.services.vision_service:get_yolo:73 - YOLO class names: {0: 'NO-ENTRY', 1: 'car-detection - vdataset jonathans-workspace-b4ela', 2: 'stop_sign', 3: 'yield_sign'}
+2026-05-06 01:07:05.895 | INFO     | app.services.vision_service:analyze_video_for_server:653 - 🔎 YOLO low-conf raw counts: {'car': 446, 'stop_sign': 32, 'no_entry': 1}
+2026-05-06 01:07:05.895 | INFO     | app.services.vision_service:analyze_video_for_server:654 - 🔎 YOLO after threshold counts: {'car': 218, 'stop_sign': 18, 'no_entry': 1}
+2026-05-06 01:07:05.896 | INFO     | app.services.vision_service:analyze_video_for_server:655 - 🔎 YOLO after geometry counts: {'stop_sign': 18}
+2026-05-06 01:07:05.896 | INFO     | app.services.vision_service:analyze_video_for_server:656 - 🔎 YOLO after dedup counts: {'stop_sign': 18}
+2026-05-06 01:07:05.897 | INFO     | app.services.vision_service:analyze_video_for_server:657 - ✅ YOLO Done. Starting Tracking...
+2026-05-06 01:07:09.922 | INFO     | app.services.vision_service:_prune_isolated_final_sign_events:556 - 🚧 Final sign prune dropped isolated signs: {'stop_sign': 2}
+2026-05-06 01:07:09.923 | INFO     | app.services.vision_service:analyze_video_for_server:838 - 🔎 Saved YOLO debug counts: C:\MyProject\auto_tester\server\analysis_exports\TEST_1778018728448\0_yolo_debug_counts.json
+2026-05-06 01:07:09.923 | INFO     | app.services.vision_service:analyze_video_for_server:842 - 🔎 Tracked counts: {'stop_sign': 112}
+2026-05-06 01:07:09.923 | INFO     | app.services.vision_service:analyze_video_for_server:843 - 🔎 Filtered counts: {'stop_sign': 35}
+2026-05-06 01:07:09.924 | INFO     | app.services.vision_service:analyze_video_for_server:844 - 🔎 Final event counts before prune: {'stop_sign': 2}
+2026-05-06 01:07:09.924 | INFO     | app.services.vision_service:analyze_video_for_server:845 - 🔎 Final event counts after prune: {}
+2026-05-06 01:07:09.924 | INFO     | app.services.vision_service:analyze_video_for_server:846 - 🏁 Pipeline Complete. Events: 0
+2026-05-06 01:07:09.924 | INFO     | app.services.vision_service:analyze_video_for_server:848 - 🎞️ Saved YOLO annotated video: C:\MyProject\auto_tester\server\analysis_exports\TEST_1778018728448\yolo_annotated.mp4
+2026-05-06 01:07:09.926 | INFO     | app.services.vector_builder:build_feature_vector:439 - 🧬 Building M12-ready vector with sign memory + vehicle context...
+2026-05-06 01:07:09.931 | WARNING  | app.services.vector_builder:build_feature_vector:453 - ⚠️ No video events. Returning clean M12 vector.
+2026-05-06 01:07:11.248 | INFO     | app.routes.test_routes:evaluate_test:1201 - 🎯 Done. Result: PASS | Mistakes: 0 | IgnoredWarnings: 0 | PositiveActions: 0 | Tester: jonhanak1@gmail.com
+2026-05-06 01:13:31.744 | INFO     | app.services.vision_service:<module>:21 - YOLO STARTING
+2026-05-06 01:13:32.129 | INFO     | main:lifespan:13 -  Server Starting Up
+2026-05-06 01:13:32.205 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-05-06 01:14:50.264 | INFO     | app.routes.test_routes:load_ai_models:390 - Loading M12 scaler + model...
+2026-05-06 01:14:50.976 | INFO     | app.routes.test_routes:load_ai_models:418 - M12 Model + Scaler ready. Classes: 1=ignored warning, 2/3/4=fail, 5/6=positive actions.
+2026-05-06 01:14:51.002 | INFO     | app.routes.test_routes:evaluate_test:1135 - ✅ Integrity verified for TEST_1778019289113
+2026-05-06 01:14:51.006 | INFO     | app.routes.test_routes:evaluate_test:1140 - 🎞️ Saved original input video: C:\MyProject\auto_tester\server\analysis_exports\TEST_1778019289113\input_video.mp4
+2026-05-06 01:14:51.007 | INFO     | app.services.sensor_sync:process_sensor_json:64 - 🔄 Processing sensor data: temp_d5086ace-c8d0-4f88-af19-7b4a42c09526.json
+2026-05-06 01:14:51.009 | INFO     | app.services.sensor_sync:process_sensor_json:69 - 🎥 Video offset: 606ms
+2026-05-06 01:14:51.027 | INFO     | app.services.sensor_sync:process_sensor_json:123 - ⏱️ Resampling to 10Hz
+2026-05-06 01:14:51.035 | INFO     | app.services.sensor_sync:process_sensor_json:140 - 🪛 Tier-3 plateau smoothing: 0 rows interpolated
+2026-05-06 01:14:51.037 | INFO     | app.services.sensor_sync:process_sensor_json:153 - 🗑️ Dropped 5 pre-video rows
+2026-05-06 01:14:51.044 | INFO     | app.services.sensor_sync:process_sensor_json:183 - ✅ Sensor processing done. Rows: 48
+2026-05-06 01:14:51.049 | INFO     | app.services.vision_service:analyze_video_for_server:596 - 🎥 Starting Video Analysis Pipeline...
+2026-05-06 01:14:51.187 | INFO     | app.services.vision_service:analyze_video_for_server:617 - 🎞️ YOLO annotated video will be saved to: C:\MyProject\auto_tester\server\analysis_exports\TEST_1778019289113\yolo_annotated.mp4
+2026-05-06 01:14:51.188 | INFO     | app.services.vision_filter:__init__:40 - 🚦 Loaded 72 traffic lights from JSON.
+2026-05-06 01:14:51.622 | INFO     | app.services.vision_service:get_yolo:72 - 🟢 YOLO singleton initialized & warmed
+2026-05-06 01:14:51.623 | INFO     | app.services.vision_service:get_yolo:73 - YOLO class names: {0: 'NO-ENTRY', 1: 'car-detection - vdataset jonathans-workspace-b4ela', 2: 'stop_sign', 3: 'yield_sign'}
+2026-05-06 01:15:30.473 | INFO     | app.services.vision_service:analyze_video_for_server:653 - 🔎 YOLO low-conf raw counts: {'car': 150, 'yield_sign': 1, 'stop_sign': 5}
+2026-05-06 01:15:30.476 | INFO     | app.services.vision_service:analyze_video_for_server:654 - 🔎 YOLO after threshold counts: {'car': 86, 'stop_sign': 1}
+2026-05-06 01:15:30.477 | INFO     | app.services.vision_service:analyze_video_for_server:655 - 🔎 YOLO after geometry counts: {'stop_sign': 1}
+2026-05-06 01:15:30.478 | INFO     | app.services.vision_service:analyze_video_for_server:656 - 🔎 YOLO after dedup counts: {'stop_sign': 1}
+2026-05-06 01:15:30.478 | INFO     | app.services.vision_service:analyze_video_for_server:657 - ✅ YOLO Done. Starting Tracking...
+2026-05-06 01:15:31.912 | INFO     | app.services.vision_service:analyze_video_for_server:838 - 🔎 Saved YOLO debug counts: C:\MyProject\auto_tester\server\analysis_exports\TEST_1778019289113\0_yolo_debug_counts.json
+2026-05-06 01:15:31.913 | INFO     | app.services.vision_service:analyze_video_for_server:842 - 🔎 Tracked counts: {'stop_sign': 16}
+2026-05-06 01:15:31.913 | INFO     | app.services.vision_service:analyze_video_for_server:843 - 🔎 Filtered counts: {}
+2026-05-06 01:15:31.913 | INFO     | app.services.vision_service:analyze_video_for_server:844 - 🔎 Final event counts before prune: {}
+2026-05-06 01:15:31.913 | INFO     | app.services.vision_service:analyze_video_for_server:845 - 🔎 Final event counts after prune: {}
+2026-05-06 01:15:31.914 | INFO     | app.services.vision_service:analyze_video_for_server:846 - 🏁 Pipeline Complete. Events: 0
+2026-05-06 01:15:31.914 | INFO     | app.services.vision_service:analyze_video_for_server:848 - 🎞️ Saved YOLO annotated video: C:\MyProject\auto_tester\server\analysis_exports\TEST_1778019289113\yolo_annotated.mp4
+2026-05-06 01:15:31.915 | INFO     | app.services.vector_builder:build_feature_vector:439 - 🧬 Building M12-ready vector with sign memory + vehicle context...
+2026-05-06 01:15:31.920 | WARNING  | app.services.vector_builder:build_feature_vector:453 - ⚠️ No video events. Returning clean M12 vector.
+2026-05-06 01:15:32.491 | INFO     | app.routes.test_routes:evaluate_test:1201 - 🎯 Done. Result: PASS | Mistakes: 0 | IgnoredWarnings: 0 | PositiveActions: 0 | Tester: jonhanak1@gmail.com
+2026-05-06 01:17:34.161 | INFO     | app.routes.test_routes:evaluate_test:1135 - ✅ Integrity verified for TEST_1778019452121
+2026-05-06 01:17:34.170 | INFO     | app.routes.test_routes:evaluate_test:1140 - 🎞️ Saved original input video: C:\MyProject\auto_tester\server\analysis_exports\TEST_1778019452121\input_video.mp4
+2026-05-06 01:17:34.170 | INFO     | app.services.sensor_sync:process_sensor_json:64 - 🔄 Processing sensor data: temp_b1f2acac-8564-4224-86b3-7b31a4f598b4.json
+2026-05-06 01:17:34.172 | INFO     | app.services.sensor_sync:process_sensor_json:69 - 🎥 Video offset: 558ms
+2026-05-06 01:17:34.178 | INFO     | app.services.sensor_sync:process_sensor_json:123 - ⏱️ Resampling to 10Hz
+2026-05-06 01:17:34.182 | INFO     | app.services.sensor_sync:process_sensor_json:140 - 🪛 Tier-3 plateau smoothing: 126 rows interpolated
+2026-05-06 01:17:34.183 | INFO     | app.services.sensor_sync:process_sensor_json:153 - 🗑️ Dropped 4 pre-video rows
+2026-05-06 01:17:34.186 | INFO     | app.services.sensor_sync:process_sensor_json:183 - ✅ Sensor processing done. Rows: 141
+2026-05-06 01:17:34.189 | INFO     | app.services.vision_service:analyze_video_for_server:596 - 🎥 Starting Video Analysis Pipeline...
+2026-05-06 01:17:34.215 | INFO     | app.services.vision_service:analyze_video_for_server:617 - 🎞️ YOLO annotated video will be saved to: C:\MyProject\auto_tester\server\analysis_exports\TEST_1778019452121\yolo_annotated.mp4
+2026-05-06 01:17:34.217 | INFO     | app.services.vision_filter:__init__:40 - 🚦 Loaded 72 traffic lights from JSON.
+2026-05-06 01:19:39.536 | INFO     | app.services.vision_service:analyze_video_for_server:653 - 🔎 YOLO low-conf raw counts: {'car': 502, 'stop_sign': 5, 'yield_sign': 3}
+2026-05-06 01:19:39.537 | INFO     | app.services.vision_service:analyze_video_for_server:654 - 🔎 YOLO after threshold counts: {'car': 157}
+2026-05-06 01:19:39.537 | INFO     | app.services.vision_service:analyze_video_for_server:655 - 🔎 YOLO after geometry counts: {}
+2026-05-06 01:19:39.537 | INFO     | app.services.vision_service:analyze_video_for_server:656 - 🔎 YOLO after dedup counts: {}
+2026-05-06 01:19:39.537 | INFO     | app.services.vision_service:analyze_video_for_server:657 - ✅ YOLO Done. Starting Tracking...
+2026-05-06 01:19:43.036 | INFO     | app.services.vision_service:analyze_video_for_server:838 - 🔎 Saved YOLO debug counts: C:\MyProject\auto_tester\server\analysis_exports\TEST_1778019452121\0_yolo_debug_counts.json
+2026-05-06 01:19:43.037 | INFO     | app.services.vision_service:analyze_video_for_server:842 - 🔎 Tracked counts: {}
+2026-05-06 01:19:43.037 | INFO     | app.services.vision_service:analyze_video_for_server:843 - 🔎 Filtered counts: {}
+2026-05-06 01:19:43.037 | INFO     | app.services.vision_service:analyze_video_for_server:844 - 🔎 Final event counts before prune: {}
+2026-05-06 01:19:43.037 | INFO     | app.services.vision_service:analyze_video_for_server:845 - 🔎 Final event counts after prune: {}
+2026-05-06 01:19:43.037 | INFO     | app.services.vision_service:analyze_video_for_server:846 - 🏁 Pipeline Complete. Events: 0
+2026-05-06 01:19:43.037 | INFO     | app.services.vision_service:analyze_video_for_server:848 - 🎞️ Saved YOLO annotated video: C:\MyProject\auto_tester\server\analysis_exports\TEST_1778019452121\yolo_annotated.mp4
+2026-05-06 01:19:43.038 | INFO     | app.services.vector_builder:build_feature_vector:439 - 🧬 Building M12-ready vector with sign memory + vehicle context...
+2026-05-06 01:19:43.044 | WARNING  | app.services.vector_builder:build_feature_vector:453 - ⚠️ No video events. Returning clean M12 vector.
+2026-05-06 01:19:43.590 | INFO     | app.routes.test_routes:evaluate_test:1201 - 🎯 Done. Result: PASS | Mistakes: 0 | IgnoredWarnings: 0 | PositiveActions: 0 | Tester: jonhanak1@gmail.com
+2026-05-06 01:19:51.645 | INFO     | app.routes.student_routes:list_students:53 - 📋 Listed 2 students for jonhanak1@gmail.com
+2026-05-06 01:19:52.392 | INFO     | app.routes.test_routes:save_test:1330 - 💾 Test saved | elad (216312345) | result: PASS | mistakes: 0 | by: jonhanak1@gmail.com
+2026-05-06 01:23:36.389 | INFO     | main:lifespan:17 -  Server Shutting Down
+2026-05-06 01:23:36.393 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-05-06 01:43:39.362 | INFO     | app.services.vision_service:<module>:21 - YOLO STARTING
+2026-05-06 01:43:39.920 | INFO     | main:lifespan:13 -  Server Starting Up
+2026-05-06 01:43:40.108 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-05-06 02:10:15.001 | INFO     | app.routes.test_routes:load_ai_models:390 - Loading M12 scaler + model...
+2026-05-06 02:10:17.674 | INFO     | app.routes.test_routes:load_ai_models:418 - M12 Model + Scaler ready. Classes: 1=ignored warning, 2/3/4=fail, 5/6=positive actions.
+2026-05-06 02:10:17.813 | INFO     | app.routes.test_routes:evaluate_test:1135 - ✅ Integrity verified for TEST_1778022610902
+2026-05-06 02:10:17.840 | INFO     | app.routes.test_routes:evaluate_test:1140 - 🎞️ Saved original input video: C:\MyProject\auto_tester\server\analysis_exports\TEST_1778022610902\input_video.mp4
+2026-05-06 02:10:17.843 | INFO     | app.services.sensor_sync:process_sensor_json:64 - 🔄 Processing sensor data: temp_c9d0e0be-8ced-4e66-9be7-bb7f5127d090.json
+2026-05-06 02:10:17.849 | INFO     | app.services.sensor_sync:process_sensor_json:69 - 🎥 Video offset: 648ms
+2026-05-06 02:10:17.927 | INFO     | app.services.sensor_sync:process_sensor_json:123 - ⏱️ Resampling to 10Hz
+2026-05-06 02:10:17.947 | INFO     | app.services.sensor_sync:process_sensor_json:140 - 🪛 Tier-3 plateau smoothing: 0 rows interpolated
+2026-05-06 02:10:17.952 | INFO     | app.services.sensor_sync:process_sensor_json:153 - 🗑️ Dropped 5 pre-video rows
+2026-05-06 02:10:17.961 | INFO     | app.services.sensor_sync:process_sensor_json:183 - ✅ Sensor processing done. Rows: 296
+2026-05-06 02:10:17.976 | INFO     | app.services.vision_service:analyze_video_for_server:596 - 🎥 Starting Video Analysis Pipeline...
+2026-05-06 02:10:18.125 | INFO     | app.services.vision_service:analyze_video_for_server:617 - 🎞️ YOLO annotated video will be saved to: C:\MyProject\auto_tester\server\analysis_exports\TEST_1778022610902\yolo_annotated.mp4
+2026-05-06 02:10:18.127 | INFO     | app.services.vision_filter:__init__:40 - 🚦 Loaded 72 traffic lights from JSON.
+2026-05-06 02:10:19.113 | INFO     | app.services.vision_service:get_yolo:72 - 🟢 YOLO singleton initialized & warmed
+2026-05-06 02:10:19.114 | INFO     | app.services.vision_service:get_yolo:73 - YOLO class names: {0: 'NO-ENTRY', 1: 'car-detection - vdataset jonathans-workspace-b4ela', 2: 'stop_sign', 3: 'yield_sign'}
+2026-05-06 02:13:19.185 | INFO     | app.services.vision_service:analyze_video_for_server:653 - 🔎 YOLO low-conf raw counts: {'car': 6567, 'stop_sign': 281, 'no_entry': 25, 'yield_sign': 7}
+2026-05-06 02:13:19.185 | INFO     | app.services.vision_service:analyze_video_for_server:654 - 🔎 YOLO after threshold counts: {'car': 1532, 'stop_sign': 221, 'yield_sign': 4, 'no_entry': 3}
+2026-05-06 02:13:19.186 | INFO     | app.services.vision_service:analyze_video_for_server:655 - 🔎 YOLO after geometry counts: {'car': 1199, 'yield_sign': 4, 'stop_sign': 200}
+2026-05-06 02:13:19.188 | INFO     | app.services.vision_service:analyze_video_for_server:656 - 🔎 YOLO after dedup counts: {'car': 1195, 'yield_sign': 4, 'stop_sign': 199}
+2026-05-06 02:13:19.188 | INFO     | app.services.vision_service:analyze_video_for_server:657 - ✅ YOLO Done. Starting Tracking...
+2026-05-06 02:13:32.765 | INFO     | app.services.vision_service:analyze_video_for_server:838 - 🔎 Saved YOLO debug counts: C:\MyProject\auto_tester\server\analysis_exports\TEST_1778022610902\0_yolo_debug_counts.json
+2026-05-06 02:13:32.765 | INFO     | app.services.vision_service:analyze_video_for_server:842 - 🔎 Tracked counts: {'car': 1911, 'yield_sign': 49, 'stop_sign': 277}
+2026-05-06 02:13:32.766 | INFO     | app.services.vision_service:analyze_video_for_server:843 - 🔎 Filtered counts: {'car': 1911, 'stop_sign': 76}
+2026-05-06 02:13:32.766 | INFO     | app.services.vision_service:analyze_video_for_server:844 - 🔎 Final event counts before prune: {'car': 53, 'stop_sign': 2}
+2026-05-06 02:13:32.767 | INFO     | app.services.vision_service:analyze_video_for_server:845 - 🔎 Final event counts after prune: {'car': 53, 'stop_sign': 2}
+2026-05-06 02:13:32.767 | INFO     | app.services.vision_service:analyze_video_for_server:846 - 🏁 Pipeline Complete. Events: 55
+2026-05-06 02:13:32.768 | INFO     | app.services.vision_service:analyze_video_for_server:848 - 🎞️ Saved YOLO annotated video: C:\MyProject\auto_tester\server\analysis_exports\TEST_1778022610902\yolo_annotated.mp4
+2026-05-06 02:13:32.774 | INFO     | app.services.vector_builder:build_feature_vector:439 - 🧬 Building M12-ready vector with sign memory + vehicle context...
+2026-05-06 02:13:32.823 | INFO     | app.services.vector_builder:build_feature_vector:468 - 🚦 Sign segments kept: 1
+2026-05-06 02:13:33.160 | INFO     | app.services.vector_builder:build_feature_vector:552 - ✅ M12 vector built. Shape: (296, 19) | sign_counts={0: 275, 1: 21} | memory_sign_counts={0: 195, 1: 101}
+2026-05-06 02:13:35.200 | INFO     | app.routes.test_routes:evaluate_test:1201 - 🎯 Done. Result: FAIL | Mistakes: 1 | IgnoredWarnings: 1 | PositiveActions: 0 | Tester: jonhanak1@gmail.com
+2026-05-06 02:14:09.163 | INFO     | app.routes.student_routes:list_students:53 - 📋 Listed 2 students for jonhanak1@gmail.com
+2026-05-06 02:14:11.012 | INFO     | app.routes.test_routes:save_test:1330 - 💾 Test saved | ffdf (5565883) | result: FAIL | mistakes: 1 | by: jonhanak1@gmail.com
+2026-05-06 02:14:45.595 | INFO     | app.routes.test_routes:evaluate_test:1135 - ✅ Integrity verified for TEST_1778022882876
+2026-05-06 02:14:45.615 | INFO     | app.routes.test_routes:evaluate_test:1140 - 🎞️ Saved original input video: C:\MyProject\auto_tester\server\analysis_exports\TEST_1778022882876\input_video.mp4
+2026-05-06 02:14:45.616 | INFO     | app.services.sensor_sync:process_sensor_json:64 - 🔄 Processing sensor data: temp_02fdd210-9491-488a-8cee-e5f3398992f3.json
+2026-05-06 02:14:45.618 | INFO     | app.services.sensor_sync:process_sensor_json:69 - 🎥 Video offset: 367ms
+2026-05-06 02:14:45.628 | INFO     | app.services.sensor_sync:process_sensor_json:123 - ⏱️ Resampling to 10Hz
+2026-05-06 02:14:45.631 | INFO     | app.services.sensor_sync:process_sensor_json:140 - 🪛 Tier-3 plateau smoothing: 0 rows interpolated
+2026-05-06 02:14:45.632 | INFO     | app.services.sensor_sync:process_sensor_json:153 - 🗑️ Dropped 3 pre-video rows
+2026-05-06 02:14:45.637 | INFO     | app.services.sensor_sync:process_sensor_json:183 - ✅ Sensor processing done. Rows: 243
+2026-05-06 02:14:45.642 | INFO     | app.services.vision_service:analyze_video_for_server:596 - 🎥 Starting Video Analysis Pipeline...
+2026-05-06 02:14:45.684 | INFO     | app.services.vision_service:analyze_video_for_server:617 - 🎞️ YOLO annotated video will be saved to: C:\MyProject\auto_tester\server\analysis_exports\TEST_1778022882876\yolo_annotated.mp4
+2026-05-06 02:14:45.685 | INFO     | app.services.vision_filter:__init__:40 - 🚦 Loaded 72 traffic lights from JSON.
+2026-05-06 02:17:08.787 | INFO     | app.services.vision_service:analyze_video_for_server:653 - 🔎 YOLO low-conf raw counts: {'car': 6724, 'stop_sign': 271, 'no_entry': 9}
+2026-05-06 02:17:08.788 | INFO     | app.services.vision_service:analyze_video_for_server:654 - 🔎 YOLO after threshold counts: {'car': 1899, 'stop_sign': 262}
+2026-05-06 02:17:08.788 | INFO     | app.services.vision_service:analyze_video_for_server:655 - 🔎 YOLO after geometry counts: {'car': 1722, 'stop_sign': 259}
+2026-05-06 02:17:08.789 | INFO     | app.services.vision_service:analyze_video_for_server:656 - 🔎 YOLO after dedup counts: {'car': 1705, 'stop_sign': 258}
+2026-05-06 02:17:08.789 | INFO     | app.services.vision_service:analyze_video_for_server:657 - ✅ YOLO Done. Starting Tracking...
+2026-05-06 02:17:22.701 | INFO     | app.services.vision_service:analyze_video_for_server:838 - 🔎 Saved YOLO debug counts: C:\MyProject\auto_tester\server\analysis_exports\TEST_1778022882876\0_yolo_debug_counts.json
+2026-05-06 02:17:22.701 | INFO     | app.services.vision_service:analyze_video_for_server:842 - 🔎 Tracked counts: {'car': 2285, 'stop_sign': 298}
+2026-05-06 02:17:22.702 | INFO     | app.services.vision_service:analyze_video_for_server:843 - 🔎 Filtered counts: {'car': 2199, 'stop_sign': 68}
+2026-05-06 02:17:22.702 | INFO     | app.services.vision_service:analyze_video_for_server:844 - 🔎 Final event counts before prune: {'car': 60, 'stop_sign': 2}
+2026-05-06 02:17:22.703 | INFO     | app.services.vision_service:analyze_video_for_server:845 - 🔎 Final event counts after prune: {'car': 60, 'stop_sign': 2}
+2026-05-06 02:17:22.703 | INFO     | app.services.vision_service:analyze_video_for_server:846 - 🏁 Pipeline Complete. Events: 62
+2026-05-06 02:17:22.703 | INFO     | app.services.vision_service:analyze_video_for_server:848 - 🎞️ Saved YOLO annotated video: C:\MyProject\auto_tester\server\analysis_exports\TEST_1778022882876\yolo_annotated.mp4
+2026-05-06 02:17:22.710 | INFO     | app.services.vector_builder:build_feature_vector:439 - 🧬 Building M12-ready vector with sign memory + vehicle context...
+2026-05-06 02:17:22.727 | INFO     | app.services.vector_builder:build_feature_vector:468 - 🚦 Sign segments kept: 1
+2026-05-06 02:17:23.043 | INFO     | app.services.vector_builder:build_feature_vector:552 - ✅ M12 vector built. Shape: (243, 19) | sign_counts={0: 219, 1: 24} | memory_sign_counts={0: 139, 1: 104}
+2026-05-06 02:17:23.893 | INFO     | app.routes.test_routes:evaluate_test:1201 - 🎯 Done. Result: FAIL | Mistakes: 1 | IgnoredWarnings: 0 | PositiveActions: 1 | Tester: jonhanak1@gmail.com
+2026-05-06 02:17:45.215 | INFO     | app.routes.student_routes:list_students:53 - 📋 Listed 2 students for jonhanak1@gmail.com
+2026-05-06 02:17:46.276 | INFO     | app.routes.test_routes:save_test:1330 - 💾 Test saved | ffdf (5565883) | result: FAIL | mistakes: 1 | by: jonhanak1@gmail.com
+2026-05-06 02:18:45.649 | INFO     | app.routes.test_routes:evaluate_test:1135 - ✅ Integrity verified for TEST_1778023121916
+2026-05-06 02:18:45.680 | INFO     | app.routes.test_routes:evaluate_test:1140 - 🎞️ Saved original input video: C:\MyProject\auto_tester\server\analysis_exports\TEST_1778023121916\input_video.mp4
+2026-05-06 02:18:45.680 | INFO     | app.services.sensor_sync:process_sensor_json:64 - 🔄 Processing sensor data: temp_16537703-ecb1-4a4d-be23-5d93dbc4ecd3.json
+2026-05-06 02:18:45.682 | INFO     | app.services.sensor_sync:process_sensor_json:69 - 🎥 Video offset: 235ms
+2026-05-06 02:18:45.693 | INFO     | app.services.sensor_sync:process_sensor_json:123 - ⏱️ Resampling to 10Hz
+2026-05-06 02:18:45.698 | INFO     | app.services.sensor_sync:process_sensor_json:140 - 🪛 Tier-3 plateau smoothing: 0 rows interpolated
+2026-05-06 02:18:45.699 | INFO     | app.services.sensor_sync:process_sensor_json:153 - 🗑️ Dropped 2 pre-video rows
+2026-05-06 02:18:45.705 | INFO     | app.services.sensor_sync:process_sensor_json:183 - ✅ Sensor processing done. Rows: 432
+2026-05-06 02:18:45.711 | INFO     | app.services.vision_service:analyze_video_for_server:596 - 🎥 Starting Video Analysis Pipeline...
+2026-05-06 02:18:45.749 | INFO     | app.services.vision_service:analyze_video_for_server:617 - 🎞️ YOLO annotated video will be saved to: C:\MyProject\auto_tester\server\analysis_exports\TEST_1778023121916\yolo_annotated.mp4
+2026-05-06 02:18:45.750 | INFO     | app.services.vision_filter:__init__:40 - 🚦 Loaded 72 traffic lights from JSON.
+2026-05-06 02:22:58.095 | INFO     | app.services.vision_service:analyze_video_for_server:653 - 🔎 YOLO low-conf raw counts: {'car': 8146, 'no_entry': 12, 'stop_sign': 492, 'yield_sign': 175}
+2026-05-06 02:22:58.096 | INFO     | app.services.vision_service:analyze_video_for_server:654 - 🔎 YOLO after threshold counts: {'car': 1056, 'stop_sign': 355, 'yield_sign': 147}
+2026-05-06 02:22:58.096 | INFO     | app.services.vision_service:analyze_video_for_server:655 - 🔎 YOLO after geometry counts: {'car': 999, 'yield_sign': 145, 'stop_sign': 336}
+2026-05-06 02:22:58.096 | INFO     | app.services.vision_service:analyze_video_for_server:656 - 🔎 YOLO after dedup counts: {'car': 984, 'yield_sign': 140, 'stop_sign': 330}
+2026-05-06 02:22:58.097 | INFO     | app.services.vision_service:analyze_video_for_server:657 - ✅ YOLO Done. Starting Tracking...
+2026-05-06 02:23:24.487 | INFO     | app.services.vision_service:analyze_video_for_server:838 - 🔎 Saved YOLO debug counts: C:\MyProject\auto_tester\server\analysis_exports\TEST_1778023121916\0_yolo_debug_counts.json
+2026-05-06 02:23:24.489 | INFO     | app.services.vision_service:analyze_video_for_server:842 - 🔎 Tracked counts: {'car': 1663, 'yield_sign': 286, 'stop_sign': 574}
+2026-05-06 02:23:24.490 | INFO     | app.services.vision_service:analyze_video_for_server:843 - 🔎 Filtered counts: {'car': 1581, 'yield_sign': 195, 'stop_sign': 83}
+2026-05-06 02:23:24.490 | INFO     | app.services.vision_service:analyze_video_for_server:844 - 🔎 Final event counts before prune: {'car': 51, 'yield_sign': 4, 'stop_sign': 3}
+2026-05-06 02:23:24.491 | INFO     | app.services.vision_service:analyze_video_for_server:845 - 🔎 Final event counts after prune: {'car': 51, 'yield_sign': 4, 'stop_sign': 3}
+2026-05-06 02:23:24.491 | INFO     | app.services.vision_service:analyze_video_for_server:846 - 🏁 Pipeline Complete. Events: 58
+2026-05-06 02:23:24.492 | INFO     | app.services.vision_service:analyze_video_for_server:848 - 🎞️ Saved YOLO annotated video: C:\MyProject\auto_tester\server\analysis_exports\TEST_1778023121916\yolo_annotated.mp4
+2026-05-06 02:23:24.501 | INFO     | app.services.vector_builder:build_feature_vector:439 - 🧬 Building M12-ready vector with sign memory + vehicle context...
+2026-05-06 02:23:24.545 | INFO     | app.services.vector_builder:build_feature_vector:468 - 🚦 Sign segments kept: 6
+2026-05-06 02:23:25.608 | INFO     | app.services.vector_builder:build_feature_vector:552 - ✅ M12 vector built. Shape: (432, 19) | sign_counts={0: 365, 2: 40, 1: 27} | memory_sign_counts={0: 167, 2: 151, 1: 114}
+2026-05-06 02:23:28.731 | INFO     | app.routes.test_routes:evaluate_test:1201 - 🎯 Done. Result: PASS | Mistakes: 0 | IgnoredWarnings: 0 | PositiveActions: 2 | Tester: jonhanak1@gmail.com
+2026-05-06 02:23:53.974 | INFO     | app.routes.student_routes:list_students:53 - 📋 Listed 2 students for jonhanak1@gmail.com
+2026-05-06 02:23:58.525 | INFO     | app.routes.test_routes:save_test:1330 - 💾 Test saved | elad (216312345) | result: PASS | mistakes: 0 | by: jonhanak1@gmail.com
+2026-05-06 02:24:27.020 | INFO     | app.routes.test_routes:evaluate_test:1135 - ✅ Integrity verified for TEST_1778023465138
+2026-05-06 02:24:27.061 | INFO     | app.routes.test_routes:evaluate_test:1140 - 🎞️ Saved original input video: C:\MyProject\auto_tester\server\analysis_exports\TEST_1778023465138\input_video.mp4
+2026-05-06 02:24:27.062 | INFO     | app.services.sensor_sync:process_sensor_json:64 - 🔄 Processing sensor data: temp_6ddf67b3-c239-46d9-ae6c-836ff80c60e0.json
+2026-05-06 02:24:27.067 | INFO     | app.services.sensor_sync:process_sensor_json:69 - 🎥 Video offset: 220ms
+2026-05-06 02:24:27.093 | INFO     | app.services.sensor_sync:process_sensor_json:123 - ⏱️ Resampling to 10Hz
+2026-05-06 02:24:27.102 | INFO     | app.services.sensor_sync:process_sensor_json:140 - 🪛 Tier-3 plateau smoothing: 0 rows interpolated
+2026-05-06 02:24:27.107 | INFO     | app.services.sensor_sync:process_sensor_json:153 - 🗑️ Dropped 2 pre-video rows
+2026-05-06 02:24:27.120 | INFO     | app.services.sensor_sync:process_sensor_json:183 - ✅ Sensor processing done. Rows: 191
+2026-05-06 02:24:27.134 | INFO     | app.services.vision_service:analyze_video_for_server:596 - 🎥 Starting Video Analysis Pipeline...
+2026-05-06 02:24:27.212 | INFO     | app.services.vision_service:analyze_video_for_server:617 - 🎞️ YOLO annotated video will be saved to: C:\MyProject\auto_tester\server\analysis_exports\TEST_1778023465138\yolo_annotated.mp4
+2026-05-06 02:24:27.214 | INFO     | app.services.vision_filter:__init__:40 - 🚦 Loaded 72 traffic lights from JSON.
+2026-05-06 02:26:57.855 | INFO     | app.services.vision_service:analyze_video_for_server:653 - 🔎 YOLO low-conf raw counts: {'car': 1427, 'no_entry': 506, 'stop_sign': 80, 'yield_sign': 23}
+2026-05-06 02:26:57.856 | INFO     | app.services.vision_service:analyze_video_for_server:654 - 🔎 YOLO after threshold counts: {'car': 523, 'no_entry': 384, 'stop_sign': 8, 'yield_sign': 17}
+2026-05-06 02:26:57.856 | INFO     | app.services.vision_service:analyze_video_for_server:655 - 🔎 YOLO after geometry counts: {'car': 520, 'yield_sign': 16, 'stop_sign': 5, 'no_entry': 102}
+2026-05-06 02:26:57.857 | INFO     | app.services.vision_service:analyze_video_for_server:656 - 🔎 YOLO after dedup counts: {'car': 510, 'yield_sign': 16, 'stop_sign': 5, 'no_entry': 102}
+2026-05-06 02:26:57.857 | INFO     | app.services.vision_service:analyze_video_for_server:657 - ✅ YOLO Done. Starting Tracking...
+2026-05-06 02:27:05.850 | INFO     | app.services.vision_service:_prune_isolated_final_sign_events:556 - 🚧 Final sign prune dropped isolated signs: {'no_entry': 1}
+2026-05-06 02:27:05.852 | INFO     | app.services.vision_service:analyze_video_for_server:838 - 🔎 Saved YOLO debug counts: C:\MyProject\auto_tester\server\analysis_exports\TEST_1778023465138\0_yolo_debug_counts.json
+2026-05-06 02:27:05.853 | INFO     | app.services.vision_service:analyze_video_for_server:842 - 🔎 Tracked counts: {'car': 738, 'yield_sign': 48, 'stop_sign': 46, 'no_entry': 140}
+2026-05-06 02:27:05.853 | INFO     | app.services.vision_service:analyze_video_for_server:843 - 🔎 Filtered counts: {'car': 731, 'no_entry': 128}
+2026-05-06 02:27:05.854 | INFO     | app.services.vision_service:analyze_video_for_server:844 - 🔎 Final event counts before prune: {'car': 19, 'no_entry': 4}
+2026-05-06 02:27:05.854 | INFO     | app.services.vision_service:analyze_video_for_server:845 - 🔎 Final event counts after prune: {'car': 19, 'no_entry': 3}
+2026-05-06 02:27:05.854 | INFO     | app.services.vision_service:analyze_video_for_server:846 - 🏁 Pipeline Complete. Events: 22
+2026-05-06 02:27:05.855 | INFO     | app.services.vision_service:analyze_video_for_server:848 - 🎞️ Saved YOLO annotated video: C:\MyProject\auto_tester\server\analysis_exports\TEST_1778023465138\yolo_annotated.mp4
+2026-05-06 02:27:05.857 | INFO     | app.services.vector_builder:build_feature_vector:439 - 🧬 Building M12-ready vector with sign memory + vehicle context...
+2026-05-06 02:27:05.871 | INFO     | app.services.vector_builder:build_feature_vector:468 - 🚦 Sign segments kept: 2
+2026-05-06 02:27:06.085 | INFO     | app.services.vector_builder:build_feature_vector:552 - ✅ M12 vector built. Shape: (191, 19) | sign_counts={0: 172, 3: 19} | memory_sign_counts={0: 111, 3: 80}
+2026-05-06 02:27:06.858 | INFO     | app.routes.test_routes:evaluate_test:1201 - 🎯 Done. Result: FAIL | Mistakes: 1 | IgnoredWarnings: 0 | PositiveActions: 0 | Tester: jonhanak1@gmail.com
+2026-05-06 02:28:43.761 | INFO     | app.routes.student_routes:list_students:53 - 📋 Listed 2 students for jonhanak1@gmail.com
+2026-05-06 02:28:44.503 | INFO     | app.routes.test_routes:save_test:1330 - 💾 Test saved | ffdf (5565883) | result: FAIL | mistakes: 1 | by: jonhanak1@gmail.com
+2026-05-06 02:29:07.694 | INFO     | app.routes.test_routes:evaluate_test:1135 - ✅ Integrity verified for TEST_1778023746306
+2026-05-06 02:29:07.715 | INFO     | app.routes.test_routes:evaluate_test:1140 - 🎞️ Saved original input video: C:\MyProject\auto_tester\server\analysis_exports\TEST_1778023746306\input_video.mp4
+2026-05-06 02:29:07.716 | INFO     | app.services.sensor_sync:process_sensor_json:64 - 🔄 Processing sensor data: temp_e6f59c5d-e11a-46c2-bb09-9bfa05a9b6ac.json
+2026-05-06 02:29:07.718 | INFO     | app.services.sensor_sync:process_sensor_json:69 - 🎥 Video offset: 199ms
+2026-05-06 02:29:07.728 | INFO     | app.services.sensor_sync:process_sensor_json:123 - ⏱️ Resampling to 10Hz
+2026-05-06 02:29:07.732 | INFO     | app.services.sensor_sync:process_sensor_json:140 - 🪛 Tier-3 plateau smoothing: 0 rows interpolated
+2026-05-06 02:29:07.736 | INFO     | app.services.sensor_sync:process_sensor_json:153 - 🗑️ Dropped 1 pre-video rows
+2026-05-06 02:29:07.743 | INFO     | app.services.sensor_sync:process_sensor_json:183 - ✅ Sensor processing done. Rows: 145
+2026-05-06 02:29:07.749 | INFO     | app.services.vision_service:analyze_video_for_server:596 - 🎥 Starting Video Analysis Pipeline...
+2026-05-06 02:29:07.794 | INFO     | app.services.vision_service:analyze_video_for_server:617 - 🎞️ YOLO annotated video will be saved to: C:\MyProject\auto_tester\server\analysis_exports\TEST_1778023746306\yolo_annotated.mp4
+2026-05-06 02:29:07.795 | INFO     | app.services.vision_filter:__init__:40 - 🚦 Loaded 72 traffic lights from JSON.
+2026-05-06 02:30:31.536 | INFO     | app.services.vision_service:analyze_video_for_server:653 - 🔎 YOLO low-conf raw counts: {'car': 1953, 'yield_sign': 6, 'no_entry': 458, 'stop_sign': 24}
+2026-05-06 02:30:31.537 | INFO     | app.services.vision_service:analyze_video_for_server:654 - 🔎 YOLO after threshold counts: {'car': 425, 'no_entry': 290, 'stop_sign': 6}
+2026-05-06 02:30:31.537 | INFO     | app.services.vision_service:analyze_video_for_server:655 - 🔎 YOLO after geometry counts: {'car': 420, 'stop_sign': 3, 'no_entry': 109}
+2026-05-06 02:30:31.537 | INFO     | app.services.vision_service:analyze_video_for_server:656 - 🔎 YOLO after dedup counts: {'car': 407, 'stop_sign': 3, 'no_entry': 109}
+2026-05-06 02:30:31.538 | INFO     | app.services.vision_service:analyze_video_for_server:657 - ✅ YOLO Done. Starting Tracking...
+2026-05-06 02:30:37.942 | INFO     | app.services.vision_service:analyze_video_for_server:838 - 🔎 Saved YOLO debug counts: C:\MyProject\auto_tester\server\analysis_exports\TEST_1778023746306\0_yolo_debug_counts.json
+2026-05-06 02:30:37.942 | INFO     | app.services.vision_service:analyze_video_for_server:842 - 🔎 Tracked counts: {'car': 651, 'stop_sign': 18, 'no_entry': 141}
+2026-05-06 02:30:37.942 | INFO     | app.services.vision_service:analyze_video_for_server:843 - 🔎 Filtered counts: {'car': 647, 'no_entry': 126}
+2026-05-06 02:30:37.943 | INFO     | app.services.vision_service:analyze_video_for_server:844 - 🔎 Final event counts before prune: {'car': 19, 'no_entry': 4}
+2026-05-06 02:30:37.943 | INFO     | app.services.vision_service:analyze_video_for_server:845 - 🔎 Final event counts after prune: {'car': 19, 'no_entry': 4}
+2026-05-06 02:30:37.943 | INFO     | app.services.vision_service:analyze_video_for_server:846 - 🏁 Pipeline Complete. Events: 23
+2026-05-06 02:30:37.944 | INFO     | app.services.vision_service:analyze_video_for_server:848 - 🎞️ Saved YOLO annotated video: C:\MyProject\auto_tester\server\analysis_exports\TEST_1778023746306\yolo_annotated.mp4
+2026-05-06 02:30:37.946 | INFO     | app.services.vector_builder:build_feature_vector:439 - 🧬 Building M12-ready vector with sign memory + vehicle context...
+2026-05-06 02:30:37.959 | INFO     | app.services.vector_builder:build_feature_vector:468 - 🚦 Sign segments kept: 1
+2026-05-06 02:30:38.127 | INFO     | app.services.vector_builder:build_feature_vector:552 - ✅ M12 vector built. Shape: (145, 19) | sign_counts={0: 126, 3: 19} | memory_sign_counts={0: 79, 3: 66}
+2026-05-06 02:30:38.651 | INFO     | app.routes.test_routes:evaluate_test:1201 - 🎯 Done. Result: FAIL | Mistakes: 1 | IgnoredWarnings: 0 | PositiveActions: 0 | Tester: jonhanak1@gmail.com
+2026-05-06 02:30:48.672 | INFO     | app.routes.student_routes:list_students:53 - 📋 Listed 2 students for jonhanak1@gmail.com
+2026-05-06 02:30:49.470 | INFO     | app.routes.test_routes:save_test:1330 - 💾 Test saved | ffdf (5565883) | result: FAIL | mistakes: 1 | by: jonhanak1@gmail.com
+2026-05-06 02:31:54.217 | INFO     | app.routes.test_routes:evaluate_test:1135 - ✅ Integrity verified for TEST_1778023912812
+2026-05-06 02:31:54.232 | INFO     | app.routes.test_routes:evaluate_test:1140 - 🎞️ Saved original input video: C:\MyProject\auto_tester\server\analysis_exports\TEST_1778023912812\input_video.mp4
+2026-05-06 02:31:54.233 | INFO     | app.services.sensor_sync:process_sensor_json:64 - 🔄 Processing sensor data: temp_9554e252-3d68-43a5-93f3-0beb21a00763.json
+2026-05-06 02:31:54.234 | INFO     | app.services.sensor_sync:process_sensor_json:69 - 🎥 Video offset: 191ms
+2026-05-06 02:31:54.242 | INFO     | app.services.sensor_sync:process_sensor_json:123 - ⏱️ Resampling to 10Hz
+2026-05-06 02:31:54.245 | INFO     | app.services.sensor_sync:process_sensor_json:140 - 🪛 Tier-3 plateau smoothing: 0 rows interpolated
+2026-05-06 02:31:54.248 | INFO     | app.services.sensor_sync:process_sensor_json:153 - 🗑️ Dropped 1 pre-video rows
+2026-05-06 02:31:54.258 | INFO     | app.services.sensor_sync:process_sensor_json:183 - ✅ Sensor processing done. Rows: 161
+2026-05-06 02:31:54.264 | INFO     | app.services.vision_service:analyze_video_for_server:596 - 🎥 Starting Video Analysis Pipeline...
+2026-05-06 02:31:54.299 | INFO     | app.services.vision_service:analyze_video_for_server:617 - 🎞️ YOLO annotated video will be saved to: C:\MyProject\auto_tester\server\analysis_exports\TEST_1778023912812\yolo_annotated.mp4
+2026-05-06 02:31:54.300 | INFO     | app.services.vision_filter:__init__:40 - 🚦 Loaded 72 traffic lights from JSON.
+2026-05-06 02:33:31.968 | INFO     | app.services.vision_service:analyze_video_for_server:653 - 🔎 YOLO low-conf raw counts: {'car': 2929, 'stop_sign': 22, 'yield_sign': 56}
+2026-05-06 02:33:31.969 | INFO     | app.services.vision_service:analyze_video_for_server:654 - 🔎 YOLO after threshold counts: {'car': 839, 'yield_sign': 39, 'stop_sign': 11}
+2026-05-06 02:33:31.969 | INFO     | app.services.vision_service:analyze_video_for_server:655 - 🔎 YOLO after geometry counts: {'car': 746, 'yield_sign': 37, 'stop_sign': 11}
+2026-05-06 02:33:31.969 | INFO     | app.services.vision_service:analyze_video_for_server:656 - 🔎 YOLO after dedup counts: {'car': 731, 'yield_sign': 35, 'stop_sign': 3}
+2026-05-06 02:33:31.970 | INFO     | app.services.vision_service:analyze_video_for_server:657 - ✅ YOLO Done. Starting Tracking...
+2026-05-06 02:33:40.253 | INFO     | app.services.vision_service:analyze_video_for_server:838 - 🔎 Saved YOLO debug counts: C:\MyProject\auto_tester\server\analysis_exports\TEST_1778023912812\0_yolo_debug_counts.json
+2026-05-06 02:33:40.254 | INFO     | app.services.vision_service:analyze_video_for_server:842 - 🔎 Tracked counts: {'car': 1011, 'yield_sign': 78, 'stop_sign': 10}
+2026-05-06 02:33:40.254 | INFO     | app.services.vision_service:analyze_video_for_server:843 - 🔎 Filtered counts: {'car': 1011, 'yield_sign': 40}
+2026-05-06 02:33:40.255 | INFO     | app.services.vision_service:analyze_video_for_server:844 - 🔎 Final event counts before prune: {'car': 30, 'yield_sign': 2}
+2026-05-06 02:33:40.255 | INFO     | app.services.vision_service:analyze_video_for_server:845 - 🔎 Final event counts after prune: {'car': 30, 'yield_sign': 2}
+2026-05-06 02:33:40.255 | INFO     | app.services.vision_service:analyze_video_for_server:846 - 🏁 Pipeline Complete. Events: 32
+2026-05-06 02:33:40.256 | INFO     | app.services.vision_service:analyze_video_for_server:848 - 🎞️ Saved YOLO annotated video: C:\MyProject\auto_tester\server\analysis_exports\TEST_1778023912812\yolo_annotated.mp4
+2026-05-06 02:33:40.260 | INFO     | app.services.vector_builder:build_feature_vector:439 - 🧬 Building M12-ready vector with sign memory + vehicle context...
+2026-05-06 02:33:40.275 | INFO     | app.services.vector_builder:build_feature_vector:468 - 🚦 Sign segments kept: 1
+2026-05-06 02:33:40.478 | INFO     | app.services.vector_builder:build_feature_vector:552 - ✅ M12 vector built. Shape: (161, 19) | sign_counts={0: 143, 2: 18} | memory_sign_counts={2: 83, 0: 78}
+2026-05-06 02:33:41.056 | INFO     | app.routes.test_routes:evaluate_test:1201 - 🎯 Done. Result: PASS | Mistakes: 0 | IgnoredWarnings: 1 | PositiveActions: 1 | Tester: jonhanak1@gmail.com
+2026-05-06 02:34:22.097 | INFO     | app.routes.student_routes:list_students:53 - 📋 Listed 2 students for jonhanak1@gmail.com
+2026-05-06 02:34:23.000 | INFO     | app.routes.test_routes:save_test:1330 - 💾 Test saved | elad (216312345) | result: PASS | mistakes: 0 | by: jonhanak1@gmail.com

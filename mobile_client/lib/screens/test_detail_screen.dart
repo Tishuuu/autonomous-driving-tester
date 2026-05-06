@@ -35,6 +35,25 @@ class _TestDetailScreenState extends State<TestDetailScreen> {
     4: Icons.do_not_disturb_on,
   };
 
+
+  bool _passedFrom(Map<String, dynamic> data) {
+    if (data['passed'] is bool) return data['passed'] as bool;
+    final result = data['result']?.toString().toUpperCase();
+    if (result == 'PASS') return true;
+    if (result == 'FAIL') return false;
+    return (data['grade'] ?? 0) >= 80;
+  }
+
+  int _mistakesCountFrom(Map<String, dynamic> data) {
+    final value = data['mistakes_count'] ?? data['violation_events_count'] ?? 0;
+    return value is num ? value.toInt() : int.tryParse(value.toString()) ?? 0;
+  }
+
+  int _ignoredWarningsCountFrom(Map<String, dynamic> data) {
+    final value = data['ignored_warning_events_count'] ?? 0;
+    return value is num ? value.toInt() : int.tryParse(value.toString()) ?? 0;
+  }
+
   Future<Map<String, dynamic>?>? _future;
 
   @override
@@ -59,17 +78,9 @@ class _TestDetailScreenState extends State<TestDetailScreen> {
     return ApiService.getTestDetail(widget.testObjectId);
   }
 
-  /// בונה ציר זמן שלם מ-decision_log: גם הפרות, גם פעולות תקינות.
-  /// אם אין decision_log (טסטים ישנים), נופל חזרה ל-xai_explanations בלבד.
+  /// Timeline shows only major mistakes.
+  /// decision_log contains raw model states and ignored warnings, so we do not use it here.
   List<_TimelineEvent> _buildTimeline(Map<String, dynamic> data) {
-    final List<dynamic> decisionLog = data['decision_log'] ?? [];
-
-    // אם יש decision_log חדש - נשתמש בו (כולל פעולות תקינות בעצור וכו')
-    if (decisionLog.isNotEmpty) {
-      return _buildTimelineFromLog(decisionLog, data);
-    }
-
-    // נפילה לאחור: רק הפרות מ-XAI
     return _buildTimelineFromXAI(data);
   }
 
@@ -265,8 +276,9 @@ class _TestDetailScreenState extends State<TestDetailScreen> {
   }
 
   Widget _buildContent(Map<String, dynamic> data) {
-    final int grade = data['grade'] ?? 0;
-    final bool passed = grade >= 80;
+    final bool passed = _passedFrom(data);
+    final int mistakesCount = _mistakesCountFrom(data);
+    final int ignoredWarningsCount = _ignoredWarningsCountFrom(data);
     final Color gradeColor = passed ? _activeGreen : _errorRed;
     final String studentName = data['student_name']?.toString() ?? 'Unknown';
     final String studentId = data['student_id']?.toString() ?? '';
@@ -324,13 +336,10 @@ class _TestDetailScreenState extends State<TestDetailScreen> {
                     ],
                   ),
                   alignment: Alignment.center,
-                  child: Text(
-                    "$grade",
-                    style: GoogleFonts.lexend(
-                      color: gradeColor,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 22,
-                    ),
+                  child: Icon(
+                    passed ? Icons.verified_rounded : Icons.cancel_rounded,
+                    color: gradeColor,
+                    size: 34,
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -355,25 +364,49 @@ class _TestDetailScreenState extends State<TestDetailScreen> {
                         ),
                       ),
                       const SizedBox(height: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 3,
-                        ),
-                        decoration: BoxDecoration(
-                          color: gradeColor.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          passed ? "PASSED" : "FAILED",
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: gradeColor.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              passed ? "PASS" : "FAIL",
+                              style: GoogleFonts.lexend(
+                                color: gradeColor,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              passed
+                                  ? "No major mistakes"
+                                  : "$mistakesCount major mistake${mistakesCount == 1 ? '' : 's'}",
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.lexend(
+                                color: Colors.white70,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (ignoredWarningsCount > 0) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          "Ignored warnings: $ignoredWarningsCount",
                           style: GoogleFonts.lexend(
-                            color: gradeColor,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1,
+                            color: Colors.white38,
+                            fontSize: 11,
                           ),
                         ),
-                      ),
+                      ],
                     ],
                   ),
                 ),
@@ -405,7 +438,7 @@ class _TestDetailScreenState extends State<TestDetailScreen> {
           Row(
             children: [
               Text(
-                "DRIVE TIMELINE",
+                "MAJOR MISTAKES",
                 style: GoogleFonts.lexend(
                   color: Colors.white38,
                   fontWeight: FontWeight.bold,
@@ -428,7 +461,7 @@ class _TestDetailScreenState extends State<TestDetailScreen> {
                     border: Border.all(color: _errorRed.withOpacity(0.5)),
                   ),
                   child: Text(
-                    "$violationsCount violation${violationsCount == 1 ? '' : 's'}",
+                    "$mistakesCount mistake${mistakesCount == 1 ? '' : 's'}",
                     style: GoogleFonts.lexend(
                       color: _errorRed,
                       fontWeight: FontWeight.bold,
@@ -448,7 +481,7 @@ class _TestDetailScreenState extends State<TestDetailScreen> {
                     border: Border.all(color: _activeGreen.withOpacity(0.5)),
                   ),
                   child: Text(
-                    "Clean drive",
+                    "No mistakes",
                     style: GoogleFonts.lexend(
                       color: _activeGreen,
                       fontWeight: FontWeight.bold,

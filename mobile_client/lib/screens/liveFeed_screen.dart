@@ -83,15 +83,15 @@ class _LivefeedScreenState extends State<LivefeedScreen> {
     final sensorProvider = Provider.of<SensorProvider>(context, listen: false);
 
     // ✅ התיקון של קלאוד: חוסמים התחלת טסט עד שיש נעילת GPS תקינה (למניעת 0,0)
-    if (!_isTesting && !sensorProvider.hasGpsFix) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Waiting for GPS lock... please move outdoors."),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return; // יוצא מהפונקציה ולא מתחיל את הטסט
-    }
+    // if (!_isTesting && !sensorProvider.hasGpsFix) {
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     const SnackBar(
+    //       content: Text("Waiting for GPS lock... please move outdoors."),
+    //       backgroundColor: Colors.orange,
+    //     ),
+    //   );
+    //   return; // יוצא מהפונקציה ולא מתחיל את הטסט
+    // }
 
     if (_isTesting) {
       // ===== עצירת הטסט =====

@@ -38,6 +38,29 @@ class _TestSummaryScreenState extends State<TestSummaryScreen> {
     4: Icons.do_not_disturb_on,
   };
 
+
+  bool _passedFrom(Map<String, dynamic> data) {
+    if (data['passed'] is bool) return data['passed'] as bool;
+    final result = data['result']?.toString().toUpperCase();
+    if (result == 'PASS') return true;
+    if (result == 'FAIL') return false;
+    return (data['grade'] ?? 0) >= 80;
+  }
+
+  int _mistakesCountFrom(Map<String, dynamic> data) {
+    final value = data['mistakes_count'] ?? data['violation_events_count'] ?? 0;
+    return value is num ? value.toInt() : int.tryParse(value.toString()) ?? 0;
+  }
+
+  int _ignoredWarningsCountFrom(Map<String, dynamic> data) {
+    final value = data['ignored_warning_events_count'] ?? 0;
+    return value is num ? value.toInt() : int.tryParse(value.toString()) ?? 0;
+  }
+
+  List<dynamic> _mistakeCodesFrom(Map<String, dynamic> data) {
+    return List<dynamic>.from(data['mistake_codes'] ?? data['violations_codes'] ?? []);
+  }
+
   bool _isSaving = false;
   bool _saved = false;
   String? _savedStudentName;
@@ -156,15 +179,21 @@ class _TestSummaryScreenState extends State<TestSummaryScreen> {
 
     final success = await ApiService.saveTest(
       studentId: studentId,
-      grade: widget.result['grade'] ?? 0,
-      violationsCodes: widget.result['violations_codes'] ?? [],
+      grade: widget.result['grade'] ?? (_passedFrom(widget.result) ? 100 : 0),
+      result: widget.result['result']?.toString(),
+      passed: _passedFrom(widget.result),
+      mistakesCount: _mistakesCountFrom(widget.result),
+      mistakeCodes: _mistakeCodesFrom(widget.result),
+      ignoredWarningCodes: widget.result['ignored_warning_codes'] ?? [],
+      ignoredWarningEventsCount: _ignoredWarningsCountFrom(widget.result),
+      ignoredWarningEvents: widget.result['ignored_warning_events'] ?? [],
+      violationsCodes: widget.result['violations_codes'] ?? _mistakeCodesFrom(widget.result),
       xaiExplanations: widget.result['xai_explanations'] ?? {},
-      violationEventsCount: widget.result['violation_events_count'] ?? 0,
+      violationEventsCount: widget.result['violation_events_count'] ?? _mistakesCountFrom(widget.result),
       windowsAnalyzed: widget.result['windows_analyzed'] ?? 0,
       testId: widget.result['test_id'],
       decisionLog: widget.result['decision_log'] ?? [],
       actionSequences: widget.result['action_sequences'] ?? [],
-      positiveActions: widget.result['positive_actions'] ?? [],
     );
 
     if (!mounted) return;
@@ -189,7 +218,10 @@ class _TestSummaryScreenState extends State<TestSummaryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final int grade = widget.result['grade'] ?? 0;
+    final bool passed = _passedFrom(widget.result);
+    final int mistakesCount = _mistakesCountFrom(widget.result);
+    final int ignoredWarningsCount = _ignoredWarningsCountFrom(widget.result);
+    final List<dynamic> mistakeCodes = _mistakeCodesFrom(widget.result);
     final Map<String, dynamic> explanations =
         widget.result['xai_explanations'] ?? {};
     final List<Map<String, dynamic>> events = _groupEvents(explanations);
@@ -223,7 +255,14 @@ class _TestSummaryScreenState extends State<TestSummaryScreen> {
                     iconTheme: const IconThemeData(color: Colors.white),
                   ),
 
-                  SliverToBoxAdapter(child: _buildGradeHeader(grade)),
+                  SliverToBoxAdapter(
+                    child: _buildResultHeader(
+                      passed: passed,
+                      mistakesCount: mistakesCount,
+                      mistakeCodes: mistakeCodes,
+                      ignoredWarningsCount: ignoredWarningsCount,
+                    ),
+                  ),
 
                   if (events.isNotEmpty)
                     SliverToBoxAdapter(
@@ -232,7 +271,7 @@ class _TestSummaryScreenState extends State<TestSummaryScreen> {
                         child: Row(
                           children: [
                             Text(
-                              "EVENTS TIMELINE",
+                              "MAJOR MISTAKES",
                               style: GoogleFonts.lexend(
                                 color: Colors.white38,
                                 fontWeight: FontWeight.bold,
@@ -261,7 +300,7 @@ class _TestSummaryScreenState extends State<TestSummaryScreen> {
                                 ),
                               ),
                               child: Text(
-                                "${events.length}",
+                                "$mistakesCount",
                                 style: GoogleFonts.lexend(
                                   color: _errorRed,
                                   fontWeight: FontWeight.bold,
@@ -275,7 +314,7 @@ class _TestSummaryScreenState extends State<TestSummaryScreen> {
                     ),
 
                   if (events.isEmpty)
-                    SliverToBoxAdapter(child: _buildPerfectDriveCard())
+                    SliverToBoxAdapter(child: _buildPerfectDriveCard(ignoredWarningsCount))
                   else
                     SliverList(
                       delegate: SliverChildBuilderDelegate((context, index) {
@@ -371,88 +410,102 @@ class _TestSummaryScreenState extends State<TestSummaryScreen> {
   // ==========================================
   // ✅ כותרת הציון
   // ==========================================
-  Widget _buildGradeHeader(int grade) {
-    final bool passed = grade >= 80;
-    final Color gradeColor = passed ? _activeGreen : _errorRed;
+  Widget _buildResultHeader({
+    required bool passed,
+    required int mistakesCount,
+    required List<dynamic> mistakeCodes,
+    required int ignoredWarningsCount,
+  }) {
+    final Color resultColor = passed ? _activeGreen : _errorRed;
+    final String resultText = passed ? "PASS" : "FAIL";
+    final IconData resultIcon = passed ? Icons.verified_rounded : Icons.cancel_rounded;
+    final String subtitle = passed
+        ? "No major mistakes detected"
+        : "${mistakesCount} major mistake${mistakesCount == 1 ? '' : 's'} detected";
+
+    final codeText = mistakeCodes.isEmpty
+        ? ""
+        : mistakeCodes.map((c) {
+            final code = c is num ? c.toInt() : int.tryParse(c.toString()) ?? -1;
+            return _violationNames[code] ?? "Code $code";
+          }).join(" • ");
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
       child: Column(
         children: [
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              Container(
-                width: 180,
-                height: 180,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: gradeColor.withOpacity(0.25),
-                      blurRadius: 30,
-                      spreadRadius: 4,
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(
-                width: 160,
-                height: 160,
-                child: CircularProgressIndicator(
-                  value: grade / 100,
-                  strokeWidth: 12,
-                  backgroundColor: Colors.white10,
-                  valueColor: AlwaysStoppedAnimation<Color>(gradeColor),
-                ),
-              ),
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    "$grade",
-                    style: GoogleFonts.lexend(
-                      fontSize: 48,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      height: 1,
-                    ),
-                  ),
-                  Text(
-                    "/ 100",
-                    style: GoogleFonts.lexend(
-                      fontSize: 12,
-                      color: Colors.white54,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+            width: 170,
+            height: 170,
             decoration: BoxDecoration(
-              color: gradeColor.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(30),
-              border: Border.all(color: gradeColor.withOpacity(0.5)),
+              shape: BoxShape.circle,
+              color: resultColor.withOpacity(0.12),
+              border: Border.all(color: resultColor.withOpacity(0.65), width: 3),
+              boxShadow: [
+                BoxShadow(
+                  color: resultColor.withOpacity(0.25),
+                  blurRadius: 30,
+                  spreadRadius: 4,
+                ),
+              ],
             ),
-            child: Text(
-              passed ? "PASSED" : "FAILED",
-              style: GoogleFonts.lexend(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: gradeColor,
-                letterSpacing: 3,
-              ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(resultIcon, color: resultColor, size: 52),
+                const SizedBox(height: 10),
+                Text(
+                  resultText,
+                  style: GoogleFonts.lexend(
+                    fontSize: 36,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                    letterSpacing: 3,
+                    height: 1,
+                  ),
+                ),
+              ],
             ),
           ),
+          const SizedBox(height: 22),
+          Text(
+            subtitle,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.lexend(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          if (codeText.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Text(
+              codeText,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.lexend(color: Colors.white70, fontSize: 13),
+            ),
+          ],
+          if (ignoredWarningsCount > 0) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.06),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.white12),
+              ),
+              child: Text(
+                "Ignored warnings: $ignoredWarningsCount",
+                style: GoogleFonts.lexend(color: Colors.white54, fontSize: 12),
+              ),
+            ),
+          ],
         ],
       ),
     );
   }
 
-  Widget _buildPerfectDriveCard() {
+  Widget _buildPerfectDriveCard(int ignoredWarningsCount) {
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Container(
@@ -467,7 +520,7 @@ class _TestSummaryScreenState extends State<TestSummaryScreen> {
             Icon(Icons.verified_rounded, color: _activeGreen, size: 60),
             const SizedBox(height: 16),
             Text(
-              "Perfect Drive!",
+              "Passed",
               style: GoogleFonts.lexend(
                 color: Colors.white,
                 fontSize: 22,
@@ -476,7 +529,9 @@ class _TestSummaryScreenState extends State<TestSummaryScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              "No violations detected during this test.",
+              ignoredWarningsCount > 0
+                  ? "No major mistakes detected. $ignoredWarningsCount warning(s) ignored."
+                  : "No major mistakes detected during this test.",
               textAlign: TextAlign.center,
               style: GoogleFonts.lexend(color: Colors.white70, fontSize: 14),
             ),
