@@ -209,6 +209,7 @@ class ApiService {
     String? testId,
     List<dynamic>? decisionLog,
     List<dynamic>? actionSequences,
+    List<dynamic>? positiveActions,
   }) async {
     try {
       final response = await http
@@ -235,6 +236,7 @@ class ApiService {
               "test_date": DateTime.now().toIso8601String(),
               "decision_log": decisionLog ?? [],
               "action_sequences": actionSequences ?? [],
+              "positive_actions": positiveActions ?? [],
             }),
           )
           .timeout(ApiConfig.mediumTimeout);

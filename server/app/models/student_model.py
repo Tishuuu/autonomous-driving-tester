@@ -38,3 +38,4 @@ class TestSaveRequest(BaseModel):
     # 🆕 לוג חשיבת המודל - נשמר ב-MongoDB לבקרה ולניתוח
     decision_log: list = Field(default_factory=list)
     action_sequences: list = Field(default_factory=list)
+    positive_actions: list = Field(default_factory=list)

@@ -2740,3 +2740,26 @@
 2026-05-06 02:33:41.056 | INFO     | app.routes.test_routes:evaluate_test:1201 - 🎯 Done. Result: PASS | Mistakes: 0 | IgnoredWarnings: 1 | PositiveActions: 1 | Tester: jonhanak1@gmail.com
 2026-05-06 02:34:22.097 | INFO     | app.routes.student_routes:list_students:53 - 📋 Listed 2 students for jonhanak1@gmail.com
 2026-05-06 02:34:23.000 | INFO     | app.routes.test_routes:save_test:1330 - 💾 Test saved | elad (216312345) | result: PASS | mistakes: 0 | by: jonhanak1@gmail.com
+2026-05-06 04:17:54.007 | INFO     | main:lifespan:17 -  Server Shutting Down
+2026-05-06 04:17:54.107 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-05-06 04:18:13.131 | INFO     | app.services.vision_service:<module>:21 - YOLO STARTING
+2026-05-06 04:18:13.493 | INFO     | main:lifespan:13 -  Server Starting Up
+2026-05-06 04:18:13.576 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-05-06 04:45:13.897 | INFO     | main:lifespan:17 -  Server Shutting Down
+2026-05-06 04:45:13.909 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-05-06 04:45:30.670 | INFO     | app.services.vision_service:<module>:21 - YOLO STARTING
+2026-05-06 04:45:31.017 | INFO     | main:lifespan:13 -  Server Starting Up
+2026-05-06 04:45:31.057 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-05-06 04:50:40.247 | INFO     | app.services.vision_service:<module>:21 - YOLO STARTING
+2026-05-06 04:50:45.135 | INFO     | app.routes.test_routes:load_ai_models:390 - Loading M12 scaler + model...
+2026-05-06 04:50:46.082 | INFO     | app.routes.test_routes:load_ai_models:418 - M12 Model + Scaler ready. Classes: 1=ignored warning, 2/3/4=fail, 5/6=positive actions.
+2026-05-06 04:57:20.291 | INFO     | main:lifespan:17 -  Server Shutting Down
+2026-05-06 04:57:20.304 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed
+2026-05-06 04:57:38.156 | INFO     | app.services.vision_service:<module>:21 - YOLO STARTING
+2026-05-06 04:57:38.502 | INFO     | main:lifespan:13 -  Server Starting Up
+2026-05-06 04:57:38.578 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-05-06 05:00:31.143 | INFO     | app.services.vision_service:<module>:21 - YOLO STARTING
+2026-05-06 05:00:35.396 | INFO     | app.routes.test_routes:load_ai_models:390 - Loading M12 scaler + model...
+2026-05-06 05:00:36.539 | INFO     | app.routes.test_routes:load_ai_models:418 - M12 Model + Scaler ready. Classes: 1=ignored warning, 2/3/4=fail, 5/6=positive actions.
+2026-05-06 18:36:34.777 | INFO     | main:lifespan:17 -  Server Shutting Down
+2026-05-06 18:36:34.903 | INFO     | app.core.database:close_db:34 -  MongoDB Connection Closed

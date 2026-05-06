@@ -38,6 +38,35 @@ class _TestSummaryScreenState extends State<TestSummaryScreen> {
     4: Icons.do_not_disturb_on,
   };
 
+  static const Map<int, String> _positiveActionNames = {
+    5: "Correct Stop",
+    6: "Correct Yield",
+  };
+
+  static const Map<int, IconData> _positiveActionIcons = {
+    5: Icons.stop_circle_outlined,
+    6: Icons.check_circle_outline,
+  };
+
+  int _intFrom(dynamic value, {int fallback = 0}) {
+    if (value is num) return value.toInt();
+    return int.tryParse(value?.toString() ?? '') ?? fallback;
+  }
+
+  double _doubleFrom(dynamic value, {double fallback = 0.0}) {
+    if (value is num) return value.toDouble();
+    return double.tryParse(value?.toString() ?? '') ?? fallback;
+  }
+
+  int _xaiClassId(Map<String, dynamic> e) {
+    return _intFrom(
+      e['violation_code'] ?? e['class_id'] ?? e['predicted_class'],
+      fallback: 0,
+    );
+  }
+
+  bool _isFailClass(int code) => code == 2 || code == 3 || code == 4;
+
 
   bool _passedFrom(Map<String, dynamic> data) {
     if (data['passed'] is bool) return data['passed'] as bool;
@@ -76,21 +105,29 @@ class _TestSummaryScreenState extends State<TestSummaryScreen> {
   }
 
   // ==========================================
-  // מיזוג אירועים עוקבים מאותו סוג לאירוע אחד
+  // מיזוג אירועי עבירה עוקבים מאותו סוג לאירוע אחד
+  // תומך גם בפורמט M11 הישן (violation_code) וגם ב-M12 החדש (class_id).
   // ==========================================
   List<Map<String, dynamic>> _groupEvents(Map<String, dynamic> explanations) {
     if (explanations.isEmpty) return [];
 
-    final List<Map<String, dynamic>> entries =
-        explanations.values
-            .map((e) => Map<String, dynamic>.from(e as Map))
-            .where((e) => (e['violation_code'] ?? 0) != 0)
-            .toList()
-          ..sort(
-            (a, b) => (a['timestamp_sec'] as num).compareTo(
-              b['timestamp_sec'] as num,
-            ),
-          );
+    final List<Map<String, dynamic>> entries = explanations.values
+        .whereType<Map>()
+        .map((e) => Map<String, dynamic>.from(e))
+        .where((e) => _isFailClass(_xaiClassId(e)))
+        .map((e) {
+          final copy = Map<String, dynamic>.from(e);
+          copy['violation_code'] = _xaiClassId(copy);
+          copy['timestamp_sec'] = _doubleFrom(copy['timestamp_sec']);
+          copy['attention_score'] = _doubleFrom(copy['attention_score']);
+          return copy;
+        })
+        .toList()
+      ..sort(
+        (a, b) => _doubleFrom(a['timestamp_sec']).compareTo(
+          _doubleFrom(b['timestamp_sec']),
+        ),
+      );
 
     if (entries.isEmpty) return [];
 
@@ -101,20 +138,18 @@ class _TestSummaryScreenState extends State<TestSummaryScreen> {
 
     for (int i = 1; i < entries.length; i++) {
       final entry = entries[i];
-      final double t = (entry['timestamp_sec'] as num).toDouble();
-      final int code = entry['violation_code'] as int;
-      final double currentEnd = (current['end_sec'] as num).toDouble();
-      final int currentCode = current['violation_code'] as int;
+      final double t = _doubleFrom(entry['timestamp_sec']);
+      final int code = _xaiClassId(entry);
+      final double currentEnd = _doubleFrom(current['end_sec']);
+      final int currentCode = _xaiClassId(current);
 
       if (code == currentCode && (t - currentEnd) < 3.0) {
         current['end_sec'] = t;
-        final double currentScore = (current['attention_score'] as num)
-            .toDouble();
-        final double newScore = (entry['attention_score'] as num).toDouble();
+        final double currentScore = _doubleFrom(current['attention_score']);
+        final double newScore = _doubleFrom(entry['attention_score']);
         if (newScore > currentScore) {
           current['attention_array'] = entry['attention_array'];
-          current['decisive_frame_in_window'] =
-              entry['decisive_frame_in_window'];
+          current['decisive_frame_in_window'] = entry['decisive_frame_in_window'];
           current['attention_score'] = entry['attention_score'];
           current['timestamp_sec'] = entry['timestamp_sec'];
         }
@@ -127,6 +162,54 @@ class _TestSummaryScreenState extends State<TestSummaryScreen> {
     }
     grouped.add(current);
     return grouped;
+  }
+
+  List<Map<String, dynamic>> _fallbackMistakeEvents(List<dynamic> mistakeCodes) {
+    return mistakeCodes
+        .map((c) => _intFrom(c, fallback: -1))
+        .where(_isFailClass)
+        .map(
+          (code) => <String, dynamic>{
+            'violation_code': code,
+            'timestamp_sec': 0.0,
+            'start_sec': 0.0,
+            'end_sec': 0.0,
+            'attention_array': <double>[],
+            'decisive_frame_in_window': 0,
+            'attention_score': 0.0,
+          },
+        )
+        .toList();
+  }
+
+  List<Map<String, dynamic>> _positiveActionsFrom(Map<String, dynamic> data) {
+    final raw = data['positive_actions'];
+    if (raw is! List) return [];
+
+    final actions = raw
+        .whereType<Map>()
+        .map((e) {
+          final action = Map<String, dynamic>.from(e);
+          int classId = _intFrom(action['class_id'], fallback: -1);
+          final type = action['type']?.toString() ?? '';
+          if (classId < 0) {
+            if (type == 'CorrectStop') classId = 5;
+            if (type == 'CorrectYield') classId = 6;
+          }
+          action['class_id'] = classId;
+          action['timestamp_sec'] = _doubleFrom(action['timestamp_sec']);
+          action['confidence'] = _doubleFrom(action['confidence']);
+          return action;
+        })
+        .where((a) => _positiveActionNames.containsKey(a['class_id']))
+        .toList()
+      ..sort(
+        (a, b) => _doubleFrom(a['timestamp_sec']).compareTo(
+          _doubleFrom(b['timestamp_sec']),
+        ),
+      );
+
+    return actions;
   }
 
   // ==========================================
@@ -194,6 +277,7 @@ class _TestSummaryScreenState extends State<TestSummaryScreen> {
       testId: widget.result['test_id'],
       decisionLog: widget.result['decision_log'] ?? [],
       actionSequences: widget.result['action_sequences'] ?? [],
+      positiveActions: widget.result['positive_actions'] ?? [],
     );
 
     if (!mounted) return;
@@ -224,7 +308,12 @@ class _TestSummaryScreenState extends State<TestSummaryScreen> {
     final List<dynamic> mistakeCodes = _mistakeCodesFrom(widget.result);
     final Map<String, dynamic> explanations =
         widget.result['xai_explanations'] ?? {};
-    final List<Map<String, dynamic>> events = _groupEvents(explanations);
+    List<Map<String, dynamic>> events = _groupEvents(explanations);
+    if (!passed && events.isEmpty) {
+      events = _fallbackMistakeEvents(mistakeCodes);
+    }
+    final List<Map<String, dynamic>> positiveActions =
+        _positiveActionsFrom(widget.result);
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -264,6 +353,11 @@ class _TestSummaryScreenState extends State<TestSummaryScreen> {
                     ),
                   ),
 
+                  if (positiveActions.isNotEmpty)
+                    SliverToBoxAdapter(
+                      child: _buildPositiveActionsSection(positiveActions),
+                    ),
+
                   if (events.isNotEmpty)
                     SliverToBoxAdapter(
                       child: Padding(
@@ -280,24 +374,14 @@ class _TestSummaryScreenState extends State<TestSummaryScreen> {
                               ),
                             ),
                             const SizedBox(width: 10),
-                            Expanded(
-                              child: Container(
-                                height: 1,
-                                color: Colors.white12,
-                              ),
-                            ),
+                            Expanded(child: Container(height: 1, color: Colors.white12)),
                             const SizedBox(width: 10),
                             Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 4,
-                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
                                 color: _errorRed.withOpacity(0.15),
                                 borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: _errorRed.withOpacity(0.5),
-                                ),
+                                border: Border.all(color: _errorRed.withOpacity(0.5)),
                               ),
                               child: Text(
                                 "$mistakesCount",
@@ -314,7 +398,13 @@ class _TestSummaryScreenState extends State<TestSummaryScreen> {
                     ),
 
                   if (events.isEmpty)
-                    SliverToBoxAdapter(child: _buildPerfectDriveCard(ignoredWarningsCount))
+                    SliverToBoxAdapter(
+                      child: _buildNoMajorMistakesCard(
+                        passed: passed,
+                        ignoredWarningsCount: ignoredWarningsCount,
+                        hasPositiveActions: positiveActions.isNotEmpty,
+                      ),
+                    )
                   else
                     SliverList(
                       delegate: SliverChildBuilderDelegate((context, index) {
@@ -505,22 +595,132 @@ class _TestSummaryScreenState extends State<TestSummaryScreen> {
     );
   }
 
-  Widget _buildPerfectDriveCard(int ignoredWarningsCount) {
+  Widget _buildPositiveActionsSection(List<Map<String, dynamic>> actions) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 8, 24, 18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                "GOOD DRIVING",
+                style: GoogleFonts.lexend(
+                  color: Colors.white38,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.5,
+                  fontSize: 12,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(child: Container(height: 1, color: Colors.white12)),
+              const SizedBox(width: 10),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: _activeGreen.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: _activeGreen.withOpacity(0.5)),
+                ),
+                child: Text(
+                  "${actions.length}",
+                  style: GoogleFonts.lexend(
+                    color: _activeGreen,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          ...actions.map(_buildPositiveActionCard),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPositiveActionCard(Map<String, dynamic> action) {
+    final int classId = _intFrom(action['class_id']);
+    final String name = _positiveActionNames[classId] ??
+        action['class_label']?.toString() ??
+        action['type']?.toString() ??
+        "Correct Action";
+    final IconData icon = _positiveActionIcons[classId] ?? Icons.check_circle_outline;
+    final double timestamp = _doubleFrom(action['timestamp_sec']);
+    final double confidence = _doubleFrom(action['confidence']);
+    final String confidenceText = confidence > 0
+        ? " • ${(confidence * 100).clamp(0, 100).toStringAsFixed(0)}%"
+        : "";
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: _activeGreen.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _activeGreen.withOpacity(0.35)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(9),
+            decoration: BoxDecoration(
+              color: _activeGreen.withOpacity(0.16),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: _activeGreen, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  style: GoogleFonts.lexend(
+                    color: Colors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  "${timestamp.toStringAsFixed(1)}s$confidenceText",
+                  style: GoogleFonts.lexend(color: Colors.white54, fontSize: 11),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNoMajorMistakesCard({
+    required bool passed,
+    required int ignoredWarningsCount,
+    required bool hasPositiveActions,
+  }) {
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Container(
         padding: const EdgeInsets.all(30),
         decoration: BoxDecoration(
-          color: _activeGreen.withOpacity(0.08),
+          color: (passed ? _activeGreen : _errorRed).withOpacity(0.08),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: _activeGreen.withOpacity(0.4)),
+          border: Border.all(color: (passed ? _activeGreen : _errorRed).withOpacity(0.4)),
         ),
         child: Column(
           children: [
-            Icon(Icons.verified_rounded, color: _activeGreen, size: 60),
+            Icon(
+              passed ? Icons.verified_rounded : Icons.cancel_rounded,
+              color: passed ? _activeGreen : _errorRed,
+              size: 60,
+            ),
             const SizedBox(height: 16),
             Text(
-              "Passed",
+              passed ? (hasPositiveActions ? "No Major Mistakes" : "Passed") : "Failed",
               style: GoogleFonts.lexend(
                 color: Colors.white,
                 fontSize: 22,
@@ -529,9 +729,11 @@ class _TestSummaryScreenState extends State<TestSummaryScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              ignoredWarningsCount > 0
-                  ? "No major mistakes detected. $ignoredWarningsCount warning(s) ignored."
-                  : "No major mistakes detected during this test.",
+              passed
+                  ? (ignoredWarningsCount > 0
+                      ? "No major mistakes detected. $ignoredWarningsCount warning(s) ignored."
+                      : "No major mistakes detected during this test.")
+                  : "The test failed, but no detailed mistake event was returned.",
               textAlign: TextAlign.center,
               style: GoogleFonts.lexend(color: Colors.white70, fontSize: 14),
             ),
@@ -542,9 +744,9 @@ class _TestSummaryScreenState extends State<TestSummaryScreen> {
   }
 
   Widget _buildTimelineCard(Map<String, dynamic> data, bool isLast) {
-    final int code = data['violation_code'] ?? 0;
-    final double startSec = (data['start_sec'] as num).toDouble();
-    final double endSec = (data['end_sec'] as num).toDouble();
+    final int code = _intFrom(data['violation_code']);
+    final double startSec = _doubleFrom(data['start_sec']);
+    final double endSec = _doubleFrom(data['end_sec']);
     final List<double> attention = List<double>.from(
       data['attention_array'] ?? [],
     );
