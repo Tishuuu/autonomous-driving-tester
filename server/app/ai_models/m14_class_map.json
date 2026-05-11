@@ -1,0 +1,115 @@
+{
+  "model_id": "M14",
+  "model_type": "multi_label_sigmoid",
+  "n_timesteps": 60,
+  "n_features": 33,
+  "feature_names": [
+    "time_seconds",
+    "speed_kmh",
+    "jerk",
+    "car_distance",
+    "car_ttc",
+    "car_relative_x",
+    "car_relative_y",
+    "car_motion_x",
+    "car_motion_y",
+    "car_static_score",
+    "sign_type",
+    "sign_distance",
+    "sign_ttc",
+    "memory_sign_type",
+    "memory_sign_distance",
+    "time_since_sign_seen_sec",
+    "meters_since_sign_seen",
+    "last_seen_sign_distance",
+    "memory_sign_ttc",
+    "gps_accuracy",
+    "gps_age_ms",
+    "gps_update_count_delta",
+    "gps_dx_m",
+    "gps_dy_m",
+    "gps_step_distance_m",
+    "gps_speed_kmh",
+    "heading_sin",
+    "heading_cos",
+    "heading_delta_deg",
+    "turn_rate_deg_s",
+    "accel_x",
+    "accel_y",
+    "accel_z"
+  ],
+  "output_names": [
+    "Tailgating",
+    "RunningStop",
+    "FailureToYield",
+    "NoEntryViolation",
+    "CorrectStop",
+    "CorrectYield"
+  ],
+  "outputs": {
+    "0": "Tailgating",
+    "1": "RunningStop",
+    "2": "FailureToYield",
+    "3": "NoEntryViolation",
+    "4": "CorrectStop",
+    "5": "CorrectYield"
+  },
+  "thresholds": {
+    "Tailgating": 0.15000000596046448,
+    "RunningStop": 0.28999999165534973,
+    "FailureToYield": 0.3499999940395355,
+    "NoEntryViolation": 0.6899999976158142,
+    "CorrectStop": 0.15000000596046448,
+    "CorrectYield": 0.15000000596046448
+  },
+  "normal_definition": "Normal Driving is all outputs below threshold.",
+  "event_definitions": {
+    "STOP_OK": [
+      "CorrectStop",
+      "CorrectYield"
+    ],
+    "STOP_BAD_YIELD": [
+      "CorrectStop",
+      "FailureToYield"
+    ],
+    "STOP_BAD_RUNNING": [
+      "RunningStop"
+    ],
+    "YIELD_OK": [
+      "CorrectYield"
+    ],
+    "YIELD_BAD": [
+      "FailureToYield"
+    ],
+    "NO_ENTRY_BAD": [
+      "NoEntryViolation"
+    ],
+    "NO_ENTRY_OK_TURN": []
+  },
+  "fail_outputs": {
+    "RunningStop": 1,
+    "FailureToYield": 2,
+    "NoEntryViolation": 3
+  },
+  "positive_outputs": {
+    "CorrectStop": 4,
+    "CorrectYield": 5
+  },
+  "ignored_warning_outputs": {
+    "Tailgating": 0
+  },
+  "notes": {
+    "main_change_from_m13": "Independent sigmoid outputs instead of single-label softmax.",
+    "why": "Driving episodes can contain multiple valid events, e.g. STOP_OK = CorrectStop + CorrectYield.",
+    "input_schema": "Same 60x33 M13 vector. No answer-leak or event-summary input features.",
+    "forbidden_inputs": [
+      "post_stop_min_car_distance",
+      "post_stop_min_car_ttc",
+      "post_sign_turn_magnitude",
+      "turned_away_from_no_entry",
+      "unsafe_entry_score",
+      "did_yield_correctly",
+      "entered_badly"
+    ]
+  }
+}

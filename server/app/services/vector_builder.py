@@ -94,6 +94,35 @@ M12_FINAL_COLUMNS = [
     'memory_sign_ttc',
 ]
 
+# M13 keeps the exact M12 schema and adds only continuous, per-row physical
+# measurements derived from raw sensors. No episode summaries / decisions.
+M13_ADDED_COLUMNS = [
+    # GPS quality / freshness
+    'gps_accuracy',
+    'gps_age_ms',
+    'gps_update_count_delta',
+
+    # Local GPS motion between consecutive rows, not absolute location.
+    'gps_dx_m',
+    'gps_dy_m',
+    'gps_step_distance_m',
+    'gps_speed_kmh',
+
+    # Heading / turn dynamics from GPS movement.
+    'heading_sin',
+    'heading_cos',
+    'heading_delta_deg',
+    'turn_rate_deg_s',
+
+    # Raw user-accelerometer channels from the client.
+    'accel_x',
+    'accel_y',
+    'accel_z',
+]
+
+M13_FINAL_COLUMNS = M12_FINAL_COLUMNS + M13_ADDED_COLUMNS
+
+
 
 def _safe_float(value, default=0.0):
     try:
@@ -385,6 +414,232 @@ def _compute_odometer_m(df: pd.DataFrame) -> pd.Series:
     return (speeds_ms * dt).cumsum()
 
 
+
+def _wrap_degrees(delta: pd.Series) -> pd.Series:
+    """Wrap angle differences to [-180, 180]."""
+    return ((delta + 180.0) % 360.0) - 180.0
+
+
+
+def _compute_m13_sensor_features(sensor_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Build M13 added features from raw 10Hz sensor rows.
+
+    This is intentionally a lightweight map-matching / gap-repair stage, not a
+    road-rule engine:
+    - uses only the driven GPS trace itself, not OSM road metadata;
+    - rejects impossible GPS jumps;
+    - smooths the remaining route points;
+    - interpolates over GPS update gaps;
+    - computes per-row local motion, heading and turn rate from the repaired path.
+
+    The output remains pure timestamp-level measurements. It does not contain
+    episode summaries such as turned_away_from_no_entry or unsafe_entry_score.
+    """
+    df = sensor_df.copy().reset_index(drop=True)
+    n = len(df)
+    out = pd.DataFrame(index=df.index)
+
+    def num_col(col: str, default: float = 0.0) -> pd.Series:
+        if col not in df.columns:
+            return pd.Series([default] * n, index=df.index, dtype=float)
+        return pd.to_numeric(df[col], errors='coerce').fillna(default).astype(float)
+
+    if n == 0:
+        for col in M13_ADDED_COLUMNS:
+            out[col] = []
+        return out[M13_ADDED_COLUMNS]
+
+    time_s = num_col('time_seconds', 0.0)
+    # Keep the original ordering but protect against duplicate / broken times.
+    dt = time_s.diff().replace(0, np.nan).fillna(0.1).clip(0.05, 1.0)
+
+    lat = num_col('lat', np.nan)
+    lon = num_col('lon', np.nan)
+    vehicle_speed_kmh = num_col('speed_kmh', 0.0).clip(0.0, 150.0)
+
+    gps_accuracy = num_col('gps_accuracy', 999.0).clip(0.0, 999.0)
+    gps_age_ms = num_col('gps_age_ms', 999999.0).clip(0.0, 999999.0)
+    gps_update_count = num_col('gps_update_count', 0.0)
+    gps_update_count_delta = gps_update_count.diff().fillna(0.0).clip(0.0, 10.0)
+
+    valid_latlon = (
+        np.isfinite(lat)
+        & np.isfinite(lon)
+        & lat.between(-90.0, 90.0)
+        & lon.between(-180.0, 180.0)
+        & ~((lat.abs() < 1e-9) & (lon.abs() < 1e-9))
+    )
+
+    # Defaults for clips with no usable GPS. This should be rare because
+    # sensor_sync warns on frozen GPS, but replay should stay stable.
+    matched_x = pd.Series([0.0] * n, index=df.index, dtype=float)
+    matched_y = pd.Series([0.0] * n, index=df.index, dtype=float)
+
+    if valid_latlon.sum() >= 2:
+        earth_radius_m = 6371000.0
+        lat0 = float(lat[valid_latlon].iloc[0])
+        lon0 = float(lon[valid_latlon].iloc[0])
+        lat0_rad = np.deg2rad(lat0)
+
+        # Local tangent-plane approximation. The route clips are short, so this is
+        # more than accurate enough and avoids pulling absolute lat/lon into the model.
+        x_raw = (np.deg2rad(lon - lon0) * np.cos(lat0_rad) * earth_radius_m)
+        y_raw = (np.deg2rad(lat - lat0) * earth_radius_m)
+
+        raw_step = np.sqrt((x_raw.diff() ** 2) + (y_raw.diff() ** 2)).replace([np.inf, -np.inf], np.nan).fillna(0.0)
+
+        # Real GPS update rows: prefer gps_update_count when present, fall back to
+        # actual coordinate movement. Repeated resampled 10Hz rows are not treated
+        # as fresh GPS observations.
+        gps_quality_ok = (gps_accuracy <= 60.0) & (gps_age_ms <= 6000.0)
+        fresh_update = (gps_update_count_delta > 0) | (raw_step >= 0.20)
+        candidate_mask = valid_latlon & gps_quality_ok & fresh_update
+
+        # Always seed with the first usable coordinate so interpolation has an anchor.
+        first_valid_idx = int(np.where(valid_latlon.to_numpy())[0][0])
+        candidate_mask.iloc[first_valid_idx] = True
+
+        # If quality metadata is too strict/missing, fall back to real coordinate updates.
+        if candidate_mask.sum() < 2:
+            candidate_mask = valid_latlon & ((raw_step >= 0.20) | (df.index == first_valid_idx))
+
+        pts = pd.DataFrame({
+            'idx': np.arange(n),
+            't': time_s,
+            'x': x_raw,
+            'y': y_raw,
+            'vehicle_speed_kmh': vehicle_speed_kmh,
+        })[candidate_mask].dropna(subset=['t', 'x', 'y']).copy()
+
+        pts = pts.sort_values('t').drop_duplicates(subset=['t'], keep='last').reset_index(drop=True)
+
+        # Reject impossible GPS jumps using the vehicle speed as a soft reference.
+        # This is gap repair / measurement sanitation, not a driving decision.
+        if len(pts) >= 2:
+            kept = []
+            for _, p in pts.iterrows():
+                cur = {
+                    't': float(p['t']),
+                    'x': float(p['x']),
+                    'y': float(p['y']),
+                    'vehicle_speed_kmh': float(p['vehicle_speed_kmh']),
+                }
+                if not kept:
+                    kept.append(cur)
+                    continue
+
+                prev = kept[-1]
+                gap_s = max(0.001, cur['t'] - prev['t'])
+                dist_m = float(np.hypot(cur['x'] - prev['x'], cur['y'] - prev['y']))
+                gps_mps = dist_m / gap_s
+                veh_mps = max(cur['vehicle_speed_kmh'], prev['vehicle_speed_kmh']) / 3.6
+
+                # City-drive tolerant cap: accepts normal acceleration and GPS jitter,
+                # rejects teleport jumps. The lower bound prevents over-pruning when
+                # OBD/GPS speed is stale or zero during a turn.
+                max_reasonable_mps = min(38.0, max(14.0, veh_mps * 3.0 + 8.0))
+
+                if gps_mps <= max_reasonable_mps or dist_m <= 4.0:
+                    kept.append(cur)
+
+            if len(kept) >= 2:
+                pts = pd.DataFrame(kept)
+
+        if len(pts) >= 2:
+            # Route smoothing. This is the practical replacement for full OSM HMM
+            # at M13 stage: the path is matched to a smoothed local route line.
+            pts['x_smooth'] = (
+                pts['x']
+                .rolling(window=3, center=True, min_periods=1).median()
+                .ewm(alpha=0.45, adjust=False).mean()
+            )
+            pts['y_smooth'] = (
+                pts['y']
+                .rolling(window=3, center=True, min_periods=1).median()
+                .ewm(alpha=0.45, adjust=False).mean()
+            )
+
+            # Interpolate across gaps to 10Hz rows. np.interp holds the first/last
+            # value outside the observed range, which is safer than extrapolating.
+            matched_x = pd.Series(np.interp(time_s.to_numpy(), pts['t'].to_numpy(), pts['x_smooth'].to_numpy()), index=df.index)
+            matched_y = pd.Series(np.interp(time_s.to_numpy(), pts['t'].to_numpy(), pts['y_smooth'].to_numpy()), index=df.index)
+        elif len(pts) == 1:
+            matched_x = pd.Series([float(pts.iloc[0]['x'])] * n, index=df.index)
+            matched_y = pd.Series([float(pts.iloc[0]['y'])] * n, index=df.index)
+
+    # Per-row local motion from the repaired route. Since the route is already
+    # interpolated, these no longer spike when GPS updates arrive at 1Hz.
+    gps_dx_m = matched_x.diff().fillna(0.0).replace([np.inf, -np.inf], np.nan).fillna(0.0)
+    gps_dy_m = matched_y.diff().fillna(0.0).replace([np.inf, -np.inf], np.nan).fillna(0.0)
+    gps_step_distance_m = np.sqrt((gps_dx_m ** 2) + (gps_dy_m ** 2)).replace([np.inf, -np.inf], np.nan).fillna(0.0)
+
+    gps_dx_m = gps_dx_m.clip(-8.0, 8.0)
+    gps_dy_m = gps_dy_m.clip(-8.0, 8.0)
+    gps_step_distance_m = gps_step_distance_m.clip(0.0, 12.0)
+
+    gps_speed_kmh = ((gps_step_distance_m / dt) * 3.6).replace([np.inf, -np.inf], np.nan).fillna(0.0)
+    gps_speed_kmh = (
+        gps_speed_kmh
+        .rolling(window=5, center=True, min_periods=1).median()
+        .ewm(alpha=0.35, adjust=False).mean()
+        .clip(0.0, 130.0)
+    )
+
+    # Heading from repaired route. Represent absolute heading as sin/cos to avoid
+    # discontinuity at 359 -> 0 degrees. Delta/rate remain local measurements.
+    step_ok = gps_step_distance_m >= 0.035
+    raw_heading_deg = (np.degrees(np.arctan2(gps_dx_m, gps_dy_m)) + 360.0) % 360.0
+    raw_heading_rad = np.deg2rad(raw_heading_deg)
+
+    heading_sin_series = pd.Series(np.sin(raw_heading_rad), index=df.index).where(step_ok)
+    heading_cos_series = pd.Series(np.cos(raw_heading_rad), index=df.index).where(step_ok)
+
+    heading_sin_smooth = heading_sin_series.ffill().bfill().fillna(0.0).ewm(alpha=0.35, adjust=False).mean()
+    heading_cos_smooth = heading_cos_series.ffill().bfill().fillna(1.0).ewm(alpha=0.35, adjust=False).mean()
+
+    norm = np.sqrt((heading_sin_smooth ** 2) + (heading_cos_smooth ** 2)).replace(0, np.nan).fillna(1.0)
+    heading_sin_smooth = heading_sin_smooth / norm
+    heading_cos_smooth = heading_cos_smooth / norm
+
+    heading_deg = (np.degrees(np.arctan2(heading_sin_smooth, heading_cos_smooth)) + 360.0) % 360.0
+    heading_delta_deg = _wrap_degrees(heading_deg.diff().fillna(0.0))
+
+    # Ignore deltas when the repaired route is effectively stationary; smooth/cap
+    # turn rate to remove GPS jitter while preserving real turns.
+    heading_delta_deg = heading_delta_deg.where(step_ok, 0.0)
+    heading_delta_deg = heading_delta_deg.rolling(window=3, center=True, min_periods=1).median().clip(-45.0, 45.0)
+
+    turn_rate_deg_s = (heading_delta_deg / dt).replace([np.inf, -np.inf], np.nan).fillna(0.0)
+    turn_rate_deg_s = (
+        turn_rate_deg_s
+        .rolling(window=5, center=True, min_periods=1).median()
+        .clip(-120.0, 120.0)
+    )
+
+    out['gps_accuracy'] = gps_accuracy
+    out['gps_age_ms'] = gps_age_ms
+    out['gps_update_count_delta'] = gps_update_count_delta
+
+    out['gps_dx_m'] = gps_dx_m.round(4)
+    out['gps_dy_m'] = gps_dy_m.round(4)
+    out['gps_step_distance_m'] = gps_step_distance_m.round(4)
+    out['gps_speed_kmh'] = gps_speed_kmh.round(3)
+
+    out['heading_sin'] = heading_sin_smooth.round(6)
+    out['heading_cos'] = heading_cos_smooth.round(6)
+    out['heading_delta_deg'] = heading_delta_deg.round(3)
+    out['turn_rate_deg_s'] = turn_rate_deg_s.round(3)
+
+    out['accel_x'] = num_col('accel.x', 0.0).clip(-5.0, 5.0)
+    out['accel_y'] = num_col('accel.y', 0.0).clip(-5.0, 5.0)
+    out['accel_z'] = num_col('accel.z', 0.0).clip(-5.0, 5.0)
+
+    for col in M13_ADDED_COLUMNS:
+        out[col] = pd.to_numeric(out[col], errors='coerce').replace([np.inf, -np.inf], np.nan).fillna(0.0)
+
+    return out[M13_ADDED_COLUMNS]
+
 def _fill_vehicle_from_event(df: pd.DataFrame, idx, row, car_row, speed_ms: float) -> None:
     car_dist = _safe_float(car_row.get('distance_meters'), 99.0)
     df.at[idx, 'car_distance'] = round(car_dist, 2)
@@ -425,7 +680,7 @@ def _apply_car_blink_ffill(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def build_feature_vector(sensor_df: pd.DataFrame, video_events: list) -> pd.DataFrame:
+def _build_m12_feature_vector(sensor_df: pd.DataFrame, video_events: list) -> pd.DataFrame:
     """
     Build M12-ready feature vector from sensors + filtered video events.
 
@@ -556,3 +811,39 @@ def build_feature_vector(sensor_df: pd.DataFrame, video_events: list) -> pd.Data
 
     df.drop(columns=['_odometer_m'], inplace=True, errors='ignore')
     return df[M12_FINAL_COLUMNS]
+
+
+
+def build_feature_vector(sensor_df: pd.DataFrame, video_events: list) -> pd.DataFrame:
+    """
+    Build M13-ready feature vector from sensors + filtered video events.
+
+    M13 = M12 features + continuous per-row GPS/heading/IMU measurements.
+    The exported vector is 33 columns. M12 runtime can still select its known
+    19 feature columns from this frame until the M13 model is trained.
+    """
+    log.info("🧬 Building M13-ready vector: M12 context + GPS/heading/IMU rows...")
+
+    m12_df = _build_m12_feature_vector(sensor_df, video_events).reset_index(drop=True)
+    m13_sensor_df = _compute_m13_sensor_features(sensor_df).reset_index(drop=True)
+
+    if len(m13_sensor_df) != len(m12_df):
+        # Should not happen when both derive from the same sensor_df, but keep the
+        # export stable if a future caller passes pre-trimmed rows.
+        m13_sensor_df = m13_sensor_df.reindex(m12_df.index).ffill().bfill().fillna(0.0)
+
+    out = pd.concat([m12_df, m13_sensor_df[M13_ADDED_COLUMNS]], axis=1)
+
+    for col in M13_FINAL_COLUMNS:
+        if col not in out.columns:
+            out[col] = 0.0
+        out[col] = pd.to_numeric(out[col], errors='coerce').replace([np.inf, -np.inf], np.nan).fillna(0.0)
+
+    sign_counts = out['sign_type'].value_counts().to_dict()
+    memory_counts = out['memory_sign_type'].value_counts().to_dict()
+    log.info(
+        f"✅ M13 vector built. Shape: {out[M13_FINAL_COLUMNS].shape} | "
+        f"sign_counts={sign_counts} | memory_sign_counts={memory_counts}"
+    )
+
+    return out[M13_FINAL_COLUMNS]

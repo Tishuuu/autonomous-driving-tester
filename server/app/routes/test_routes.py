@@ -2,17 +2,19 @@ import os
 import uuid
 import asyncio
 import json
+import pickle
 import hashlib
 import shutil
 from datetime import datetime
+from typing import Any, Dict, List, Tuple
 
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends
 import pandas as pd
 import numpy as np
-from scipy import stats
 import tensorflow as tf
 from tensorflow import keras
-from keras import layers
+from tensorflow.keras import layers
+import joblib
 
 from app.core.database import db
 from app.utils.logger import log
@@ -52,10 +54,16 @@ async def get_progress(test_id: str):
 
 
 # ==========================================================================
-# M12 model config
+# M18 episode-level scenario model config
 # ==========================================================================
-MODEL_ID = "M12"
-MODEL_WINDOW_SIZE = 30
+MODEL_ID = "M18"
+MODEL_ACCEPTED_IDS = {"M18", "M18.0", "M18.1", "M18_1"}
+MODEL_FAMILY = "episode_level_scenario_bilstm"
+MODEL_TYPE = MODEL_FAMILY
+MODEL_MAX_LEN = 256
+PAD_VALUE = -1000000.0
+SCALE_CLIP_VALUE = 12.0
+SENTINEL = 99.0
 
 MODEL_FEATURES = [
     "time_seconds",
@@ -80,9 +88,62 @@ MODEL_FEATURES = [
     "meters_since_sign_seen",
     "last_seen_sign_distance",
     "memory_sign_ttc",
+
+    "gps_accuracy",
+    "gps_age_ms",
+    "gps_update_count_delta",
+
+    "gps_dx_m",
+    "gps_dy_m",
+    "gps_step_distance_m",
+    "gps_speed_kmh",
+
+    "heading_sin",
+    "heading_cos",
+    "heading_delta_deg",
+    "turn_rate_deg_s",
+
+    "accel_x",
+    "accel_y",
+    "accel_z",
 ]
 
-MODEL_CLASS_NAMES = {
+SCENARIO_NAMES = [
+    "NORMAL",
+    "STOP_CORRECT",
+    "RUNNING_STOP",
+    "STOP_THEN_BAD_YIELD",
+    "YIELD_CORRECT",
+    "YIELD_FAILURE",
+    "NOENTRY_VIOLATION",
+]
+
+DEFAULT_SCENARIO_TO_EVENTS = {
+    "NORMAL": [],
+    "STOP_CORRECT": ["CorrectStop", "CorrectYield"],
+    "RUNNING_STOP": ["RunningStop"],
+    "STOP_THEN_BAD_YIELD": ["CorrectStop", "FailureToYield"],
+    "YIELD_CORRECT": ["CorrectYield"],
+    "YIELD_FAILURE": ["FailureToYield"],
+    "NOENTRY_VIOLATION": ["NoEntryViolation"],
+}
+
+NORMAL_SUBTYPE_NAMES = [
+    "NORMAL_NO_SIGN",
+    "NORMAL_HANDLED_YIELD",
+    "NORMAL_HANDLED_NOENTRY",
+]
+
+ATOMIC_AUX_HEAD_NAMES = [
+    "speed_reached_zero",
+    "stopped_at_sign",
+    "relevant_threat_present",
+    "yielded_to_threat",
+    "continued_past_sign",
+]
+
+# Legacy IDs kept stable for Flutter / DB compatibility.
+LEGACY_CLASS_NAMES = {
     0: "Normal Driving",
     1: "Tailgating",
     2: "Running Stop",
@@ -92,75 +153,102 @@ MODEL_CLASS_NAMES = {
     6: "Correct Yield",
 }
 
+LEGACY_EVENT_CODES = {
+    "Tailgating": 1,
+    "RunningStop": 2,
+    "FailureToYield": 3,
+    "NoEntryViolation": 4,
+    "CorrectStop": 5,
+    "CorrectYield": 6,
+}
+
+LEGACY_EVENT_LABELS = {
+    "Tailgating": "Tailgating",
+    "RunningStop": "Running Stop",
+    "FailureToYield": "Failure to Yield",
+    "NoEntryViolation": "No Entry Violation",
+    "CorrectStop": "Correct Stop",
+    "CorrectYield": "Correct Yield",
+}
+
+EVENT_BUCKET = {
+    "Tailgating": "warning",
+    "RunningStop": "violation",
+    "FailureToYield": "violation",
+    "NoEntryViolation": "violation",
+    "CorrectStop": "positive",
+    "CorrectYield": "positive",
+}
+
+MODEL_CLASS_NAMES = LEGACY_CLASS_NAMES
 VIOLATION_CLASSES = {1, 2, 3, 4}
-
-# Tailgating is detected but ignored for PASS/FAIL for now.
 IGNORED_WARNING_CLASSES = {1}
-
 FAIL_CLASSES = {2, 3, 4}
-
 POSITIVE_ACTION_CLASSES = {5, 6}
-
 POSITIVE_ACTION_TYPES = {
     5: "CorrectStop",
     6: "CorrectYield",
 }
 
-SIGN_NONE = 0
-SIGN_STOP = 1
-SIGN_YIELD = 2
-SIGN_NO_ENTRY = 3
+SIGN_MAPPING = {
+    "": 0,
+    "nan": 0,
+    "none": 0,
+    "stop": 1,
+    "stop_sign": 1,
+    "yield": 2,
+    "yield_sign": 2,
+    "no_entry": 3,
+    "noentry": 3,
+    "no entry": 3,
+    "do_not_enter": 3,
+    "0": 0,
+    "1": 1,
+    "2": 2,
+    "3": 3,
+}
+
+POSITIVE_EVENTS = {"CorrectStop", "CorrectYield"}
+MISTAKE_EVENTS = {"RunningStop", "FailureToYield", "NoEntryViolation"}
+WARN_EVENTS = {"Tailgating"}
 
 
 # ==========================================================================
-# Keras custom layer
+# Keras custom layer used by m18_model.keras
 # ==========================================================================
-@tf.keras.utils.register_keras_serializable(package="AutonomousDrivingTester")
-class TemporalAttention(layers.Layer):
-    def __init__(self, units=64, return_attention=False, **kwargs):
+@tf.keras.utils.register_keras_serializable(package="m18", name="MaskedAttentionPool")
+class MaskedAttentionPool(layers.Layer):
+    """Attention pooling with explicit Keras mask support."""
+
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.units = units
-        self.return_attention = return_attention
+        self.score_dense = layers.Dense(1, use_bias=False)
+        self.supports_masking = True
 
-    def build(self, input_shape):
-        d_in = int(input_shape[-1])
-        self.W = self.add_weight(
-            name="W",
-            shape=(d_in, self.units),
-            initializer="glorot_uniform",
-            trainable=True,
-        )
-        self.b = self.add_weight(
-            name="b",
-            shape=(self.units,),
-            initializer="zeros",
-            trainable=True,
-        )
-        self.v = self.add_weight(
-            name="v",
-            shape=(self.units, 1),
-            initializer="glorot_uniform",
-            trainable=True,
-        )
-        super().build(input_shape)
+    def call(self, inputs, mask=None):
+        scores = self.score_dense(inputs)
+        scores = tf.squeeze(scores, axis=-1)
+        if mask is not None:
+            mask_f = tf.cast(mask, scores.dtype)
+            scores = scores + (1.0 - mask_f) * tf.constant(-1e9, dtype=scores.dtype)
+        weights = tf.nn.softmax(scores, axis=-1)
+        weights = tf.expand_dims(weights, axis=-1)
+        return tf.reduce_sum(inputs * weights, axis=1)
 
-    def call(self, H):
-        e = tf.tanh(tf.tensordot(H, self.W, axes=1) + self.b)
-        e = tf.tensordot(e, self.v, axes=1)
-        e = tf.squeeze(e, axis=-1)
-        alpha = tf.nn.softmax(e, axis=-1)
-        context = tf.reduce_sum(H * tf.expand_dims(alpha, -1), axis=1)
-        if self.return_attention:
-            return context, alpha
-        return context
+    def compute_mask(self, inputs, mask=None):
+        return None
 
     def get_config(self):
-        cfg = super().get_config()
-        cfg.update({
-            "units": self.units,
-            "return_attention": self.return_attention,
-        })
-        return cfg
+        return super().get_config()
+
+
+CUSTOM_OBJECTS = {
+    "MaskedAttentionPool": MaskedAttentionPool,
+    "m18>MaskedAttentionPool": MaskedAttentionPool,
+    "m18.MaskedAttentionPool": MaskedAttentionPool,
+    "M18>MaskedAttentionPool": MaskedAttentionPool,
+    "M18.MaskedAttentionPool": MaskedAttentionPool,
+}
 
 
 # ==========================================================================
@@ -171,194 +259,125 @@ global_lstm_model = None
 global_model_config = None
 
 
-def build_attention_extractor(trained_model):
-    """
-    Builds a prediction + attention extractor for M12.
+def _load_json(path: str) -> dict:
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
 
-    M12 architecture:
-      input -> BiLSTM -> TemporalAttention -> avg_pool + max_pool
-            -> dense_1 -> dense_2 -> output
-    """
-    inp = layers.Input(
-        shape=(MODEL_WINDOW_SIZE, len(MODEL_FEATURES)),
-        name="input_window",
-    )
 
-    bidir_trained = trained_model.get_layer("bidir_lstm_1")
-    bidir_clone = layers.Bidirectional(
-        layers.LSTM(
-            bidir_trained.forward_layer.units,
-            return_sequences=True,
-            name="lstm_clone_inner",
-        ),
-        name="bidir_lstm_1_clone",
-    )
-    H = bidir_clone(inp)
-
-    att_trained = trained_model.get_layer("temporal_attention")
-    att_clone = TemporalAttention(
-        units=att_trained.units,
-        return_attention=True,
-        name="temporal_attention_clone",
-    )
-    context, alpha = att_clone(H)
-
-    avg_pool = layers.GlobalAveragePooling1D(name="avg_pool_clone")(H)
-
-    dense_trained = trained_model.get_layer("dense_1")
-    dense_1_input_dim = int(dense_trained.get_weights()[0].shape[0])
-    hidden_dim = int(H.shape[-1])
-
-    if dense_1_input_dim == hidden_dim * 3:
-        max_pool = layers.GlobalMaxPooling1D(name="max_pool_clone")(H)
-        merged = layers.Concatenate(name="context_avg_max_clone")(
-            [context, avg_pool, max_pool]
-        )
-    elif dense_1_input_dim == hidden_dim * 2:
-        merged = layers.Concatenate(name="context_plus_avg_clone")(
-            [context, avg_pool]
-        )
-    elif dense_1_input_dim == hidden_dim:
-        merged = context
-    else:
-        raise ValueError(
-            f"Unsupported attention extractor shape: dense_1 expects "
-            f"{dense_1_input_dim}, BiLSTM hidden_dim is {hidden_dim}"
-        )
-
-    x = layers.Dense(
-        dense_trained.units,
-        activation="relu",
-        name="dense_1_clone",
-    )(merged)
-
-    if "dense_2" in [layer.name for layer in trained_model.layers]:
-        dense2_trained = trained_model.get_layer("dense_2")
-        x = layers.Dense(
-            dense2_trained.units,
-            activation="relu",
-            name="dense_2_clone",
-        )(x)
-    else:
-        dense2_trained = None
-
-    out_trained = trained_model.get_layer("output")
-    out = layers.Dense(
-        out_trained.units,
-        activation="softmax",
-        name="output_clone",
-    )(x)
-
-    extractor = keras.Model(
-        inp,
-        [out, alpha],
-        name="attention_extractor_clone",
-    )
-
-    bidir_clone.set_weights(bidir_trained.get_weights())
-    att_clone.set_weights(att_trained.get_weights())
-    extractor.get_layer("dense_1_clone").set_weights(dense_trained.get_weights())
-
-    if dense2_trained is not None:
-        extractor.get_layer("dense_2_clone").set_weights(
-            dense2_trained.get_weights()
-        )
-
-    extractor.get_layer("output_clone").set_weights(out_trained.get_weights())
-    return extractor
+def _load_scaler(path: str):
+    try:
+        with open(path, "rb") as f:
+            return pickle.load(f)
+    except Exception:
+        return joblib.load(path)
 
 
 def _load_model_class_map(class_map_path: str) -> dict:
     if not os.path.exists(class_map_path):
         raise FileNotFoundError(f"{MODEL_ID} class map not found: {class_map_path}")
 
-    with open(class_map_path, "r", encoding="utf-8") as f:
-        payload = json.load(f)
+    payload = _load_json(class_map_path)
 
-    classes = payload.get("classes", {})
+    model_id = str(payload.get("model_id", MODEL_ID)).strip()
+    accepted_ids_norm = {x.upper() for x in MODEL_ACCEPTED_IDS}
+    if model_id.upper() not in accepted_ids_norm:
+        raise ValueError(
+            f"Expected one of {sorted(MODEL_ACCEPTED_IDS)} class map, got model_id={model_id}"
+        )
+
+    model_family = payload.get("model_family", payload.get("model_type", MODEL_FAMILY))
+    if model_family != MODEL_FAMILY:
+        raise ValueError(f"Expected {MODEL_FAMILY} class map, got: {model_family}")
+
     feature_names = payload.get("feature_names", [])
-
-    if not classes:
-        raise ValueError(f"{MODEL_ID} class map is missing classes")
-
-    if feature_names and feature_names != MODEL_FEATURES:
+    if feature_names != MODEL_FEATURES:
         raise ValueError(
             f"{MODEL_ID} feature schema mismatch.\n"
             f"Expected: {MODEL_FEATURES}\n"
             f"Got:      {feature_names}"
         )
 
+    n_features = int(payload.get("n_features", len(feature_names)))
+    if n_features != len(MODEL_FEATURES):
+        raise ValueError(f"Expected {len(MODEL_FEATURES)} features, got {n_features}")
+
+    max_len = int(payload.get("max_len", MODEL_MAX_LEN))
+    if max_len != MODEL_MAX_LEN:
+        raise ValueError(f"Expected max_len {MODEL_MAX_LEN}, got {max_len}")
+
+    pad_value = float(payload.get("pad_value", PAD_VALUE))
+    if abs(pad_value - PAD_VALUE) > 1e-6:
+        raise ValueError(f"Expected pad_value {PAD_VALUE}, got {pad_value}")
+
+    scenario_names = payload.get("scenario_names", SCENARIO_NAMES)
+    if scenario_names != SCENARIO_NAMES:
+        raise ValueError(f"Scenario schema mismatch. Expected {SCENARIO_NAMES}, got {scenario_names}")
+
+    scenario_to_events = payload.get("scenario_to_events", DEFAULT_SCENARIO_TO_EVENTS)
+    missing = [s for s in SCENARIO_NAMES if s not in scenario_to_events]
+    if missing:
+        raise ValueError(f"scenario_to_events missing scenarios: {missing}")
+
+    decision_output = payload.get("inference_decision_output", "scenario_probs")
+    if decision_output != "scenario_probs":
+        raise ValueError(f"Expected inference_decision_output=scenario_probs, got {decision_output}")
+
     return payload
 
 
-def prepare_m12_feature_frame(combined_df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Prepare M12 feature frame.
+def load_ai_models():
+    """Load M18 scaler + episode-level scenario BiLSTM once and fail loudly if missing."""
+    global global_scaler, global_lstm_model, global_model_config
 
-    M12 was trained with:
-      - 19-feature schema
-      - sign_type + memory_sign_type
-      - 99 sentinel for no visible object/sign distances
-      - vehicle context fields
-    """
-    missing = [col for col in MODEL_FEATURES if col not in combined_df.columns]
-    if missing:
-        raise ValueError(f"Missing required M12 feature columns: {missing}")
+    if global_scaler is not None and global_lstm_model is not None:
+        return
 
-    x = combined_df[MODEL_FEATURES].copy()
+    log.info("Loading M18 episode-level scenario model...")
 
-    sign_mapping = {
-        "none": 0,
-        "stop_sign": 1,
-        "yield_sign": 2,
-        "no_entry": 3,
-        "0": 0,
-        "1": 1,
-        "2": 2,
-        "3": 3,
-    }
+    try:
+        models_dir = os.path.join(BASE_DIR, "app", "ai_models")
 
-    for col in ["sign_type", "memory_sign_type"]:
-        if x[col].dtype == object:
-            x[col] = (
-                x[col]
-                .astype(str)
-                .str.strip()
-                .map(sign_mapping)
-                .fillna(0)
-                .astype(int)
-            )
+        scaler_path = os.path.join(models_dir, "m18_scaler.pkl")
+        model_path = os.path.join(models_dir, "m18_model.keras")
+        class_map_path = os.path.join(models_dir, "m18_class_map.json")
 
-    for col in MODEL_FEATURES:
-        x[col] = pd.to_numeric(x[col], errors="coerce").fillna(0.0)
+        if not os.path.exists(scaler_path):
+            raise FileNotFoundError(f"M18 scaler not found: {scaler_path}")
+        if not os.path.exists(model_path):
+            raise FileNotFoundError(f"M18 model not found: {model_path}")
+        if not os.path.exists(class_map_path):
+            raise FileNotFoundError(f"M18 class map not found: {class_map_path}")
 
-    x["sign_type"] = x["sign_type"].round().clip(0, 3).astype(int)
-    x["memory_sign_type"] = x["memory_sign_type"].round().clip(0, 3).astype(int)
+        global_model_config = _load_model_class_map(class_map_path)
+        global_scaler = _load_scaler(scaler_path)
+        global_lstm_model = keras.models.load_model(
+            model_path,
+            custom_objects=CUSTOM_OBJECTS,
+            compile=False,
+            safe_mode=False,
+        )
 
-    # Preserve M12 sentinel convention.
-    no_visible_sign = x["sign_type"] == 0
-    x.loc[no_visible_sign, ["sign_distance", "sign_ttc"]] = x.loc[
-        no_visible_sign,
-        ["sign_distance", "sign_ttc"],
-    ].replace(0, 99)
+        log.info(
+            f"M18 Model + Scaler ready. Outputs: {getattr(global_lstm_model, 'output_names', [])}"
+        )
 
-    no_memory_sign = x["memory_sign_type"] == 0
-    memory_cols = [
-        "memory_sign_distance",
-        "time_since_sign_seen_sec",
-        "meters_since_sign_seen",
-        "last_seen_sign_distance",
-        "memory_sign_ttc",
-    ]
-    x.loc[no_memory_sign, memory_cols] = x.loc[
-        no_memory_sign,
-        memory_cols,
-    ].replace(0, 99)
+    except Exception as e:
+        global_scaler = None
+        global_lstm_model = None
+        global_model_config = None
+        log.error(f"Failed to load M18 model artifacts: {e}")
+        raise RuntimeError(f"AI model loading failed: {e}")
 
-    x["speed_kmh"] = x["speed_kmh"].clip(0.0, 150.0)
-    x["jerk"] = x["jerk"].clip(-30.0, 30.0)
 
-    for col in [
+# ==========================================================================
+# M18 feature prep
+# ==========================================================================
+def _default_for_feature(col: str) -> float:
+    if col == "time_seconds":
+        return 0.0
+    if col in {"sign_type", "memory_sign_type"}:
+        return 0.0
+    if col in {
         "car_distance",
         "car_ttc",
         "sign_distance",
@@ -368,8 +387,66 @@ def prepare_m12_feature_frame(combined_df: pd.DataFrame) -> pd.DataFrame:
         "meters_since_sign_seen",
         "last_seen_sign_distance",
         "memory_sign_ttc",
-    ]:
-        x[col] = x[col].clip(0.0, 99.0)
+    }:
+        return SENTINEL
+    if col == "heading_cos":
+        return 1.0
+    # M18 is trained with accel_z around 0, not gravity around 9.81.
+    return 0.0
+
+
+def prepare_m18_feature_frame(combined_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Prepare the 33-feature frame expected by M18.
+
+    This function only normalizes schema/ranges. It does not perform traffic-rule
+    decisions. Decision logic remains strictly scenario_probs -> scenario_to_events.
+    """
+    if combined_df is None or len(combined_df) == 0:
+        raise ValueError("combined_df is empty")
+
+    x = pd.DataFrame(index=combined_df.index)
+
+    for col in MODEL_FEATURES:
+        if col in combined_df.columns:
+            x[col] = combined_df[col]
+        elif col == "time_seconds":
+            x[col] = np.arange(len(combined_df), dtype=np.float32) * 0.1
+        else:
+            x[col] = _default_for_feature(col)
+
+    for col in ["sign_type", "memory_sign_type"]:
+        if x[col].dtype == object:
+            x[col] = (
+                x[col]
+                .astype(str)
+                .str.strip()
+                .str.lower()
+                .map(SIGN_MAPPING)
+                .fillna(0)
+                .astype(int)
+            )
+
+    for col in MODEL_FEATURES:
+        x[col] = pd.to_numeric(x[col], errors="coerce")
+
+    x.replace([np.inf, -np.inf], np.nan, inplace=True)
+    x.ffill(inplace=True)
+    x.bfill(inplace=True)
+
+    for col in MODEL_FEATURES:
+        x[col] = x[col].fillna(_default_for_feature(col))
+
+    distance_like = [c for c in MODEL_FEATURES if "distance" in c or "ttc" in c]
+    for col in distance_like:
+        x[col] = x[col].clip(0.0, SENTINEL)
+
+    x["time_seconds"] = x["time_seconds"].clip(0.0, 100000.0)
+    x["speed_kmh"] = x["speed_kmh"].clip(0.0, 130.0)
+    x["jerk"] = x["jerk"].clip(-30.0, 30.0)
+
+    x["sign_type"] = x["sign_type"].round().clip(0, 3)
+    x["memory_sign_type"] = x["memory_sign_type"].round().clip(0, 3)
 
     x["car_relative_x"] = x["car_relative_x"].clip(-1.0, 1.0)
     x["car_relative_y"] = x["car_relative_y"].clip(0.0, 1.0)
@@ -377,61 +454,82 @@ def prepare_m12_feature_frame(combined_df: pd.DataFrame) -> pd.DataFrame:
     x["car_motion_y"] = x["car_motion_y"].clip(-2.0, 2.0)
     x["car_static_score"] = x["car_static_score"].clip(0.0, 1.0)
 
-    return x.astype(float)
+    x["gps_accuracy"] = x["gps_accuracy"].clip(0.0, 999.0)
+    x["gps_age_ms"] = x["gps_age_ms"].clip(0.0, 999999.0)
+    x["gps_update_count_delta"] = x["gps_update_count_delta"].clip(0.0, 10.0)
+    x["gps_dx_m"] = x["gps_dx_m"].clip(-20.0, 20.0)
+    x["gps_dy_m"] = x["gps_dy_m"].clip(-20.0, 20.0)
+    x["gps_step_distance_m"] = x["gps_step_distance_m"].clip(0.0, 20.0)
+    x["gps_speed_kmh"] = x["gps_speed_kmh"].clip(0.0, 130.0)
+
+    x["heading_sin"] = x["heading_sin"].clip(-1.0, 1.0)
+    x["heading_cos"] = x["heading_cos"].clip(-1.0, 1.0)
+    x["heading_delta_deg"] = x["heading_delta_deg"].clip(-45.0, 45.0)
+    x["turn_rate_deg_s"] = x["turn_rate_deg_s"].clip(-180.0, 180.0)
+
+    x["accel_x"] = x["accel_x"].clip(-12.0, 12.0)
+    x["accel_y"] = x["accel_y"].clip(-12.0, 12.0)
+    x["accel_z"] = x["accel_z"].clip(-0.2, 0.2)
+
+    return x[MODEL_FEATURES].astype(np.float32)
 
 
-def load_ai_models():
-    """Load M12 scaler + model once and fail loudly if an artifact is missing."""
-    global global_scaler, global_lstm_model, global_model_config
+# Backward-compatible aliases for old imports/scripts.
+def prepare_m17_feature_frame(combined_df: pd.DataFrame) -> pd.DataFrame:
+    return prepare_m18_feature_frame(combined_df)
 
-    if global_scaler is not None and global_lstm_model is not None:
-        return
 
-    log.info("Loading M12 scaler + model...")
+def prepare_m16_feature_frame(combined_df: pd.DataFrame) -> pd.DataFrame:
+    return prepare_m18_feature_frame(combined_df)
 
-    try:
-        import joblib
 
-        models_dir = os.path.join(BASE_DIR, "app", "ai_models")
+def prepare_m15_feature_frame(combined_df: pd.DataFrame) -> pd.DataFrame:
+    return prepare_m18_feature_frame(combined_df)
 
-        scaler_path = os.path.join(models_dir, "m12_scaler.pkl")
-        model_path = os.path.join(models_dir, "m12_model.keras")
-        class_map_path = os.path.join(models_dir, "m12_class_map.json")
 
-        if not os.path.exists(scaler_path):
-            raise FileNotFoundError(f"M12 scaler not found: {scaler_path}")
-        if not os.path.exists(model_path):
-            raise FileNotFoundError(f"M12 model not found: {model_path}")
-        if not os.path.exists(class_map_path):
-            raise FileNotFoundError(f"M12 class map not found: {class_map_path}")
+def prepare_m14_feature_frame(combined_df: pd.DataFrame) -> pd.DataFrame:
+    return prepare_m18_feature_frame(combined_df)
 
-        global_model_config = _load_model_class_map(class_map_path)
-        global_scaler = joblib.load(scaler_path)
 
-        base_model = keras.models.load_model(
-            model_path,
-            custom_objects={"TemporalAttention": TemporalAttention},
-        )
+def sanitize_m18_model_features(X: np.ndarray) -> np.ndarray:
+    """Apply the same non-semantic GPS metadata sanitization used during M18 training."""
+    Xs = np.asarray(X, dtype=np.float32).copy()
+    idx = {name: i for i, name in enumerate(MODEL_FEATURES)}
+    for name in ("gps_accuracy", "gps_age_ms", "gps_update_count_delta"):
+        Xs[..., idx[name]] = 0.0
+    return Xs
 
-        global_lstm_model = build_attention_extractor(base_model)
 
-        log.info(
-            "M12 Model + Scaler ready. "
-            "Classes: 1=ignored warning, 2/3/4=fail, 5/6=positive actions."
-        )
+def _pad_scale_episode(X_raw: np.ndarray) -> Tuple[np.ndarray, np.ndarray, int, bool]:
+    """Pad/crop full episode to 256x33 and scale only real rows."""
+    if global_scaler is None:
+        load_ai_models()
 
-    except Exception as e:
-        global_scaler = None
-        global_lstm_model = None
-        global_model_config = None
-        log.error(f"Failed to load M12 model artifacts: {e}")
-        raise RuntimeError(f"AI model loading failed: {e}")
+    real_len = int(min(len(X_raw), MODEL_MAX_LEN))
+    was_cropped = bool(len(X_raw) > MODEL_MAX_LEN)
+
+    Xp = np.full((MODEL_MAX_LEN, len(MODEL_FEATURES)), PAD_VALUE, dtype=np.float32)
+    mask = np.zeros((MODEL_MAX_LEN,), dtype=np.float32)
+
+    if real_len > 0:
+        Xp[:real_len] = X_raw[:real_len]
+        mask[:real_len] = 1.0
+
+    Xs = sanitize_m18_model_features(Xp)
+    real = mask.astype(bool)
+    if np.any(real):
+        scaled = global_scaler.transform(Xs[real]).astype(np.float32)
+        scaled = np.clip(scaled, -SCALE_CLIP_VALUE, SCALE_CLIP_VALUE).astype(np.float32)
+        Xs[real] = scaled
+    Xs[~real] = PAD_VALUE
+
+    return Xs[None, ...].astype(np.float32), mask, real_len, was_cropped
 
 
 # ==========================================================================
-# M12 episode resolver
+# M18 scoring helpers
 # ==========================================================================
-def _safe_float(value, default=0.0) -> float:
+def _safe_float(value: Any, default: float = 0.0) -> float:
     try:
         if value is None or pd.isna(value):
             return default
@@ -440,645 +538,337 @@ def _safe_float(value, default=0.0) -> float:
         return default
 
 
-def _extract_sign_episodes(df: pd.DataFrame, sign_code: int, max_gap_rows: int = 2):
-    """
-    Episode = contiguous region where either visible sign or memory sign is active.
-    Allows tiny gaps caused by vision/memory flicker.
-    """
-    sign_type = (
-        pd.to_numeric(df["sign_type"], errors="coerce")
-        .fillna(0)
-        .round()
-        .astype(int)
-    )
-    memory_sign_type = (
-        pd.to_numeric(df["memory_sign_type"], errors="coerce")
-        .fillna(0)
-        .round()
-        .astype(int)
-    )
-
-    active = ((sign_type == sign_code) | (memory_sign_type == sign_code)).to_numpy()
-
-    episodes = []
-    start = None
-    last_active = None
-    gap = 0
-
-    for i, is_active in enumerate(active):
-        if is_active:
-            if start is None:
-                start = i
-            last_active = i
-            gap = 0
-        elif start is not None:
-            gap += 1
-            if gap > max_gap_rows:
-                episodes.append((start, last_active))
-                start = None
-                last_active = None
-                gap = 0
-
-    if start is not None:
-        episodes.append((start, last_active))
-
-    return episodes
+def _json_default(obj: Any) -> Any:
+    if isinstance(obj, (np.integer,)):
+        return int(obj)
+    if isinstance(obj, (np.floating,)):
+        return float(obj)
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+    try:
+        if pd.isna(obj):
+            return None
+    except Exception:
+        pass
+    return str(obj)
 
 
-def _episode_window_indices(ep_start: int, ep_end: int, n_windows: int):
-    """
-    Window i covers rows i : i + MODEL_WINDOW_SIZE.
-    Include windows that overlap the sign episode.
-    """
-    out = []
-    for i in range(n_windows):
-        w_start = i
-        w_end = i + MODEL_WINDOW_SIZE - 1
-        if w_start <= ep_end and w_end >= ep_start:
-            out.append(i)
-    return out
+def _normalize_m18_outputs(raw: Any) -> Dict[str, np.ndarray]:
+    if isinstance(raw, dict):
+        out = dict(raw)
+    elif isinstance(raw, (list, tuple)):
+        names = list(getattr(global_lstm_model, "output_names", []))
+        out = {name: arr for name, arr in zip(names, raw)}
+    else:
+        raise ValueError(f"Unsupported M18 model output type: {type(raw)}")
+
+    normalized: Dict[str, np.ndarray] = {}
+    known = {"scenario_probs", "normal_subtype_probs", *ATOMIC_AUX_HEAD_NAMES}
+    for key, value in out.items():
+        base = str(key).split("/")[-1].split(":")[0]
+        if base in known:
+            normalized[base] = np.asarray(value)
+        else:
+            normalized[str(key)] = np.asarray(value)
+
+    if "scenario_probs" not in normalized:
+        raise ValueError(f"M18 model output missing scenario_probs; got {list(out.keys())}")
+
+    return normalized
 
 
-def _episode_stats(df: pd.DataFrame, start: int, end: int) -> dict:
-    rows = df.iloc[start:end + 1]
+def _row_context(combined_df: pd.DataFrame, sample_idx: int) -> dict:
+    if len(combined_df) == 0:
+        sample_idx = 0
+        row = pd.Series(dtype=float)
+    else:
+        row = combined_df.iloc[min(max(0, int(sample_idx)), len(combined_df) - 1)]
 
-    speed = (
-        pd.to_numeric(rows["speed_kmh"], errors="coerce")
-        .fillna(0.0)
-        .to_numpy(dtype=float)
-    )
-    car_distance = (
-        pd.to_numeric(rows["car_distance"], errors="coerce")
-        .fillna(99.0)
-        .to_numpy(dtype=float)
-    )
-    car_static = (
-        pd.to_numeric(rows["car_static_score"], errors="coerce")
-        .fillna(0.0)
-        .to_numpy(dtype=float)
-    )
-    car_motion_x = (
-        pd.to_numeric(rows["car_motion_x"], errors="coerce")
-        .fillna(0.0)
-        .to_numpy(dtype=float)
-    )
-    car_motion_y = (
-        pd.to_numeric(rows["car_motion_y"], errors="coerce")
-        .fillna(0.0)
-        .to_numpy(dtype=float)
-    )
+    sign_code = int(round(_safe_float(row.get("sign_type"), 0)))
+    memory_sign_code = int(round(_safe_float(row.get("memory_sign_type"), 0)))
+    active_sign_code = sign_code if sign_code != 0 else memory_sign_code
 
-    stopped_mask = speed <= 2.5
+    sign_distance = _safe_float(row.get("sign_distance"), SENTINEL)
+    memory_sign_distance = _safe_float(row.get("memory_sign_distance"), SENTINEL)
+    active_sign_distance = sign_distance if sign_code != 0 else memory_sign_distance
 
     return {
-        "start_time": _safe_float(rows.iloc[0].get("time_seconds")),
-        "end_time": _safe_float(rows.iloc[-1].get("time_seconds")),
-        "min_speed": float(np.min(speed)) if len(speed) else 99.0,
-        "max_speed": float(np.max(speed)) if len(speed) else 0.0,
-        "first_speed": float(speed[0]) if len(speed) else 0.0,
-        "last_speed": float(speed[-1]) if len(speed) else 0.0,
-        "speed_drop": float(max(0.0, speed[0] - np.min(speed))) if len(speed) else 0.0,
-        "stopped_rows": int(stopped_mask.sum()),
-        "has_full_stop": bool(stopped_mask.sum() >= 3),
-        "min_car_distance": float(np.min(car_distance)) if len(car_distance) else 99.0,
-        "has_dynamic_vehicle": bool(
-            np.any(
-                (car_distance < 30.0)
-                & (
-                    (car_static < 0.65)
-                    | (np.abs(car_motion_x) > 0.03)
-                    | (np.abs(car_motion_y) > 0.03)
-                )
-            )
+        "timestamp_sec": round(_safe_float(row.get("time_seconds"), 0.0), 2),
+        "sign_code": int(active_sign_code),
+        "sign_distance_m": round(float(active_sign_distance), 2),
+        "speed_kmh": round(_safe_float(row.get("speed_kmh"), 0.0), 2),
+        "car_distance_m": round(_safe_float(row.get("car_distance"), SENTINEL), 2),
+        "heading_delta_deg": round(_safe_float(row.get("heading_delta_deg"), 0.0), 3),
+        "turn_rate_deg_s": round(_safe_float(row.get("turn_rate_deg_s"), 0.0), 3),
+    }
+
+
+def _representative_context_index(features_df: pd.DataFrame) -> int:
+    """Choose a reporting row. This is only for payload context, not for decisions."""
+    if features_df is None or len(features_df) == 0:
+        return 0
+
+    sign_active = (features_df["sign_type"].to_numpy() > 0) | (features_df["memory_sign_type"].to_numpy() > 0)
+    idxs = np.where(sign_active)[0]
+    if len(idxs) > 0:
+        # Prefer the row where active sign/memory distance is closest.
+        dist = np.minimum(
+            features_df["sign_distance"].to_numpy(dtype=np.float32),
+            features_df["memory_sign_distance"].to_numpy(dtype=np.float32),
+        )
+        local = int(idxs[np.argmin(dist[idxs])])
+        return local
+
+    return int(min(len(features_df) - 1, max(0, len(features_df) // 2)))
+
+
+def _event_payload(event_name: str, source: dict, ctx: dict) -> dict:
+    legacy_code = int(LEGACY_EVENT_CODES[event_name])
+    legacy_label = LEGACY_CLASS_NAMES.get(legacy_code, LEGACY_EVENT_LABELS.get(event_name, event_name))
+    bucket = EVENT_BUCKET[event_name]
+    return {
+        "timestamp_sec": ctx["timestamp_sec"],
+        "type": event_name,
+        "event_key": f"{bucket}:{legacy_code}:{event_name}",
+        "event_type": (
+            "POSITIVE_ACTION" if bucket == "positive"
+            else "IGNORED_WARNING" if bucket == "warning"
+            else "VIOLATION"
         ),
+        "confidence": round(float(source.get("event_confidence", 0.0)), 4),
+        "scenario_id": int(source.get("scenario_id", 0)),
+        "scenario_name": str(source.get("scenario_name", "NORMAL")),
+        "family_id": None,
+        "family_name": None,
+        "behavior_id": None,
+        "behavior_name": event_name,
+        "window_index": None,
+        "window_start": 0,
+        "window_end": int(source.get("episode_len", 0)),
+        "cluster_index": None,
+        "class_id": legacy_code,
+        "class_label": legacy_label,
+        **ctx,
     }
 
 
-def _best_class_window(predictions, window_indices, class_id: int):
-    if not window_indices:
-        return None
-
-    best_i = max(window_indices, key=lambda i: float(predictions[i][class_id]))
-    return {
-        "window_idx": int(best_i),
-        "confidence": float(predictions[best_i][class_id]),
-    }
+def _scenario_to_events(scenario_name: str) -> List[str]:
+    cfg = global_model_config or {}
+    scenario_to_events = cfg.get("scenario_to_events", DEFAULT_SCENARIO_TO_EVENTS)
+    return list(scenario_to_events.get(scenario_name, []))
 
 
-def _make_xai_event(
-    event_type: str,
-    class_id: int,
-    window_idx: int,
-    sample_idx: int,
-    combined_df: pd.DataFrame,
-    attention_weights,
-):
-    peak_frame = int(np.argmax(attention_weights[window_idx]))
-    row = combined_df.iloc[min(sample_idx, len(combined_df) - 1)]
+def _outputs_debug(outputs: Dict[str, np.ndarray], scenario_names: List[str]) -> dict:
+    debug: Dict[str, Any] = {}
+    if "normal_subtype_probs" in outputs:
+        normal_probs = np.asarray(outputs["normal_subtype_probs"])[0].reshape(-1)
+        debug["normal_subtype_probs"] = {
+            NORMAL_SUBTYPE_NAMES[i] if i < len(NORMAL_SUBTYPE_NAMES) else f"subtype_{i}": round(float(normal_probs[i]), 4)
+            for i in range(len(normal_probs))
+        }
 
-    return {
-        "timestamp_sec": _safe_float(row.get("time_seconds")),
-        "event_type": event_type,
-        "class_id": int(class_id),
-        "class_label": MODEL_CLASS_NAMES.get(int(class_id), f"Class {class_id}"),
-        "decisive_frame_in_window": peak_frame,
-        "attention_score": float(np.max(attention_weights[window_idx])),
-        "attention_array": attention_weights[window_idx].tolist(),
-    }
+    atomic_summary = {}
+    for head in ATOMIC_AUX_HEAD_NAMES:
+        if head not in outputs:
+            continue
+        arr = np.asarray(outputs[head])[0]
+        arr = arr.reshape(arr.shape[0], -1)[:, 0]
+        atomic_summary[head] = {
+            "max": round(float(np.max(arr)), 4) if len(arr) else 0.0,
+            "mean": round(float(np.mean(arr)), 4) if len(arr) else 0.0,
+        }
+    if atomic_summary:
+        debug["atomic_aux_summary_training_debug_only"] = atomic_summary
+
+    return debug
 
 
-def run_m12_episode_scoring(
+# ==========================================================================
+# M18 scoring
+# ==========================================================================
+def run_m18_episode_scoring(
     combined_df: pd.DataFrame,
     test_id: str,
     test_export_path: str,
 ) -> dict:
     """
-    M12 scoring:
-    - Run all windows.
-    - Keep decision_log per window.
-    - Resolve PASS/FAIL by sign episodes, not by single early windows.
+    M18 scoring:
+    - Full episode is padded/cropped to 256x33.
+    - Same training preprocessing is applied: GPS metadata sanitization, scaler, z-clip.
+    - Model predicts scenario_probs.
+    - Backend maps argmax scenario to fixed legacy events.
+
+    No raw speed/sign/distance rules, no atomic overrides, no clusters, no thresholds.
     """
-    X_model_df = prepare_m12_feature_frame(combined_df)
-    X_raw = X_model_df.values
+    if global_scaler is None or global_lstm_model is None:
+        load_ai_models()
 
-    if len(X_raw) < MODEL_WINDOW_SIZE:
-        return {
-            "result": "PASS",
-            "passed": True,
-            "grade": 100,
-            "mistakes_count": 0,
-            "violations_detected": [],
-            "ignored_warning_codes": [],
-            "ignored_warning_events": [],
-            "decision_log": [],
-            "xai_data": {},
-            "action_sequences": [],
-            "positive_actions": [],
-            "windows_analyzed": 0,
-        }
+    X_model_df = prepare_m18_feature_frame(combined_df)
+    X_raw = X_model_df.to_numpy(dtype=np.float32)
+    X_scaled, mask, real_len, was_cropped = _pad_scale_episode(X_raw)
 
-    X_scaled = global_scaler.transform(X_raw)
+    update_progress(test_id, 85, "Running M18 episode-level scenario model...")
+    raw = global_lstm_model.predict(X_scaled, batch_size=1, verbose=0)
+    outputs = _normalize_m18_outputs(raw)
 
-    X_windows = np.array([
-        X_scaled[i:i + MODEL_WINDOW_SIZE]
-        for i in range(len(X_scaled) - MODEL_WINDOW_SIZE + 1)
-    ])
+    scenario_names = list((global_model_config or {}).get("scenario_names", SCENARIO_NAMES))
+    scenario_probs_arr = np.asarray(outputs["scenario_probs"])[0].reshape(-1)
+    scenario_idx = int(np.argmax(scenario_probs_arr))
+    scenario_name = scenario_names[scenario_idx]
+    scenario_conf = float(scenario_probs_arr[scenario_idx])
+    events = _scenario_to_events(scenario_name)
 
-    update_progress(test_id, 85, "Running M12 LSTM...")
+    rep_idx = _representative_context_index(X_model_df.iloc[:real_len] if real_len > 0 else X_model_df)
+    ctx = _row_context(X_model_df, rep_idx)
 
-    batch_size = 32
-    num_batches = max(1, (len(X_windows) + batch_size - 1) // batch_size)
-
-    preds_list = []
-    attn_list = []
-
-    for batch_idx in range(num_batches):
-        start = batch_idx * batch_size
-        end = min(start + batch_size, len(X_windows))
-        batch = X_windows[start:end]
-
-        preds, attn = global_lstm_model.predict(
-            batch,
-            batch_size=batch_size,
-            verbose=0,
-        )
-
-        preds_list.append(preds)
-        attn_list.append(attn)
-
-        pct = 85 + int(10 * (batch_idx + 1) / num_batches)
-        update_progress(test_id, pct, f"M12 batch {batch_idx + 1}/{num_batches}")
-
-    predictions = np.concatenate(preds_list, axis=0)
-    attention_weights = np.concatenate(attn_list, axis=0)
-
-    predicted_classes = np.argmax(predictions, axis=1)
-    confidences = np.max(predictions, axis=1)
-
-    # Smooth only for reporting/warnings. Episode resolver also checks raw probabilities.
-    smoothed = []
-    smooth_window = 5
-    for i in range(len(predicted_classes)):
-        end = min(i + smooth_window, len(predicted_classes))
-        votes = predicted_classes[i:end]
-        if len(votes) == 0:
-            smoothed.append(int(predicted_classes[i]))
-            continue
-
-        mode_, _ = stats.mode(votes, keepdims=False)
-        smoothed.append(int(mode_))
-
-    decision_log = []
-
-    for i, pc in enumerate(smoothed):
-        ts = _safe_float(combined_df.iloc[i].get("time_seconds")) if i < len(combined_df) else 0.0
-
-        pc_int = int(pc)
-        raw_pc = int(predicted_classes[i])
-        raw_conf = float(confidences[i])
-        conf = float(predictions[i][pc_int])
-
-        decision_log.append({
-            "timestamp_sec": round(ts, 2),
-            "predicted_class": pc_int,
-            "predicted_label": MODEL_CLASS_NAMES.get(pc_int, f"Class {pc_int}"),
-            "raw_prediction": raw_pc,
-            "raw_label": MODEL_CLASS_NAMES.get(raw_pc, f"Class {raw_pc}"),
-            "confidence": round(conf, 3),
-            "raw_confidence": round(raw_conf, 3),
-            "all_probabilities": [round(float(p), 3) for p in predictions[i]],
-        })
-
-    update_progress(test_id, 95, "Resolving M12 sign episodes...")
+    source = {
+        "event_confidence": scenario_conf,
+        "scenario_id": scenario_idx,
+        "scenario_name": scenario_name,
+        "episode_len": real_len,
+    }
 
     violation_events = []
     ignored_warning_events = []
     positive_actions = []
-    xai_data = {}
-    action_sequences = []
 
-    # ------------------------------------------------------------
-    # Tailgating warnings — ignored for PASS/FAIL
-    # ------------------------------------------------------------
-    merge_gap_s = 1.5
-    last_tailgating = None
+    for event_name in events:
+        payload = _event_payload(event_name, source, ctx)
+        bucket = EVENT_BUCKET[event_name]
+        if bucket == "positive":
+            positive_actions.append(payload)
+        elif bucket == "warning":
+            ignored_warning_events.append(payload)
+        elif bucket == "violation":
+            violation_events.append(payload)
 
-    for i, pc in enumerate(smoothed):
-        conf = float(predictions[i][1])
-        if int(pc) != 1 or conf < 0.55:
-            continue
-
-        ts = _safe_float(combined_df.iloc[i].get("time_seconds")) if i < len(combined_df) else 0.0
-
-        if last_tailgating is None or (ts - last_tailgating["end_t"]) > merge_gap_s:
-            ignored_warning_events.append({
-                "timestamp_sec": round(ts, 2),
-                "type": "Tailgating",
-                "class_id": 1,
-                "class_label": MODEL_CLASS_NAMES[1],
-                "confidence": round(conf, 3),
-            })
-            last_tailgating = {
-                "end_t": ts,
-                "event_idx": len(ignored_warning_events) - 1,
-                "confidence_max": conf,
-            }
-        else:
-            last_tailgating["end_t"] = ts
-            if conf > last_tailgating["confidence_max"]:
-                last_tailgating["confidence_max"] = conf
-                ignored_warning_events[last_tailgating["event_idx"]].update({
-                    "timestamp_sec": round(ts, 2),
-                    "confidence": round(conf, 3),
-                })
-
-    # ------------------------------------------------------------
-    # STOP episodes
-    # ------------------------------------------------------------
-    for ep_start, ep_end in _extract_sign_episodes(X_model_df, SIGN_STOP):
-        stats_ep = _episode_stats(X_model_df, ep_start, ep_end)
-        win_idx = _episode_window_indices(ep_start, ep_end, len(predictions))
-
-        best_running = _best_class_window(predictions, win_idx, 2)
-        best_fail_yield = _best_class_window(predictions, win_idx, 3)
-        best_correct_stop = _best_class_window(predictions, win_idx, 5)
-        best_correct_yield = _best_class_window(predictions, win_idx, 6)
-
-        running_conf = best_running["confidence"] if best_running else 0.0
-        correct_stop_conf = best_correct_stop["confidence"] if best_correct_stop else 0.0
-
-        # Main M12 fix:
-        # early RunningStop inside the same STOP episode is suppressed if the episode
-        # later contains physical full stop + strong CorrectStop.
-        if stats_ep["has_full_stop"] and correct_stop_conf >= 0.75:
-            sample_idx = int(
-                X_model_df.iloc[ep_start:ep_end + 1]["speed_kmh"]
-                .astype(float)
-                .idxmin()
-            )
-
-            action = {
-                "timestamp_sec": round(_safe_float(combined_df.iloc[sample_idx].get("time_seconds")), 2),
-                "type": "CorrectStop",
-                "class_id": 5,
-                "class_label": MODEL_CLASS_NAMES[5],
-                "confidence": round(correct_stop_conf, 3),
-                "sign_code": SIGN_STOP,
-                "sign_distance_m": round(
-                    _safe_float(combined_df.iloc[sample_idx].get("memory_sign_distance", 99.0), 99.0),
-                    2,
-                ),
-                "speed_kmh": round(_safe_float(combined_df.iloc[sample_idx].get("speed_kmh")), 2),
-            }
-            positive_actions.append(action)
-
-            xai_data[f"positive_{len(positive_actions)}_class_5"] = _make_xai_event(
-                "POSITIVE_ACTION",
-                5,
-                best_correct_stop["window_idx"],
-                sample_idx,
-                combined_df,
-                attention_weights,
-            )
-
-            # STOP has two obligations:
-            #   1) full stop
-            #   2) safe junction entry / yield behavior after the stop
-            #
-            # Therefore, after a confirmed CorrectStop, we still allow a second
-            # positive action: CorrectYield. This is intentionally allowed even
-            # when the sign is STOP, because after STOP the driver must enter the
-            # junction with yield/right-of-way behavior.
-            #
-            # A FailureToYield after STOP requires stronger evidence and a dynamic
-            # vehicle. A CorrectYield after STOP can be accepted with a lower
-            # threshold because it is only a positive/explanatory action and does
-            # not change PASS to FAIL.
-            fail_yield_conf = best_fail_yield["confidence"] if best_fail_yield else 0.0
-            correct_yield_conf = best_correct_yield["confidence"] if best_correct_yield else 0.0
-
-            stop_after_yield_failure = (
-                stats_ep["has_dynamic_vehicle"]
-                and fail_yield_conf >= 0.78
-                and fail_yield_conf > max(0.65, correct_yield_conf * 1.15)
-            )
-
-            stop_after_correct_yield = (
-                best_correct_yield is not None
-                and correct_yield_conf >= 0.45
-                and not stop_after_yield_failure
-                and fail_yield_conf < max(0.78, correct_yield_conf * 1.25)
-            )
-
-            if stop_after_yield_failure:
-                sample_idx = min(
-                    best_fail_yield["window_idx"] + MODEL_WINDOW_SIZE - 1,
-                    len(combined_df) - 1,
-                )
-
-                violation_events.append({
-                    "timestamp_sec": round(_safe_float(combined_df.iloc[sample_idx].get("time_seconds")), 2),
-                    "type": "Failure to Yield",
-                    "class_id": 3,
-                    "class_label": MODEL_CLASS_NAMES[3],
-                    "confidence": round(fail_yield_conf, 3),
-                })
-
-                xai_data[f"event_{len(violation_events)}_class_3"] = _make_xai_event(
-                    "VIOLATION",
-                    3,
-                    best_fail_yield["window_idx"],
-                    sample_idx,
-                    combined_df,
-                    attention_weights,
-                )
-
-            elif stop_after_correct_yield:
-                sample_idx = min(
-                    best_correct_yield["window_idx"] + MODEL_WINDOW_SIZE - 1,
-                    len(combined_df) - 1,
-                )
-
-                positive_actions.append({
-                    "timestamp_sec": round(_safe_float(combined_df.iloc[sample_idx].get("time_seconds")), 2),
-                    "type": "CorrectYield",
-                    "class_id": 6,
-                    "class_label": MODEL_CLASS_NAMES[6],
-                    "confidence": round(correct_yield_conf, 3),
-                    "sign_code": SIGN_STOP,
-                    "sign_distance_m": round(
-                        _safe_float(combined_df.iloc[sample_idx].get("memory_sign_distance", 99.0), 99.0),
-                        2,
-                    ),
-                    "speed_kmh": round(_safe_float(combined_df.iloc[sample_idx].get("speed_kmh")), 2),
-                    "source_policy": "STOP_AFTER_CORRECT_STOP_SAFE_ENTRY",
-                })
-
-                xai_data[f"positive_{len(positive_actions)}_class_6"] = _make_xai_event(
-                    "POSITIVE_ACTION",
-                    6,
-                    best_correct_yield["window_idx"],
-                    sample_idx,
-                    combined_df,
-                    attention_weights,
-                )
-
-            continue
-
-        # If no full stop happened in the whole STOP episode, RunningStop is valid.
-        if not stats_ep["has_full_stop"] and running_conf >= 0.65:
-            sample_idx = min(
-                best_running["window_idx"] + MODEL_WINDOW_SIZE - 1,
-                len(combined_df) - 1,
-            )
-
-            violation_events.append({
-                "timestamp_sec": round(_safe_float(combined_df.iloc[sample_idx].get("time_seconds")), 2),
-                "type": "Running Stop",
-                "class_id": 2,
-                "class_label": MODEL_CLASS_NAMES[2],
-                "confidence": round(running_conf, 3),
-            })
-
-            xai_data[f"event_{len(violation_events)}_class_2"] = _make_xai_event(
-                "VIOLATION",
-                2,
-                best_running["window_idx"],
-                sample_idx,
-                combined_df,
-                attention_weights,
-            )
-
-    # ------------------------------------------------------------
-    # YIELD episodes
-    # ------------------------------------------------------------
-    for ep_start, ep_end in _extract_sign_episodes(X_model_df, SIGN_YIELD):
-        stats_ep = _episode_stats(X_model_df, ep_start, ep_end)
-        win_idx = _episode_window_indices(ep_start, ep_end, len(predictions))
-
-        best_fail_yield = _best_class_window(predictions, win_idx, 3)
-        best_correct_yield = _best_class_window(predictions, win_idx, 6)
-
-        fail_conf = best_fail_yield["confidence"] if best_fail_yield else 0.0
-        correct_conf = best_correct_yield["confidence"] if best_correct_yield else 0.0
-
-        yield_behavior_ok = (
-            stats_ep["speed_drop"] >= 3.0
-            or stats_ep["min_speed"] <= 12.0
-            or stats_ep["has_full_stop"]
-        )
-
-        # CorrectYield wins over early/ambiguous FailureYield.
-        if yield_behavior_ok and correct_conf >= 0.72:
-            sample_idx = min(
-                best_correct_yield["window_idx"] + MODEL_WINDOW_SIZE - 1,
-                len(combined_df) - 1,
-            )
-
-            positive_actions.append({
-                "timestamp_sec": round(_safe_float(combined_df.iloc[sample_idx].get("time_seconds")), 2),
-                "type": "CorrectYield",
-                "class_id": 6,
-                "class_label": MODEL_CLASS_NAMES[6],
-                "confidence": round(correct_conf, 3),
-                "sign_code": SIGN_YIELD,
-                "sign_distance_m": round(
-                    _safe_float(combined_df.iloc[sample_idx].get("memory_sign_distance", 99.0), 99.0),
-                    2,
-                ),
-                "speed_kmh": round(_safe_float(combined_df.iloc[sample_idx].get("speed_kmh")), 2),
-            })
-
-            xai_data[f"positive_{len(positive_actions)}_class_6"] = _make_xai_event(
-                "POSITIVE_ACTION",
-                6,
-                best_correct_yield["window_idx"],
-                sample_idx,
-                combined_df,
-                attention_weights,
-            )
-
-            continue
-
-        if (
-            stats_ep["has_dynamic_vehicle"]
-            and not yield_behavior_ok
-            and fail_conf >= 0.65
-            and fail_conf > max(0.55, correct_conf * 1.10)
-        ):
-            sample_idx = min(
-                best_fail_yield["window_idx"] + MODEL_WINDOW_SIZE - 1,
-                len(combined_df) - 1,
-            )
-
-            violation_events.append({
-                "timestamp_sec": round(_safe_float(combined_df.iloc[sample_idx].get("time_seconds")), 2),
-                "type": "Failure to Yield",
-                "class_id": 3,
-                "class_label": MODEL_CLASS_NAMES[3],
-                "confidence": round(fail_conf, 3),
-            })
-
-            xai_data[f"event_{len(violation_events)}_class_3"] = _make_xai_event(
-                "VIOLATION",
-                3,
-                best_fail_yield["window_idx"],
-                sample_idx,
-                combined_df,
-                attention_weights,
-            )
-
-    # ------------------------------------------------------------
-    # NO ENTRY episodes
-    # ------------------------------------------------------------
-    for ep_start, ep_end in _extract_sign_episodes(X_model_df, SIGN_NO_ENTRY):
-        stats_ep = _episode_stats(X_model_df, ep_start, ep_end)
-        win_idx = _episode_window_indices(ep_start, ep_end, len(predictions))
-
-        best_no_entry = _best_class_window(predictions, win_idx, 4)
-        no_entry_conf = best_no_entry["confidence"] if best_no_entry else 0.0
-
-        if no_entry_conf >= 0.65 and stats_ep["max_speed"] >= 5.0:
-            sample_idx = min(
-                best_no_entry["window_idx"] + MODEL_WINDOW_SIZE - 1,
-                len(combined_df) - 1,
-            )
-
-            violation_events.append({
-                "timestamp_sec": round(_safe_float(combined_df.iloc[sample_idx].get("time_seconds")), 2),
-                "type": "No Entry Violation",
-                "class_id": 4,
-                "class_label": MODEL_CLASS_NAMES[4],
-                "confidence": round(no_entry_conf, 3),
-            })
-
-            xai_data[f"event_{len(violation_events)}_class_4"] = _make_xai_event(
-                "VIOLATION",
-                4,
-                best_no_entry["window_idx"],
-                sample_idx,
-                combined_df,
-                attention_weights,
-            )
-
-    # Compact markers in decision log.
-    for pa in positive_actions:
-        decision_log.append({
-            "timestamp_sec": pa["timestamp_sec"],
-            "predicted_class": pa["class_id"],
-            "event_type": "POSITIVE_ACTION",
-            "subtype": pa["type"],
-            "confidence": pa["confidence"],
-            "sign_code": pa["sign_code"],
-            "sign_distance_m": pa["sign_distance_m"],
-            "speed_kmh": pa["speed_kmh"],
-        })
-
-    for ve in violation_events:
-        decision_log.append({
-            "timestamp_sec": ve["timestamp_sec"],
-            "predicted_class": ve["class_id"],
-            "event_type": "VIOLATION",
-            "subtype": ve["type"],
-            "confidence": ve["confidence"],
-        })
-
-    decision_log.sort(key=lambda x: x["timestamp_sec"])
-
-    violations_detected = sorted({int(v["class_id"]) for v in violation_events})
-    ignored_warning_codes = sorted({1 for _ in ignored_warning_events})
+    violation_codes = sorted({int(v["class_id"]) for v in violation_events})
+    ignored_warning_codes = sorted({int(v["class_id"]) for v in ignored_warning_events})
 
     mistakes_count = len(violation_events)
     result = "FAIL" if mistakes_count > 0 else "PASS"
     passed = result == "PASS"
     final_grade = 100 if passed else 0
 
+    decision_log = [{
+        "episode_index": 0,
+        "timestamp_sec": ctx["timestamp_sec"],
+        "scenario_id": scenario_idx,
+        "scenario_name": scenario_name,
+        "scenario_confidence": round(scenario_conf, 4),
+        "scenario_probs": {
+            scenario_names[i]: round(float(scenario_probs_arr[i]), 4)
+            for i in range(len(scenario_probs_arr))
+        },
+        "events": list(events),
+        "context": ctx,
+        "input_rows": int(len(X_raw)),
+        "model_rows": int(real_len),
+        "max_len": MODEL_MAX_LEN,
+        "was_cropped": bool(was_cropped),
+    }]
+
+    debug = _outputs_debug(outputs, scenario_names)
+    if debug:
+        decision_log[0].update(debug)
+
+    aggregation = {
+        "scenario_id": scenario_idx,
+        "scenario_name": scenario_name,
+        "scenario_confidence": scenario_conf,
+        "scenario_probs": {
+            scenario_names[i]: float(scenario_probs_arr[i])
+            for i in range(len(scenario_probs_arr))
+        },
+        "events": list(events),
+        "scenario_to_events": (global_model_config or {}).get("scenario_to_events", DEFAULT_SCENARIO_TO_EVENTS),
+        "input_rows": int(len(X_raw)),
+        "model_rows": int(real_len),
+        "max_len": MODEL_MAX_LEN,
+        "was_cropped": bool(was_cropped),
+        "policy": "M18 episode-level scenario argmax only. No raw runtime traffic-rule gates.",
+    }
+    aggregation.update(debug)
+
     thought_payload = {
         "test_id": test_id,
         "exported_at": datetime.now().isoformat(),
-        "model_id": MODEL_ID,
+        "model_id": (global_model_config or {}).get("model_id", MODEL_ID),
+        "model_type": MODEL_TYPE,
+        "model_family": MODEL_FAMILY,
+        "code_version": (global_model_config or {}).get("code_version"),
+        "generator_version": (global_model_config or {}).get("generator_version"),
         "feature_names": MODEL_FEATURES,
-        "class_names": {str(k): v for k, v in MODEL_CLASS_NAMES.items()},
-        "violation_classes": sorted(VIOLATION_CLASSES),
-        "positive_action_classes": sorted(POSITIVE_ACTION_CLASSES),
-        "fail_classes": sorted(FAIL_CLASSES),
-        "ignored_warning_classes": sorted(IGNORED_WARNING_CLASSES),
+        "scenario_names": scenario_names,
+        "scenario_to_events": (global_model_config or {}).get("scenario_to_events", DEFAULT_SCENARIO_TO_EVENTS),
+        "legacy_class_names": {str(k): v for k, v in LEGACY_CLASS_NAMES.items()},
         "result": result,
         "passed": passed,
         "mistakes_count": mistakes_count,
-        "mistake_codes": violations_detected,
+        "mistake_codes": violation_codes,
         "ignored_warning_codes": ignored_warning_codes,
         "ignored_warning_events_count": len(ignored_warning_events),
         "ignored_warning_events": ignored_warning_events,
         "grade": final_grade,
         "decision_log": decision_log,
-        "xai_explanations": xai_data,
-        "action_sequences": action_sequences,
+        "window_predictions": [],
+        "aggregation": aggregation,
+        "xai_explanations": {},
+        "action_sequences": [],
         "positive_actions": positive_actions,
+        "positive_actions_count": len(positive_actions),
+        "violation_events": violation_events,
+        "violation_events_count": len(violation_events),
+        "windows_analyzed": 0,
+        "episode_rows_analyzed": int(real_len),
         "episode_policy": (
-            "M12 sign episode resolver: CorrectStop suppresses early "
-            "RunningStop in same STOP episode; STOP can also produce CorrectYield "
-            "for safe post-stop junction entry."
+            "M18 episode-level scenario BiLSTM. Backend uses only scenario_probs argmax "
+            "and class_map scenario_to_events. Auxiliary heads are debug/training-only. "
+            "No raw speed/sign/distance runtime gates are used for road-rule decisions."
         ),
     }
 
     with open(os.path.join(test_export_path, "3_model_thought.json"), "w", encoding="utf-8") as f:
-        json.dump(thought_payload, f, ensure_ascii=False, indent=4)
+        json.dump(thought_payload, f, ensure_ascii=False, indent=4, default=_json_default)
 
     return {
         "result": result,
         "passed": passed,
         "grade": final_grade,
         "mistakes_count": mistakes_count,
-        "violations_detected": violations_detected,
+        "violations_detected": violation_codes,
         "ignored_warning_codes": ignored_warning_codes,
         "ignored_warning_events": ignored_warning_events,
         "decision_log": decision_log,
-        "xai_data": xai_data,
-        "action_sequences": action_sequences,
+        "xai_data": {},
+        "action_sequences": [],
         "positive_actions": positive_actions,
-        "windows_analyzed": len(X_windows),
+        "windows_analyzed": 0,
+        "episode_rows_analyzed": int(real_len),
+        "violation_events": violation_events,
+        "aggregation": aggregation,
     }
+
+
+# Backward-compatible aliases for scripts that call old names.
+def run_m17_atomic_scoring(combined_df: pd.DataFrame, test_id: str, test_export_path: str) -> dict:
+    return run_m18_episode_scoring(combined_df, test_id, test_export_path)
+
+
+def run_m16_hierarchical_scoring(combined_df: pd.DataFrame, test_id: str, test_export_path: str) -> dict:
+    return run_m18_episode_scoring(combined_df, test_id, test_export_path)
+
+
+def run_m15_composite_scoring(combined_df: pd.DataFrame, test_id: str, test_export_path: str) -> dict:
+    return run_m18_episode_scoring(combined_df, test_id, test_export_path)
+
+
+def run_m14_multilabel_scoring(combined_df: pd.DataFrame, test_id: str, test_export_path: str) -> dict:
+    return run_m18_episode_scoring(combined_df, test_id, test_export_path)
+
+
+def run_m12_episode_scoring(combined_df: pd.DataFrame, test_id: str, test_export_path: str) -> dict:
+    return run_m18_episode_scoring(combined_df, test_id, test_export_path)
 
 
 # ==========================================================================
@@ -1115,7 +905,6 @@ async def evaluate_test(
         with open(temp_json, "wb") as buf:
             buf.write(sensors.file.read())
 
-        # Integrity validation BEFORE heavy work.
         if video_sha256:
             actual = _sha256_file(temp_vid)
             if actual.lower() != video_sha256.lower():
@@ -1141,7 +930,6 @@ async def evaluate_test(
         except Exception as e:
             log.warning(f"⚠️ Could not save original input video copy: {e}")
 
-        # Sensor processing.
         update_progress(test_id, 5, "Processing sensor data...")
         sensor_df = await asyncio.to_thread(process_sensor_json, temp_json)
         sensor_df.to_csv(
@@ -1149,7 +937,6 @@ async def evaluate_test(
             index=False,
         )
 
-        # YOLO.
         update_progress(test_id, 10, "Running YOLO detection...")
         annotated_video_path = os.path.join(test_export_path, "yolo_annotated.mp4")
 
@@ -1163,7 +950,6 @@ async def evaluate_test(
         with open(os.path.join(test_export_path, "1b_video_events.json"), "w", encoding="utf-8") as f:
             json.dump(video_events, f, ensure_ascii=False, indent=2)
 
-        # Vector build.
         update_progress(test_id, 80, "Building feature vector...")
         combined_df = build_feature_vector(sensor_df, video_events)
         combined_df.to_csv(
@@ -1171,9 +957,8 @@ async def evaluate_test(
             index=False,
         )
 
-        # M12 LSTM + episode scoring.
         score = await asyncio.to_thread(
-            run_m12_episode_scoring,
+            run_m18_episode_scoring,
             combined_df,
             test_id,
             test_export_path,
@@ -1195,6 +980,7 @@ async def evaluate_test(
         ignored_warning_events = score["ignored_warning_events"]
 
         windows_analyzed = score["windows_analyzed"]
+        episode_rows_analyzed = score.get("episode_rows_analyzed", 0)
 
         update_progress(test_id, 100, "Complete!")
 
@@ -1207,7 +993,9 @@ async def evaluate_test(
         return {
             "status": "success",
             "test_id": test_id,
-            "model_id": MODEL_ID,
+            "model_id": (global_model_config or {}).get("model_id", MODEL_ID),
+            "model_type": MODEL_TYPE,
+            "model_family": MODEL_FAMILY,
             "student_id": student_id,
             "tester_email": tester["email"],
             "result": result,
@@ -1221,6 +1009,7 @@ async def evaluate_test(
             "ignored_warning_events_count": len(ignored_warning_events),
             "ignored_warning_events": ignored_warning_events,
             "windows_analyzed": windows_analyzed,
+            "episode_rows_analyzed": episode_rows_analyzed,
             "xai_explanations": xai_data,
             "decision_log": decision_log,
             "action_sequences": action_sequences,
@@ -1271,7 +1060,6 @@ async def save_test(
     tester: dict = Depends(get_current_tester),
 ):
     try:
-        # Force tester_email from token; ignore any client-supplied value.
         tester_email = tester["email"]
 
         student = await db.db["students"].find_one({

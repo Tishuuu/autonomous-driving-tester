@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../providers/user_provider.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -8,6 +11,14 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  Future<void> _logout() async {
+    await context.read<UserProvider>().logout();
+
+    if (!mounted) return;
+
+    Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -35,7 +46,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       Image.asset('assets/images/logo.webp', height: 60),
                       const SizedBox(height: 15),
 
-                      Text("settings page"),
+                      const Text(
+                        "settings page",
+                        style: TextStyle(color: Colors.white),
+                      ),
+
+                      const SizedBox(height: 30),
+
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _logout,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.redAccent,
+                            foregroundColor: Colors.white,
+                          ),
+                          child: const Text("LOGOUT"),
+                        ),
+                      ),
                     ],
                   ),
                 ),

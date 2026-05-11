@@ -1,0 +1,143 @@
+{
+  "model_id": "M18.6",
+  "code_version": "v7.3-stop-precedence-constraint",
+  "generator_version": "v6.3+real_assisted_v7.3_stop_precedence_constraint",
+  "generator_features": [
+    "ood_sanitized_metadata_features",
+    "scaler_safety_floors",
+    "scaled_input_clipping",
+    "random_heading_base",
+    "gps_post_stop_coast",
+    "realistic_gps_lag_smoothing_underreport",
+    "heading_drift_and_turn_bursts",
+    "longer_episode_lengths",
+    "memory_expiry",
+    "post_event_tail",
+    "master_seed_adversarial_pairs",
+    "class_balanced_sampler",
+    "stop_correct_with_threat_variants",
+    "running_stop_with_threat_variants",
+    "yield_correct_full_stop_mix_variants",
+    "stop_bad_yield_real_shape_variants",
+    "yielded_to_threat_positive_labels",
+    "yielded_to_threat_weighted_bce",
+    "pretrain_dataset_semantic_smoke_test",
+    "refined_leakage_hash_report",
+    "real_assisted_finetune",
+    "real_train_holdout_split",
+    "asymmetric_real_oversampling",
+    "real_augmentations",
+    "real_holdout_epoch_monitor",
+    "classic_noentry_handled_holdout_gate",
+    "yielded_to_threat_real_dynamic_gate",
+    "softer_real_pressure_v6_5_4",
+    "stop_bad_yield_sampling_deboost",
+    "weighted_combined_real_gate",
+    "classic_noentry_train_signal",
+    "v7_targeted_real_train_cases",
+    "v7_1_soft_targeted_pressure",
+    "v7_3_stop_precedence_constraint",
+    "stop_zero_aux_loss_boost",
+    "targeted_running_stop_pressure",
+    "base_from_m18_2_preview"
+  ],
+  "model_family": "episode_level_scenario_bilstm",
+  "max_len": 256,
+  "pad_value": -1000000.0,
+  "n_features": 33,
+  "feature_names": [
+    "time_seconds",
+    "speed_kmh",
+    "jerk",
+    "car_distance",
+    "car_ttc",
+    "car_relative_x",
+    "car_relative_y",
+    "car_motion_x",
+    "car_motion_y",
+    "car_static_score",
+    "sign_type",
+    "sign_distance",
+    "sign_ttc",
+    "memory_sign_type",
+    "memory_sign_distance",
+    "time_since_sign_seen_sec",
+    "meters_since_sign_seen",
+    "last_seen_sign_distance",
+    "memory_sign_ttc",
+    "gps_accuracy",
+    "gps_age_ms",
+    "gps_update_count_delta",
+    "gps_dx_m",
+    "gps_dy_m",
+    "gps_step_distance_m",
+    "gps_speed_kmh",
+    "heading_sin",
+    "heading_cos",
+    "heading_delta_deg",
+    "turn_rate_deg_s",
+    "accel_x",
+    "accel_y",
+    "accel_z"
+  ],
+  "scenario_names": [
+    "NORMAL",
+    "STOP_CORRECT",
+    "RUNNING_STOP",
+    "STOP_THEN_BAD_YIELD",
+    "YIELD_CORRECT",
+    "YIELD_FAILURE",
+    "NOENTRY_VIOLATION"
+  ],
+  "scenario_to_events": {
+    "NORMAL": [],
+    "STOP_CORRECT": [
+      "CorrectStop",
+      "CorrectYield"
+    ],
+    "RUNNING_STOP": [
+      "RunningStop"
+    ],
+    "STOP_THEN_BAD_YIELD": [
+      "CorrectStop",
+      "FailureToYield"
+    ],
+    "YIELD_CORRECT": [
+      "CorrectYield"
+    ],
+    "YIELD_FAILURE": [
+      "FailureToYield"
+    ],
+    "NOENTRY_VIOLATION": [
+      "NoEntryViolation"
+    ]
+  },
+  "normal_subtype_names": [
+    "NORMAL_NO_SIGN",
+    "NORMAL_HANDLED_YIELD",
+    "NORMAL_HANDLED_NOENTRY"
+  ],
+  "atomic_aux_head_names": [
+    "speed_reached_zero",
+    "stopped_at_sign",
+    "relevant_threat_present",
+    "yielded_to_threat",
+    "continued_past_sign"
+  ],
+  "inference_decision_output": "scenario_probs",
+  "auxiliary_outputs_training_debug_only": [
+    "normal_subtype_probs",
+    "speed_reached_zero",
+    "stopped_at_sign",
+    "relevant_threat_present",
+    "yielded_to_threat",
+    "continued_past_sign"
+  ],
+  "design_decisions": {
+    "running_stop_with_threat": "Merged into RUNNING_STOP for M18.0. Adding RUNNING_STOP_WITH_THREAT requires retraining.",
+    "noentry_safe": "Merged into NORMAL for M18.0. Backend should not create NOENTRY_SAFE events.",
+    "tailgating": "Excluded from M18.0 scenario model. Tailgating should be a separate module if needed.",
+    "normal_handled_stop": "Removed from NORMAL subtypes. Complete handled STOP is STOP_CORRECT; incomplete STOP approach should be represented by NORMAL_NO_SIGN or future data-specific subtype only if non-contradictory.",
+    "inference_outputs": "Only scenario_class is used for road-rule decisions. Auxiliary heads are training/debug only."
+  }
+}
