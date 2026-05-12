@@ -29,9 +29,9 @@ class _StudentPredictionDetailScreenState
 
   static const Map<int, String> _violationNames = {
     1: "Tailgating",
-    2: "Running Stop Signs",
+    2: "Running Stop",
     3: "Failure to Yield",
-    4: "No Entry Violations",
+    4: "No Entry Violation",
   };
 
   static const Map<int, IconData> _violationIcons = {
@@ -53,6 +53,75 @@ class _StudentPredictionDetailScreenState
     final email = Provider.of<UserProvider>(context, listen: false).user?.email;
     if (email == null) return null;
     return ApiService.getStudentPrediction(widget.studentId);
+  }
+
+  int _asInt(dynamic value, {int fallback = 0}) {
+    if (value == null) return fallback;
+    if (value is int) return value;
+    if (value is num) return value.round();
+    return int.tryParse(value.toString()) ?? fallback;
+  }
+
+  double _asDouble(dynamic value, {double fallback = 0.0}) {
+    if (value == null) return fallback;
+    if (value is num) return value.toDouble();
+    return double.tryParse(value.toString()) ?? fallback;
+  }
+
+  List<dynamic> _asList(dynamic value) {
+    if (value is List) return value;
+    return const [];
+  }
+
+  Map<String, dynamic> _asMap(dynamic value) {
+    if (value is Map<String, dynamic>) return value;
+    if (value is Map) return value.map((key, val) => MapEntry(key.toString(), val));
+    return <String, dynamic>{};
+  }
+
+  String _confidenceLabel(String confidence) {
+    switch (confidence) {
+      case 'high':
+        return 'High Confidence';
+      case 'medium':
+        return 'Medium Confidence';
+      case 'low':
+        return 'Low Confidence';
+      case 'no_model':
+        return 'Model Not Ready';
+      case 'no_data':
+        return 'No Data';
+      default:
+        return 'Limited Confidence';
+    }
+  }
+
+  Color _confidenceColor(String confidence) {
+    switch (confidence) {
+      case 'high':
+        return _activeGreen;
+      case 'medium':
+        return _primaryBlue;
+      case 'low':
+        return _warningOrange;
+      case 'no_model':
+        return _errorRed;
+      default:
+        return Colors.white38;
+    }
+  }
+
+  Color _scoreColor(int? rate) {
+    if (rate == null) return Colors.white24;
+    if (rate >= 75) return _activeGreen;
+    if (rate >= 50) return _warningOrange;
+    return _errorRed;
+  }
+
+  Color _riskColor(String level, int percentile) {
+    if (level == 'high' || percentile >= 75) return _errorRed;
+    if (level == 'medium' || percentile >= 50) return _warningOrange;
+    return _primaryBlue;
   }
 
   @override
@@ -107,69 +176,54 @@ class _StudentPredictionDetailScreenState
   }
 
   Widget _buildContent(Map<String, dynamic> data) {
-    final int testsCount = data['tests_count'] ?? 0;
-    final int? rate = data['predicted_success_rate'];
+    final int testsCount = _asInt(data['tests_count']);
+    final int? rate = data['predicted_success_rate'] == null
+        ? null
+        : _asInt(data['predicted_success_rate']);
     final String trend = data['trend']?.toString() ?? 'unknown';
     final String confidence = data['confidence']?.toString() ?? 'no_data';
-    final num avg = data['average_grade'] ?? 0;
-    final List<dynamic> lastGrades = data['last_grades'] ?? [];
-    final List<dynamic> weakest = data['weakest_violations'] ?? [];
+    final num avg = data['average_grade'] is num ? data['average_grade'] as num : 0;
+    final List<dynamic> lastGrades = _asList(data['last_grades']);
+    final List<dynamic> riskPredictions = _asList(data['risk_predictions']);
+    final List<dynamic> weakest = riskPredictions.isNotEmpty
+        ? riskPredictions
+        : _asList(data['weakest_violations']);
     final String recommendation = data['recommendation']?.toString() ?? '';
+    final Map<String, dynamic> modelInfo = _asMap(data['prediction_model']);
 
     if (testsCount == 0) {
       return _buildNoData();
     }
 
-    final Color color = rate == null
-        ? Colors.white24
-        : rate >= 80
-        ? _activeGreen
-        : rate >= 60
-        ? _warningOrange
-        : _errorRed;
+    final Color color = _scoreColor(rate);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(20, 60, 20, 30),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ===== Section 1: ה-Headline (תחזית) =====
-          _buildPredictionHero(rate, color, confidence),
+          _buildPredictionHero(rate, color, confidence, modelInfo),
 
           const SizedBox(height: 20),
-
-          // ===== Section 2: המלצת ה-AI =====
           _buildRecommendationCard(recommendation, color),
 
           const SizedBox(height: 28),
+          _buildSectionTitle("MODEL RISK RANKING", Icons.psychology_alt_outlined),
+          const SizedBox(height: 12),
+          if (weakest.isNotEmpty)
+            ...weakest.map((risk) => _buildRiskCard(_asMap(risk), testsCount))
+          else
+            _buildNoWeaknessCard(),
 
-          // ===== Section 3: ניתוח מגמה =====
+          const SizedBox(height: 28),
           _buildSectionTitle("PERFORMANCE TREND", Icons.timeline),
           const SizedBox(height: 12),
           _buildTrendCard(trend, lastGrades, avg),
 
           const SizedBox(height: 28),
-
-          // ===== Section 4: זיהוי תחומי חולשה =====
-          _buildSectionTitle("WEAKNESS DETECTION", Icons.warning_amber_rounded),
-          const SizedBox(height: 12),
-          if (weakest.isNotEmpty)
-            ...weakest.map(
-              (w) => _buildWeaknessCard(
-                w['code'] ?? 0,
-                w['count'] ?? 0,
-                testsCount,
-              ),
-            )
-          else
-            _buildNoWeaknessCard(),
-
-          const SizedBox(height: 28),
-
-          // ===== Section 5: מידע על האנליזה =====
           _buildSectionTitle("ABOUT THIS PREDICTION", Icons.info_outline),
           const SizedBox(height: 12),
-          _buildInfoCard(testsCount, confidence),
+          _buildInfoCard(testsCount, confidence, modelInfo),
         ],
       ),
     );
@@ -195,8 +249,19 @@ class _StudentPredictionDetailScreenState
     );
   }
 
-  // ===== Hero: תחזית מרכזית =====
-  Widget _buildPredictionHero(int? rate, Color color, String confidence) {
+  Widget _buildPredictionHero(
+    int? rate,
+    Color color,
+    String confidence,
+    Map<String, dynamic> modelInfo,
+  ) {
+    final String modelStatus = modelInfo['model_status']?.toString() ?? 'unknown';
+    final bool hasModel = modelStatus == 'ok' || rate != null;
+    final dynamic rawProbability = modelInfo['raw_pass_probability'];
+    final String threshold = modelInfo['pass_threshold'] == null
+        ? ''
+        : _asDouble(modelInfo['pass_threshold']).toStringAsFixed(2);
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -218,6 +283,8 @@ class _StudentPredictionDetailScreenState
             "ID: ${widget.studentId}",
             style: GoogleFonts.lexend(color: Colors.white54, fontSize: 11),
           ),
+          const SizedBox(height: 10),
+          _buildStatusChip(_confidenceLabel(confidence), _confidenceColor(confidence)),
           const SizedBox(height: 18),
           Stack(
             alignment: Alignment.center,
@@ -240,7 +307,7 @@ class _StudentPredictionDetailScreenState
                 width: 130,
                 height: 130,
                 child: CircularProgressIndicator(
-                  value: (rate ?? 0) / 100,
+                  value: rate == null ? 0 : rate.clamp(0, 100) / 100,
                   strokeWidth: 10,
                   backgroundColor: Colors.white10,
                   valueColor: AlwaysStoppedAnimation<Color>(color),
@@ -259,7 +326,7 @@ class _StudentPredictionDetailScreenState
                     ),
                   ),
                   Text(
-                    "% chance",
+                    "% readiness",
                     style: GoogleFonts.lexend(
                       color: Colors.white54,
                       fontSize: 10,
@@ -271,16 +338,53 @@ class _StudentPredictionDetailScreenState
           ),
           const SizedBox(height: 14),
           Text(
-            "of passing the next driving test",
+            hasModel
+                ? "estimated chance of passing if tested now"
+                : "student prediction model is not available yet",
+            textAlign: TextAlign.center,
             style: GoogleFonts.lexend(color: Colors.white70, fontSize: 13),
           ),
+          if (rawProbability != null || threshold.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              [
+                if (rawProbability != null)
+                  "raw=${_asDouble(rawProbability).toStringAsFixed(3)}",
+                if (threshold.isNotEmpty) "threshold=$threshold",
+              ].join("  •  "),
+              style: GoogleFonts.lexend(color: Colors.white38, fontSize: 10),
+            ),
+          ],
         ],
       ),
     );
   }
 
-  // ===== המלצת AI =====
+  Widget _buildStatusChip(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.14),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withOpacity(0.35)),
+      ),
+      child: Text(
+        label,
+        style: GoogleFonts.lexend(
+          color: color,
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 0.4,
+        ),
+      ),
+    );
+  }
+
   Widget _buildRecommendationCard(String text, Color color) {
+    final String safeText = text.trim().isEmpty
+        ? "Run more saved tests to improve the student readiness prediction."
+        : text.trim();
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -315,7 +419,7 @@ class _StudentPredictionDetailScreenState
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  text,
+                  safeText,
                   style: GoogleFonts.lexend(
                     color: Colors.white,
                     fontSize: 14,
@@ -330,7 +434,157 @@ class _StudentPredictionDetailScreenState
     );
   }
 
-  // ===== ניתוח מגמה =====
+  Widget _buildRiskCard(Map<String, dynamic> risk, int totalTests) {
+    final int code = _asInt(risk['code']);
+    final String label = risk['label']?.toString() ??
+        _violationNames[code] ??
+        "Unknown Violation";
+    final IconData icon = _violationIcons[code] ?? Icons.warning_amber;
+
+    final int historyCount = _asInt(risk['history_count'] ?? risk['count']);
+    final double rawRisk = _asDouble(risk['risk'], fallback: -1.0);
+    final int riskPercent = risk['risk_percent'] == null
+        ? (rawRisk >= 0 ? (rawRisk * 100).round() : 0)
+        : _asInt(risk['risk_percent']);
+    final String riskLevel = risk['risk_level']?.toString() ??
+        (riskPercent >= 75 ? 'high' : riskPercent >= 50 ? 'medium' : 'low');
+    final Color color = _riskColor(riskLevel, riskPercent);
+
+    final double progressValue = (riskPercent.clamp(0, 100)) / 100.0;
+    final String levelLabel = riskLevel.isEmpty
+        ? 'Unknown'
+        : '${riskLevel[0].toUpperCase()}${riskLevel.substring(1)}';
+
+    final String subtitle = rawRisk >= 0
+        ? "Risk percentile: $riskPercent% • Model score: ${rawRisk.toStringAsFixed(2)}"
+        : "Seen in $historyCount of $totalTests tests";
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: color.withOpacity(0.25)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: color, size: 18),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: GoogleFonts.lexend(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Text(
+                      subtitle,
+                      style: GoogleFonts.lexend(
+                        color: Colors.white54,
+                        fontSize: 11,
+                      ),
+                    ),
+                    if (historyCount > 0) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        "Historical count: $historyCount",
+                        style: GoogleFonts.lexend(
+                          color: Colors.white38,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  levelLabel,
+                  style: GoogleFonts.lexend(
+                    color: color,
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: progressValue,
+              minHeight: 6,
+              backgroundColor: Colors.white10,
+              valueColor: AlwaysStoppedAnimation<Color>(color),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNoWeaknessCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: _activeGreen.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: _activeGreen.withOpacity(0.3)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.verified, color: _activeGreen, size: 24),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "No recurring weaknesses",
+                  style: GoogleFonts.lexend(
+                    color: _activeGreen,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  "No specific risk pattern detected by the model.",
+                  style: GoogleFonts.lexend(
+                    color: Colors.white54,
+                    fontSize: 11,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildTrendCard(String trend, List<dynamic> lastGrades, num avg) {
     final IconData trendIcon =
         {
@@ -360,7 +614,7 @@ class _StudentPredictionDetailScreenState
     final String trendDescription =
         {
           'improving':
-              "Performance is rising. Recent grades higher than earlier ones.",
+              "Performance is rising. Recent tests look stronger than earlier ones.",
           'declining':
               "Recent performance has dropped. Focus on consistent practice.",
           'stable': "Performance is consistent across recent tests.",
@@ -438,17 +692,21 @@ class _StudentPredictionDetailScreenState
   }
 
   Widget _buildGradesChart(List<dynamic> grades) {
-    final List<num> nums = grades.map((g) => g as num).toList();
+    final List<num> nums = grades
+        .whereType<num>()
+        .map((g) => g)
+        .toList();
+    if (nums.isEmpty) return const SizedBox.shrink();
+
     const num maxGrade = 100;
-    const double chartHeight = 110; // ✅ גובה כולל מספיק לכל התוכן
-    const double maxBarHeight = 70; // ✅ עמודה מקסימלית - משאיר מקום לטקסט
+    const double chartHeight = 110;
+    const double maxBarHeight = 70;
 
     return SizedBox(
       height: chartHeight,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          // ציר Y
           SizedBox(
             width: 24,
             height: chartHeight,
@@ -456,7 +714,7 @@ class _StudentPredictionDetailScreenState
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                const SizedBox(height: 14), // align עם הטקסט של המספר
+                const SizedBox(height: 14),
                 Text(
                   "100",
                   style: GoogleFonts.lexend(color: Colors.white24, fontSize: 9),
@@ -484,7 +742,7 @@ class _StudentPredictionDetailScreenState
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     Text(
-                      "$g",
+                      g.toStringAsFixed(0),
                       style: GoogleFonts.lexend(
                         color: passed ? _activeGreen : _errorRed,
                         fontSize: 10,
@@ -493,7 +751,7 @@ class _StudentPredictionDetailScreenState
                     ),
                     const SizedBox(height: 4),
                     Container(
-                      height: max(4, h),
+                      height: max(4, h.toDouble()),
                       decoration: BoxDecoration(
                         color: passed
                             ? _activeGreen.withOpacity(isLatest ? 1 : 0.5)
@@ -522,144 +780,26 @@ class _StudentPredictionDetailScreenState
     );
   }
 
-  // ===== כרטיס חולשה =====
-  Widget _buildWeaknessCard(int code, int count, int totalTests) {
-    final String name = _violationNames[code] ?? "Unknown Violation";
-    final IconData icon = _violationIcons[code] ?? Icons.warning_amber;
-    final double frequency = totalTests == 0 ? 0 : count / totalTests;
-    final int frequencyPct = (frequency * 100).round();
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: _errorRed.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: _errorRed.withOpacity(0.25)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: _errorRed.withOpacity(0.15),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, color: _errorRed, size: 18),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      name,
-                      style: GoogleFonts.lexend(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    Text(
-                      "Occurred in $count of $totalTests tests ($frequencyPct%)",
-                      style: GoogleFonts.lexend(
-                        color: Colors.white54,
-                        fontSize: 11,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: _errorRed.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  "$count×",
-                  style: GoogleFonts.lexend(
-                    color: _errorRed,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: frequency,
-              minHeight: 6,
-              backgroundColor: Colors.white10,
-              valueColor: const AlwaysStoppedAnimation<Color>(_errorRed),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNoWeaknessCard() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: _activeGreen.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: _activeGreen.withOpacity(0.3)),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.verified, color: _activeGreen, size: 24),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "No recurring weaknesses",
-                  style: GoogleFonts.lexend(
-                    color: _activeGreen,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  "No specific violation pattern detected",
-                  style: GoogleFonts.lexend(
-                    color: Colors.white54,
-                    fontSize: 11,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ===== מידע על האנליזה =====
-  Widget _buildInfoCard(int testsCount, String confidence) {
-    final Color confColor = confidence == 'high'
-        ? _activeGreen
-        : confidence == 'medium'
-        ? _primaryBlue
-        : Colors.white38;
+  Widget _buildInfoCard(
+    int testsCount,
+    String confidence,
+    Map<String, dynamic> modelInfo,
+  ) {
+    final Color confColor = _confidenceColor(confidence);
+    final String modelVersion =
+        modelInfo['model_version']?.toString() ?? 'student-success-v2.3';
+    final String historyUsed = modelInfo['history_used']?.toString() ?? '$testsCount';
+    final String modelStatus = modelInfo['model_status']?.toString() ?? 'unknown';
 
     final String confDescription =
         {
-          'high': "Based on 5+ tests. High accuracy.",
-          'medium': "Based on 3-4 tests. Moderate accuracy.",
-          'low': "Based on 1-2 tests. Limited accuracy.",
+          'high': "Based on 6+ saved tests. Stronger history signal.",
+          'medium': "Based on 3-5 saved tests. Moderate confidence.",
+          'low': "Based on 1-2 saved tests. Limited confidence.",
+          'no_model': "The student prediction model files were not loaded.",
+          'no_data': "No saved tests were found for this student.",
         }[confidence] ??
-        "Insufficient data for prediction.";
+        "Limited prediction confidence.";
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -675,15 +815,16 @@ class _StudentPredictionDetailScreenState
             children: [
               Icon(Icons.shield_outlined, color: confColor, size: 16),
               const SizedBox(width: 8),
-              Text(
-                "${confidence[0].toUpperCase()}${confidence.substring(1)} Confidence",
-                style: GoogleFonts.lexend(
-                  color: confColor,
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
+              Expanded(
+                child: Text(
+                  _confidenceLabel(confidence),
+                  style: GoogleFonts.lexend(
+                    color: confColor,
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-              const Spacer(),
               Text(
                 "$testsCount test${testsCount == 1 ? '' : 's'}",
                 style: GoogleFonts.lexend(color: Colors.white54, fontSize: 11),
@@ -702,6 +843,10 @@ class _StudentPredictionDetailScreenState
           const SizedBox(height: 12),
           const Divider(color: Colors.white12, height: 1),
           const SizedBox(height: 10),
+          _buildInfoRow("Model", modelVersion),
+          _buildInfoRow("Status", modelStatus),
+          _buildInfoRow("History used", historyUsed),
+          const SizedBox(height: 10),
           Text(
             "How predictions work",
             style: GoogleFonts.lexend(
@@ -713,11 +858,37 @@ class _StudentPredictionDetailScreenState
           ),
           const SizedBox(height: 6),
           Text(
-            "The AI analyzes weighted average grades, recent performance trend, and recurring violation patterns to predict success likelihood.",
+            "The model analyzes the student’s saved test history with a BiLSTM sequence model. It uses repeated mistakes, positive actions, recency, and trend features to estimate readiness and rank likely risk areas.",
             style: GoogleFonts.lexend(
               color: Colors.white60,
               fontSize: 11,
               height: 1.4,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 5),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 92,
+            child: Text(
+              label,
+              style: GoogleFonts.lexend(color: Colors.white38, fontSize: 10),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: GoogleFonts.lexend(color: Colors.white60, fontSize: 10),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 2,
             ),
           ),
         ],
@@ -749,7 +920,7 @@ class _StudentPredictionDetailScreenState
             ),
             const SizedBox(height: 4),
             Text(
-              "Run a test to enable predictions",
+              "Run and save tests to enable readiness predictions.",
               textAlign: TextAlign.center,
               style: GoogleFonts.lexend(color: Colors.white38, fontSize: 13),
             ),

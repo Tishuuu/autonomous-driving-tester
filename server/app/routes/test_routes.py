@@ -2,7 +2,6 @@ import os
 import uuid
 import asyncio
 import json
-import pickle
 import hashlib
 import shutil
 from datetime import datetime
@@ -13,7 +12,7 @@ import pandas as pd
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras import layers
+from keras import layers
 import joblib
 
 from app.core.database import db
@@ -21,6 +20,7 @@ from app.utils.logger import log
 from app.services.sensor_sync import process_sensor_json
 from app.services.vision_service import analyze_video_for_server
 from app.services.vector_builder import build_feature_vector
+from app.services.student_success_predictor import get_student_predictor
 from app.models.student_model import TestSaveRequest
 from app.routes.auth_routes import get_current_tester
 
@@ -54,15 +54,12 @@ async def get_progress(test_id: str):
 
 
 # ==========================================================================
-# M18 episode-level scenario model config
+# M16 model config
 # ==========================================================================
-MODEL_ID = "M18"
-MODEL_ACCEPTED_IDS = {"M18", "M18.0", "M18.1", "M18_1"}
-MODEL_FAMILY = "episode_level_scenario_bilstm"
-MODEL_TYPE = MODEL_FAMILY
-MODEL_MAX_LEN = 256
-PAD_VALUE = -1000000.0
-SCALE_CLIP_VALUE = 12.0
+MODEL_ID = "M16"
+MODEL_WINDOW_SIZE = 60
+MODEL_WINDOW_STRIDE = 15
+MODEL_TYPE = "hierarchical_multi_head_lstm"
 SENTINEL = 99.0
 
 MODEL_FEATURES = [
@@ -108,39 +105,28 @@ MODEL_FEATURES = [
     "accel_z",
 ]
 
-SCENARIO_NAMES = [
-    "NORMAL",
-    "STOP_CORRECT",
-    "RUNNING_STOP",
-    "STOP_THEN_BAD_YIELD",
-    "YIELD_CORRECT",
-    "YIELD_FAILURE",
-    "NOENTRY_VIOLATION",
-]
+FAMILY_NONE = 0
+FAMILY_STOP = 1
+FAMILY_YIELD = 2
+FAMILY_NOENTRY = 3
+FAMILY_NAMES = ["None", "Stop", "Yield", "NoEntry"]
 
-DEFAULT_SCENARIO_TO_EVENTS = {
-    "NORMAL": [],
-    "STOP_CORRECT": ["CorrectStop", "CorrectYield"],
-    "RUNNING_STOP": ["RunningStop"],
-    "STOP_THEN_BAD_YIELD": ["CorrectStop", "FailureToYield"],
-    "YIELD_CORRECT": ["CorrectYield"],
-    "YIELD_FAILURE": ["FailureToYield"],
-    "NOENTRY_VIOLATION": ["NoEntryViolation"],
-}
+STOP_OK = 0
+STOP_BAD_YIELD = 1
+RUNNING_STOP = 2
+STOP_NAMES = ["StopOk", "StopBadYield", "RunningStop"]
 
-NORMAL_SUBTYPE_NAMES = [
-    "NORMAL_NO_SIGN",
-    "NORMAL_HANDLED_YIELD",
-    "NORMAL_HANDLED_NOENTRY",
-]
+YIELD_OK = 0
+YIELD_BAD = 1
+YIELD_NAMES = ["YieldOk", "YieldBad"]
 
-ATOMIC_AUX_HEAD_NAMES = [
-    "speed_reached_zero",
-    "stopped_at_sign",
-    "relevant_threat_present",
-    "yielded_to_threat",
-    "continued_past_sign",
-]
+NOENTRY_NOEVENT = 0
+NOENTRY_VIOLATION = 1
+NOENTRY_NAMES = ["NoEvent", "Violation"]
+
+TAILGATING_THRESHOLD = 0.5
+AGG_CLUSTER_MIN_WINDOWS = 2
+AGG_HIGH_CONF_THRESHOLD = 0.90
 
 # Legacy IDs kept stable for Flutter / DB compatibility.
 LEGACY_CLASS_NAMES = {
@@ -180,6 +166,7 @@ EVENT_BUCKET = {
     "CorrectYield": "positive",
 }
 
+# Kept for older code paths / frontend expectations.
 MODEL_CLASS_NAMES = LEGACY_CLASS_NAMES
 VIOLATION_CLASSES = {1, 2, 3, 4}
 IGNORED_WARNING_CLASSES = {1}
@@ -201,53 +188,74 @@ SIGN_MAPPING = {
     "no_entry": 3,
     "noentry": 3,
     "no entry": 3,
-    "do_not_enter": 3,
     "0": 0,
     "1": 1,
     "2": 2,
     "3": 3,
 }
 
-POSITIVE_EVENTS = {"CorrectStop", "CorrectYield"}
-MISTAKE_EVENTS = {"RunningStop", "FailureToYield", "NoEntryViolation"}
-WARN_EVENTS = {"Tailgating"}
-
 
 # ==========================================================================
-# Keras custom layer used by m18_model.keras
+# Keras custom layers used by m16_model.keras
 # ==========================================================================
-@tf.keras.utils.register_keras_serializable(package="m18", name="MaskedAttentionPool")
-class MaskedAttentionPool(layers.Layer):
-    """Attention pooling with explicit Keras mask support."""
-
-    def __init__(self, **kwargs):
+@tf.keras.utils.register_keras_serializable(package="M16", name="AttentionPool")
+class AttentionPool(layers.Layer):
+    def __init__(self, dim, **kwargs):
         super().__init__(**kwargs)
-        self.score_dense = layers.Dense(1, use_bias=False)
-        self.supports_masking = True
+        self.dim = int(dim)
+        self.score = layers.Dense(self.dim, activation="tanh")
+        self.v = layers.Dense(1, activation=None)
 
-    def call(self, inputs, mask=None):
-        scores = self.score_dense(inputs)
-        scores = tf.squeeze(scores, axis=-1)
-        if mask is not None:
-            mask_f = tf.cast(mask, scores.dtype)
-            scores = scores + (1.0 - mask_f) * tf.constant(-1e9, dtype=scores.dtype)
-        weights = tf.nn.softmax(scores, axis=-1)
-        weights = tf.expand_dims(weights, axis=-1)
-        return tf.reduce_sum(inputs * weights, axis=1)
+    def build(self, input_shape):
+        self.score.build(input_shape)
+        score_out_shape = list(input_shape)
+        score_out_shape[-1] = self.dim
+        self.v.build(tuple(score_out_shape))
+        super().build(input_shape)
 
-    def compute_mask(self, inputs, mask=None):
-        return None
+    def call(self, x, mask=None):
+        scores = self.v(self.score(x))
+        alpha = tf.nn.softmax(scores, axis=1)
+        context = tf.reduce_sum(x * alpha, axis=1)
+        return context, alpha
+
+    def get_config(self):
+        cfg = super().get_config()
+        cfg.update({"dim": self.dim})
+        return cfg
+
+
+@tf.keras.utils.register_keras_serializable(package="M16", name="StreamSlice")
+class StreamSlice(layers.Layer):
+    def __init__(self, indices, **kwargs):
+        super().__init__(**kwargs)
+        self.indices = [int(i) for i in indices]
+
+    def call(self, x):
+        return tf.gather(x, self.indices, axis=-1)
+
+    def get_config(self):
+        cfg = super().get_config()
+        cfg.update({"indices": list(self.indices)})
+        return cfg
+
+
+@tf.keras.utils.register_keras_serializable(package="M16", name="SoftmaxStopGrad")
+class SoftmaxStopGrad(layers.Layer):
+    def call(self, x):
+        return tf.stop_gradient(tf.nn.softmax(x))
 
     def get_config(self):
         return super().get_config()
 
 
 CUSTOM_OBJECTS = {
-    "MaskedAttentionPool": MaskedAttentionPool,
-    "m18>MaskedAttentionPool": MaskedAttentionPool,
-    "m18.MaskedAttentionPool": MaskedAttentionPool,
-    "M18>MaskedAttentionPool": MaskedAttentionPool,
-    "M18.MaskedAttentionPool": MaskedAttentionPool,
+    "AttentionPool": AttentionPool,
+    "StreamSlice": StreamSlice,
+    "SoftmaxStopGrad": SoftmaxStopGrad,
+    "M16>AttentionPool": AttentionPool,
+    "M16>StreamSlice": StreamSlice,
+    "M16>SoftmaxStopGrad": SoftmaxStopGrad,
 }
 
 
@@ -264,12 +272,13 @@ def _load_json(path: str) -> dict:
         return json.load(f)
 
 
-def _load_scaler(path: str):
-    try:
-        with open(path, "rb") as f:
-            return pickle.load(f)
-    except Exception:
-        return joblib.load(path)
+def _dict_values_by_numeric_key(payload: dict, fallback: list[str]) -> list[str]:
+    if not isinstance(payload, dict):
+        return fallback
+    out = []
+    for i in range(len(fallback)):
+        out.append(payload.get(str(i), fallback[i]))
+    return out
 
 
 def _load_model_class_map(class_map_path: str) -> dict:
@@ -278,18 +287,9 @@ def _load_model_class_map(class_map_path: str) -> dict:
 
     payload = _load_json(class_map_path)
 
-    model_id = str(payload.get("model_id", MODEL_ID)).strip()
-    accepted_ids_norm = {x.upper() for x in MODEL_ACCEPTED_IDS}
-    if model_id.upper() not in accepted_ids_norm:
-        raise ValueError(
-            f"Expected one of {sorted(MODEL_ACCEPTED_IDS)} class map, got model_id={model_id}"
-        )
-
-    model_family = payload.get("model_family", payload.get("model_type", MODEL_FAMILY))
-    if model_family != MODEL_FAMILY:
-        raise ValueError(f"Expected {MODEL_FAMILY} class map, got: {model_family}")
-
     feature_names = payload.get("feature_names", [])
+    if not feature_names:
+        raise ValueError(f"{MODEL_ID} class map is missing feature_names")
     if feature_names != MODEL_FEATURES:
         raise ValueError(
             f"{MODEL_ID} feature schema mismatch.\n"
@@ -297,80 +297,79 @@ def _load_model_class_map(class_map_path: str) -> dict:
             f"Got:      {feature_names}"
         )
 
-    n_features = int(payload.get("n_features", len(feature_names)))
-    if n_features != len(MODEL_FEATURES):
-        raise ValueError(f"Expected {len(MODEL_FEATURES)} features, got {n_features}")
+    model_type = payload.get("model_type", MODEL_TYPE)
+    if model_type != MODEL_TYPE:
+        raise ValueError(f"Expected {MODEL_TYPE} class map, got: {model_type}")
 
-    max_len = int(payload.get("max_len", MODEL_MAX_LEN))
-    if max_len != MODEL_MAX_LEN:
-        raise ValueError(f"Expected max_len {MODEL_MAX_LEN}, got {max_len}")
+    family = _dict_values_by_numeric_key(payload.get("family", {}), FAMILY_NAMES)
+    stop = _dict_values_by_numeric_key(payload.get("stop_behavior", {}), STOP_NAMES)
+    yld = _dict_values_by_numeric_key(payload.get("yield_behavior", {}), YIELD_NAMES)
+    noentry = _dict_values_by_numeric_key(payload.get("noentry_behavior", {}), NOENTRY_NAMES)
 
-    pad_value = float(payload.get("pad_value", PAD_VALUE))
-    if abs(pad_value - PAD_VALUE) > 1e-6:
-        raise ValueError(f"Expected pad_value {PAD_VALUE}, got {pad_value}")
+    if family != FAMILY_NAMES:
+        raise ValueError(f"M16 family schema mismatch. Expected {FAMILY_NAMES}, got {family}")
+    if stop != STOP_NAMES:
+        raise ValueError(f"M16 stop schema mismatch. Expected {STOP_NAMES}, got {stop}")
+    if yld != YIELD_NAMES:
+        raise ValueError(f"M16 yield schema mismatch. Expected {YIELD_NAMES}, got {yld}")
+    if noentry != NOENTRY_NAMES:
+        raise ValueError(f"M16 noentry schema mismatch. Expected {NOENTRY_NAMES}, got {noentry}")
 
-    scenario_names = payload.get("scenario_names", SCENARIO_NAMES)
-    if scenario_names != SCENARIO_NAMES:
-        raise ValueError(f"Scenario schema mismatch. Expected {SCENARIO_NAMES}, got {scenario_names}")
-
-    scenario_to_events = payload.get("scenario_to_events", DEFAULT_SCENARIO_TO_EVENTS)
-    missing = [s for s in SCENARIO_NAMES if s not in scenario_to_events]
-    if missing:
-        raise ValueError(f"scenario_to_events missing scenarios: {missing}")
-
-    decision_output = payload.get("inference_decision_output", "scenario_probs")
-    if decision_output != "scenario_probs":
-        raise ValueError(f"Expected inference_decision_output=scenario_probs, got {decision_output}")
+    agg = payload.get("aggregation", {}) if isinstance(payload.get("aggregation", {}), dict) else {}
+    global MODEL_WINDOW_STRIDE, AGG_CLUSTER_MIN_WINDOWS, AGG_HIGH_CONF_THRESHOLD, TAILGATING_THRESHOLD
+    MODEL_WINDOW_STRIDE = int(agg.get("window_stride", MODEL_WINDOW_STRIDE))
+    AGG_CLUSTER_MIN_WINDOWS = int(agg.get("cluster_min_windows", AGG_CLUSTER_MIN_WINDOWS))
+    AGG_HIGH_CONF_THRESHOLD = float(agg.get("high_conf_threshold", AGG_HIGH_CONF_THRESHOLD))
+    TAILGATING_THRESHOLD = float(payload.get("tailgating_threshold", TAILGATING_THRESHOLD))
 
     return payload
 
 
 def load_ai_models():
-    """Load M18 scaler + episode-level scenario BiLSTM once and fail loudly if missing."""
+    """Load M16 scaler + hierarchical multi-head LSTM once and fail loudly if an artifact is missing."""
     global global_scaler, global_lstm_model, global_model_config
 
     if global_scaler is not None and global_lstm_model is not None:
         return
 
-    log.info("Loading M18 episode-level scenario model...")
+    log.info("Loading M16 scaler + hierarchical multi-head LSTM model...")
 
     try:
         models_dir = os.path.join(BASE_DIR, "app", "ai_models")
 
-        scaler_path = os.path.join(models_dir, "m18_scaler.pkl")
-        model_path = os.path.join(models_dir, "m18_model.keras")
-        class_map_path = os.path.join(models_dir, "m18_class_map.json")
+        scaler_path = os.path.join(models_dir, "m16_scaler.pkl")
+        model_path = os.path.join(models_dir, "m16_model.keras")
+        class_map_path = os.path.join(models_dir, "m16_class_map.json")
 
         if not os.path.exists(scaler_path):
-            raise FileNotFoundError(f"M18 scaler not found: {scaler_path}")
+            raise FileNotFoundError(f"M16 scaler not found: {scaler_path}")
         if not os.path.exists(model_path):
-            raise FileNotFoundError(f"M18 model not found: {model_path}")
+            raise FileNotFoundError(f"M16 model not found: {model_path}")
         if not os.path.exists(class_map_path):
-            raise FileNotFoundError(f"M18 class map not found: {class_map_path}")
+            raise FileNotFoundError(f"M16 class map not found: {class_map_path}")
 
         global_model_config = _load_model_class_map(class_map_path)
-        global_scaler = _load_scaler(scaler_path)
+        global_scaler = joblib.load(scaler_path)
         global_lstm_model = keras.models.load_model(
             model_path,
             custom_objects=CUSTOM_OBJECTS,
             compile=False,
-            safe_mode=False,
         )
 
         log.info(
-            f"M18 Model + Scaler ready. Outputs: {getattr(global_lstm_model, 'output_names', [])}"
+            "M16 Model + Scaler ready. Outputs: family, stop, yield_, noentry, tailgating."
         )
 
     except Exception as e:
         global_scaler = None
         global_lstm_model = None
         global_model_config = None
-        log.error(f"Failed to load M18 model artifacts: {e}")
+        log.error(f"Failed to load M16 model artifacts: {e}")
         raise RuntimeError(f"AI model loading failed: {e}")
 
 
 # ==========================================================================
-# M18 feature prep
+# M16 feature prep
 # ==========================================================================
 def _default_for_feature(col: str) -> float:
     if col == "time_seconds":
@@ -389,18 +388,23 @@ def _default_for_feature(col: str) -> float:
         "memory_sign_ttc",
     }:
         return SENTINEL
+    if col == "gps_accuracy":
+        return 50.0
+    if col == "gps_age_ms":
+        return 5000.0
     if col == "heading_cos":
         return 1.0
-    # M18 is trained with accel_z around 0, not gravity around 9.81.
+    if col == "accel_z":
+        return 9.81
     return 0.0
 
 
-def prepare_m18_feature_frame(combined_df: pd.DataFrame) -> pd.DataFrame:
+def prepare_m16_feature_frame(combined_df: pd.DataFrame) -> pd.DataFrame:
     """
-    Prepare the 33-feature frame expected by M18.
+    Prepare the 60x33 M16 model frame.
 
-    This function only normalizes schema/ranges. It does not perform traffic-rule
-    decisions. Decision logic remains strictly scenario_probs -> scenario_to_events.
+    Missing columns are filled with safe defaults so old replay vectors can still
+    be scored. This does not add conclusions or traffic-rule gates.
     """
     if combined_df is None or len(combined_df) == 0:
         raise ValueError("combined_df is empty")
@@ -469,65 +473,22 @@ def prepare_m18_feature_frame(combined_df: pd.DataFrame) -> pd.DataFrame:
 
     x["accel_x"] = x["accel_x"].clip(-12.0, 12.0)
     x["accel_y"] = x["accel_y"].clip(-12.0, 12.0)
-    x["accel_z"] = x["accel_z"].clip(-0.2, 0.2)
+    x["accel_z"] = x["accel_z"].clip(6.0, 14.0)
 
     return x[MODEL_FEATURES].astype(np.float32)
 
 
 # Backward-compatible aliases for old imports/scripts.
-def prepare_m17_feature_frame(combined_df: pd.DataFrame) -> pd.DataFrame:
-    return prepare_m18_feature_frame(combined_df)
-
-
-def prepare_m16_feature_frame(combined_df: pd.DataFrame) -> pd.DataFrame:
-    return prepare_m18_feature_frame(combined_df)
-
-
 def prepare_m15_feature_frame(combined_df: pd.DataFrame) -> pd.DataFrame:
-    return prepare_m18_feature_frame(combined_df)
+    return prepare_m16_feature_frame(combined_df)
 
 
 def prepare_m14_feature_frame(combined_df: pd.DataFrame) -> pd.DataFrame:
-    return prepare_m18_feature_frame(combined_df)
-
-
-def sanitize_m18_model_features(X: np.ndarray) -> np.ndarray:
-    """Apply the same non-semantic GPS metadata sanitization used during M18 training."""
-    Xs = np.asarray(X, dtype=np.float32).copy()
-    idx = {name: i for i, name in enumerate(MODEL_FEATURES)}
-    for name in ("gps_accuracy", "gps_age_ms", "gps_update_count_delta"):
-        Xs[..., idx[name]] = 0.0
-    return Xs
-
-
-def _pad_scale_episode(X_raw: np.ndarray) -> Tuple[np.ndarray, np.ndarray, int, bool]:
-    """Pad/crop full episode to 256x33 and scale only real rows."""
-    if global_scaler is None:
-        load_ai_models()
-
-    real_len = int(min(len(X_raw), MODEL_MAX_LEN))
-    was_cropped = bool(len(X_raw) > MODEL_MAX_LEN)
-
-    Xp = np.full((MODEL_MAX_LEN, len(MODEL_FEATURES)), PAD_VALUE, dtype=np.float32)
-    mask = np.zeros((MODEL_MAX_LEN,), dtype=np.float32)
-
-    if real_len > 0:
-        Xp[:real_len] = X_raw[:real_len]
-        mask[:real_len] = 1.0
-
-    Xs = sanitize_m18_model_features(Xp)
-    real = mask.astype(bool)
-    if np.any(real):
-        scaled = global_scaler.transform(Xs[real]).astype(np.float32)
-        scaled = np.clip(scaled, -SCALE_CLIP_VALUE, SCALE_CLIP_VALUE).astype(np.float32)
-        Xs[real] = scaled
-    Xs[~real] = PAD_VALUE
-
-    return Xs[None, ...].astype(np.float32), mask, real_len, was_cropped
+    return prepare_m16_feature_frame(combined_df)
 
 
 # ==========================================================================
-# M18 scoring helpers
+# M16 scoring helpers
 # ==========================================================================
 def _safe_float(value: Any, default: float = 0.0) -> float:
     try:
@@ -553,37 +514,86 @@ def _json_default(obj: Any) -> Any:
     return str(obj)
 
 
-def _normalize_m18_outputs(raw: Any) -> Dict[str, np.ndarray]:
+def _softmax_np(x: np.ndarray) -> np.ndarray:
+    x = np.asarray(x, dtype=np.float32)
+    x = x - np.max(x, axis=-1, keepdims=True)
+    e = np.exp(x)
+    return e / np.sum(e, axis=-1, keepdims=True)
+
+
+def _sigmoid_np(x: np.ndarray) -> np.ndarray:
+    x = np.asarray(x, dtype=np.float32)
+    return 1.0 / (1.0 + np.exp(-x))
+
+
+def _normalize_model_outputs(raw: Any) -> Dict[str, np.ndarray]:
     if isinstance(raw, dict):
         out = dict(raw)
     elif isinstance(raw, (list, tuple)):
         names = list(getattr(global_lstm_model, "output_names", []))
-        out = {name: arr for name, arr in zip(names, raw)}
+        out = {}
+        for name, arr in zip(names, raw):
+            if name in {"family", "family_logits"}:
+                out["family"] = arr
+            elif name in {"stop", "stop_logits"}:
+                out["stop"] = arr
+            elif name in {"yield_", "yield_logits"}:
+                out["yield_"] = arr
+            elif name in {"noentry", "noentry_logits"}:
+                out["noentry"] = arr
+            elif name in {"tailgating", "tg_logits"}:
+                out["tailgating"] = arr
+        # Fallback to the known construction order.
+        if len(out) < 5 and len(raw) == 5:
+            out = {
+                "family": raw[0],
+                "stop": raw[1],
+                "yield_": raw[2],
+                "noentry": raw[3],
+                "tailgating": raw[4],
+            }
     else:
-        raise ValueError(f"Unsupported M18 model output type: {type(raw)}")
+        raise ValueError(f"Unsupported M16 model output type: {type(raw)}")
 
-    normalized: Dict[str, np.ndarray] = {}
-    known = {"scenario_probs", "normal_subtype_probs", *ATOMIC_AUX_HEAD_NAMES}
-    for key, value in out.items():
-        base = str(key).split("/")[-1].split(":")[0]
-        if base in known:
-            normalized[base] = np.asarray(value)
-        else:
-            normalized[str(key)] = np.asarray(value)
+    required = ["family", "stop", "yield_", "noentry", "tailgating"]
+    missing = [k for k in required if k not in out]
+    if missing:
+        raise ValueError(f"M16 model output missing keys: {missing}; got {list(out.keys())}")
 
-    if "scenario_probs" not in normalized:
-        raise ValueError(f"M18 model output missing scenario_probs; got {list(out.keys())}")
+    return {k: np.asarray(out[k]) for k in required}
 
-    return normalized
+
+def translate_to_legacy_events(family_idx: int, behavior_idx: int | None, tailgating_bool: bool) -> list[str]:
+    """Pure model-output -> legacy events. No sign_type checks."""
+    events: list[str] = []
+
+    if family_idx == FAMILY_STOP:
+        if behavior_idx == STOP_OK:
+            events += ["CorrectStop", "CorrectYield"]
+        elif behavior_idx == STOP_BAD_YIELD:
+            events += ["CorrectStop", "FailureToYield"]
+        elif behavior_idx == RUNNING_STOP:
+            events += ["RunningStop"]
+
+    elif family_idx == FAMILY_YIELD:
+        if behavior_idx == YIELD_OK:
+            events += ["CorrectYield"]
+        elif behavior_idx == YIELD_BAD:
+            events += ["FailureToYield"]
+
+    elif family_idx == FAMILY_NOENTRY:
+        if behavior_idx == NOENTRY_VIOLATION:
+            events += ["NoEntryViolation"]
+        # NoEntry.NoEvent emits no positive action and no violation.
+
+    if tailgating_bool:
+        events.append("Tailgating")
+
+    return events
 
 
 def _row_context(combined_df: pd.DataFrame, sample_idx: int) -> dict:
-    if len(combined_df) == 0:
-        sample_idx = 0
-        row = pd.Series(dtype=float)
-    else:
-        row = combined_df.iloc[min(max(0, int(sample_idx)), len(combined_df) - 1)]
-
+    row = combined_df.iloc[min(max(0, sample_idx), len(combined_df) - 1)]
     sign_code = int(round(_safe_float(row.get("sign_type"), 0)))
     memory_sign_code = int(round(_safe_float(row.get("memory_sign_type"), 0)))
     active_sign_code = sign_code if sign_code != 0 else memory_sign_code
@@ -603,137 +613,337 @@ def _row_context(combined_df: pd.DataFrame, sample_idx: int) -> dict:
     }
 
 
-def _representative_context_index(features_df: pd.DataFrame) -> int:
-    """Choose a reporting row. This is only for payload context, not for decisions."""
-    if features_df is None or len(features_df) == 0:
-        return 0
-
-    sign_active = (features_df["sign_type"].to_numpy() > 0) | (features_df["memory_sign_type"].to_numpy() > 0)
-    idxs = np.where(sign_active)[0]
-    if len(idxs) > 0:
-        # Prefer the row where active sign/memory distance is closest.
-        dist = np.minimum(
-            features_df["sign_distance"].to_numpy(dtype=np.float32),
-            features_df["memory_sign_distance"].to_numpy(dtype=np.float32),
-        )
-        local = int(idxs[np.argmin(dist[idxs])])
-        return local
-
-    return int(min(len(features_df) - 1, max(0, len(features_df) // 2)))
-
-
-def _event_payload(event_name: str, source: dict, ctx: dict) -> dict:
+def _event_payload(event_name: str, window_pred: dict, ctx: dict) -> dict:
     legacy_code = int(LEGACY_EVENT_CODES[event_name])
     legacy_label = LEGACY_CLASS_NAMES.get(legacy_code, LEGACY_EVENT_LABELS.get(event_name, event_name))
-    bucket = EVENT_BUCKET[event_name]
     return {
         "timestamp_sec": ctx["timestamp_sec"],
         "type": event_name,
-        "event_key": f"{bucket}:{legacy_code}:{event_name}",
+        "event_key": f"{EVENT_BUCKET[event_name]}:{legacy_code}:{event_name}",
         "event_type": (
-            "POSITIVE_ACTION" if bucket == "positive"
-            else "IGNORED_WARNING" if bucket == "warning"
+            "POSITIVE_ACTION" if EVENT_BUCKET[event_name] == "positive"
+            else "IGNORED_WARNING" if EVENT_BUCKET[event_name] == "warning"
             else "VIOLATION"
         ),
-        "confidence": round(float(source.get("event_confidence", 0.0)), 4),
-        "scenario_id": int(source.get("scenario_id", 0)),
-        "scenario_name": str(source.get("scenario_name", "NORMAL")),
-        "family_id": None,
-        "family_name": None,
-        "behavior_id": None,
-        "behavior_name": event_name,
-        "window_index": None,
-        "window_start": 0,
-        "window_end": int(source.get("episode_len", 0)),
-        "cluster_index": None,
+        "confidence": round(float(window_pred.get("event_confidence", window_pred.get("behavior_prob", 0.0))), 4),
+        "family_id": int(window_pred["family"]),
+        "family_name": FAMILY_NAMES[int(window_pred["family"])],
+        "behavior_id": None if window_pred.get("behavior") is None else int(window_pred["behavior"]),
+        "behavior_name": window_pred.get("behavior_name"),
+        "window_index": int(window_pred["window_index"]),
+        "window_start": int(window_pred["window_start"]),
         "class_id": legacy_code,
         "class_label": legacy_label,
         **ctx,
     }
 
 
-def _scenario_to_events(scenario_name: str) -> List[str]:
-    cfg = global_model_config or {}
-    scenario_to_events = cfg.get("scenario_to_events", DEFAULT_SCENARIO_TO_EVENTS)
-    return list(scenario_to_events.get(scenario_name, []))
+def _window_events(window_preds: list[dict]) -> list[set[str]]:
+    out = []
+    for wp in window_preds:
+        out.append(set(translate_to_legacy_events(
+            int(wp["family"]),
+            wp["behavior"] if wp["behavior"] is not None else -1,
+            float(wp["tg_prob"]) >= TAILGATING_THRESHOLD,
+        )))
+    return out
 
 
-def _outputs_debug(outputs: Dict[str, np.ndarray], scenario_names: List[str]) -> dict:
-    debug: Dict[str, Any] = {}
-    if "normal_subtype_probs" in outputs:
-        normal_probs = np.asarray(outputs["normal_subtype_probs"])[0].reshape(-1)
-        debug["normal_subtype_probs"] = {
-            NORMAL_SUBTYPE_NAMES[i] if i < len(NORMAL_SUBTYPE_NAMES) else f"subtype_{i}": round(float(normal_probs[i]), 4)
-            for i in range(len(normal_probs))
-        }
+def aggregate_window_predictions(window_preds: list[dict]) -> dict:
+    """
+    Aggregate model-selected window events into a test-level result.
 
-    atomic_summary = {}
-    for head in ATOMIC_AUX_HEAD_NAMES:
-        if head not in outputs:
-            continue
-        arr = np.asarray(outputs[head])[0]
-        arr = arr.reshape(arr.shape[0], -1)[:, 0]
-        atomic_summary[head] = {
-            "max": round(float(np.max(arr)), 4) if len(arr) else 0.0,
-            "mean": round(float(np.mean(arr)), 4) if len(arr) else 0.0,
-        }
-    if atomic_summary:
-        debug["atomic_aux_summary_training_debug_only"] = atomic_summary
+    NoEntry temporal resolution:
+    early NoEntry.Violation windows are suppressed when later model-selected
+    NoEntry.NoEvent resolves the cluster. This is model-output aggregation only;
+    it does not inspect sign_type and it is not a backend sign gate.
+    """
+    positive_set = {"CorrectStop", "CorrectYield"}
+    mistake_set = {"RunningStop", "FailureToYield", "NoEntryViolation"}
+    warning_set = {"Tailgating"}
 
-    return debug
+    per_window_events = _window_events(window_preds)
+
+    def _consecutive_signal(event_name: str) -> bool:
+        for wp, events in zip(window_preds, per_window_events):
+            if event_name in events:
+                prob = float(wp["tg_prob"]) if event_name == "Tailgating" else float(wp["behavior_prob"])
+                if prob >= AGG_HIGH_CONF_THRESHOLD:
+                    return True
+
+        run = 0
+        for events in per_window_events:
+            if event_name in events:
+                run += 1
+                if run >= AGG_CLUSTER_MIN_WINDOWS:
+                    return True
+            else:
+                run = 0
+        return False
+
+    def _noentry_violation_signal() -> bool:
+        ne = [(i, wp) for i, wp in enumerate(window_preds) if int(wp["family"]) == FAMILY_NOENTRY]
+        if not ne:
+            return False
+
+        viol = [(i, float(wp["behavior_prob"])) for i, wp in ne if wp["behavior"] == NOENTRY_VIOLATION]
+        noev = [(i, float(wp["behavior_prob"])) for i, wp in ne if wp["behavior"] == NOENTRY_NOEVENT]
+        if not viol:
+            return False
+
+        viol_count = len(viol)
+        noev_count = len(noev)
+        max_viol = max((p for _, p in viol), default=0.0)
+        max_noev = max((p for _, p in noev), default=0.0)
+        first_viol_i = min(i for i, _ in viol)
+        last_ne_behavior = ne[-1][1]["behavior"]
+        late_noev = [(i, p) for i, p in noev if i > first_viol_i]
+
+        if late_noev and last_ne_behavior == NOENTRY_NOEVENT:
+            late_noev_max = max(p for _, p in late_noev)
+            if noev_count >= viol_count:
+                return False
+            if noev_count >= 2 and late_noev_max >= 0.80:
+                return False
+            if late_noev_max >= 0.95 and max_noev >= max_viol * 0.90:
+                return False
+
+        if max_viol >= AGG_HIGH_CONF_THRESHOLD:
+            return True
+
+        run = 0
+        for _, wp in ne:
+            if wp["behavior"] == NOENTRY_VIOLATION:
+                run += 1
+                if run >= AGG_CLUSTER_MIN_WINDOWS:
+                    return True
+            else:
+                run = 0
+        return False
+
+    emitted = set()
+    for event_name in positive_set | warning_set | {"RunningStop", "FailureToYield"}:
+        if _consecutive_signal(event_name):
+            emitted.add(event_name)
+
+    if _noentry_violation_signal():
+        emitted.add("NoEntryViolation")
+
+    family_hist = {name: 0 for name in FAMILY_NAMES}
+    noentry_hist = {"NoEvent": 0, "Violation": 0}
+    for wp in window_preds:
+        family_hist[FAMILY_NAMES[int(wp["family"])]] += 1
+        if int(wp["family"]) == FAMILY_NOENTRY:
+            if wp["behavior"] == NOENTRY_NOEVENT:
+                noentry_hist["NoEvent"] += 1
+            elif wp["behavior"] == NOENTRY_VIOLATION:
+                noentry_hist["Violation"] += 1
+
+    mistakes = sorted(emitted & mistake_set)
+    positives = sorted(emitted & positive_set)
+    warnings = sorted(emitted & warning_set)
+
+    return {
+        "events": sorted(emitted),
+        "positive_events": positives,
+        "positive_actions": len(positives),
+        "mistakes": mistakes,
+        "mistake_codes": [LEGACY_EVENT_CODES[m] for m in mistakes],
+        "warnings": warnings,
+        "warning_codes": [LEGACY_EVENT_CODES[w] for w in warnings],
+        "n_windows": len(window_preds),
+        "family_hist": family_hist,
+        "noentry_hist": noentry_hist,
+    }
+
+
+def _best_window_for_event(event_name: str, window_preds: list[dict], combined_df: pd.DataFrame) -> tuple[dict, dict] | None:
+    candidates = []
+    for wp in window_preds:
+        events = translate_to_legacy_events(
+            int(wp["family"]),
+            wp["behavior"] if wp["behavior"] is not None else -1,
+            float(wp["tg_prob"]) >= TAILGATING_THRESHOLD,
+        )
+        if event_name in events:
+            if event_name == "Tailgating":
+                conf = float(wp["tg_prob"])
+            elif event_name == "NoEntryViolation":
+                conf = float(wp.get("noentry_probs", [0, 0])[NOENTRY_VIOLATION])
+            else:
+                conf = float(wp["behavior_prob"])
+            c = dict(wp)
+            c["event_confidence"] = conf
+            candidates.append(c)
+
+    if not candidates:
+        return None
+
+    best = max(candidates, key=lambda x: float(x.get("event_confidence", 0.0)))
+    ctx = _row_context(combined_df, int(best["window_end"]))
+    return best, ctx
 
 
 # ==========================================================================
-# M18 scoring
+# M16 scoring
 # ==========================================================================
-def run_m18_episode_scoring(
+def run_m16_hierarchical_scoring(
     combined_df: pd.DataFrame,
     test_id: str,
     test_export_path: str,
 ) -> dict:
     """
-    M18 scoring:
-    - Full episode is padded/cropped to 256x33.
-    - Same training preprocessing is applied: GPS metadata sanitization, scaler, z-clip.
-    - Model predicts scenario_probs.
-    - Backend maps argmax scenario to fixed legacy events.
-
-    No raw speed/sign/distance rules, no atomic overrides, no clusters, no thresholds.
+    M16 scoring:
+    - Hierarchical multi-head LSTM.
+    - Family head selects None/Stop/Yield/NoEntry.
+    - Selected family determines which behavior head is translated.
+    - No sign-type resolver/gate is applied after the model.
+    - Aggregation is based only on model-selected family/behavior predictions.
     """
     if global_scaler is None or global_lstm_model is None:
         load_ai_models()
 
-    X_model_df = prepare_m18_feature_frame(combined_df)
+    X_model_df = prepare_m16_feature_frame(combined_df)
     X_raw = X_model_df.to_numpy(dtype=np.float32)
-    X_scaled, mask, real_len, was_cropped = _pad_scale_episode(X_raw)
 
-    update_progress(test_id, 85, "Running M18 episode-level scenario model...")
-    raw = global_lstm_model.predict(X_scaled, batch_size=1, verbose=0)
-    outputs = _normalize_m18_outputs(raw)
-
-    scenario_names = list((global_model_config or {}).get("scenario_names", SCENARIO_NAMES))
-    scenario_probs_arr = np.asarray(outputs["scenario_probs"])[0].reshape(-1)
-    scenario_idx = int(np.argmax(scenario_probs_arr))
-    scenario_name = scenario_names[scenario_idx]
-    scenario_conf = float(scenario_probs_arr[scenario_idx])
-    events = _scenario_to_events(scenario_name)
-
-    rep_idx = _representative_context_index(X_model_df.iloc[:real_len] if real_len > 0 else X_model_df)
-    ctx = _row_context(X_model_df, rep_idx)
-
-    source = {
-        "event_confidence": scenario_conf,
-        "scenario_id": scenario_idx,
-        "scenario_name": scenario_name,
-        "episode_len": real_len,
-    }
-
+    decision_log = []
     violation_events = []
     ignored_warning_events = []
     positive_actions = []
+    xai_data = {}
+    action_sequences = []
 
-    for event_name in events:
-        payload = _event_payload(event_name, source, ctx)
+    if len(X_raw) < MODEL_WINDOW_SIZE:
+        return {
+            "result": "PASS",
+            "passed": True,
+            "grade": 100,
+            "mistakes_count": 0,
+            "violations_detected": [],
+            "ignored_warning_codes": [],
+            "ignored_warning_events": [],
+            "decision_log": [],
+            "xai_data": {},
+            "action_sequences": [],
+            "positive_actions": [],
+            "windows_analyzed": 0,
+            "violation_events": [],
+        }
+
+    X_scaled = global_scaler.transform(X_raw).astype(np.float32)
+
+    window_starts = list(range(0, len(X_scaled) - MODEL_WINDOW_SIZE + 1, max(1, int(MODEL_WINDOW_STRIDE))))
+    X_windows = np.stack([
+        X_scaled[i:i + MODEL_WINDOW_SIZE]
+        for i in window_starts
+    ]).astype(np.float32)
+
+    update_progress(test_id, 85, "Running M16 hierarchical multi-head LSTM...")
+
+    batch_size = 64
+    num_batches = max(1, (len(X_windows) + batch_size - 1) // batch_size)
+    raw_parts: Dict[str, list[np.ndarray]] = {
+        "family": [],
+        "stop": [],
+        "yield_": [],
+        "noentry": [],
+        "tailgating": [],
+    }
+
+    for batch_idx in range(num_batches):
+        start = batch_idx * batch_size
+        end = min(start + batch_size, len(X_windows))
+        batch = X_windows[start:end]
+        raw = _normalize_model_outputs(global_lstm_model.predict(batch, batch_size=batch_size, verbose=0))
+        for k in raw_parts:
+            raw_parts[k].append(raw[k])
+
+        pct = 85 + int(10 * (batch_idx + 1) / num_batches)
+        update_progress(test_id, pct, f"M16 batch {batch_idx + 1}/{num_batches}")
+
+    raw_out = {k: np.concatenate(v, axis=0) for k, v in raw_parts.items()}
+
+    family_probs = _softmax_np(raw_out["family"])
+    stop_probs = _softmax_np(raw_out["stop"])
+    yield_probs = _softmax_np(raw_out["yield_"])
+    noentry_probs = _softmax_np(raw_out["noentry"])
+    tailgating_probs = _sigmoid_np(raw_out["tailgating"].reshape(-1))
+
+    family_pred = family_probs.argmax(axis=1).astype(np.int32)
+    stop_pred = stop_probs.argmax(axis=1).astype(np.int32)
+    yield_pred = yield_probs.argmax(axis=1).astype(np.int32)
+    noentry_pred = noentry_probs.argmax(axis=1).astype(np.int32)
+
+    window_preds = []
+
+    for wi, start_idx in enumerate(window_starts):
+        end_idx = min(start_idx + MODEL_WINDOW_SIZE - 1, len(combined_df) - 1)
+        ctx = _row_context(combined_df, end_idx)
+
+        fam = int(family_pred[wi])
+        behavior = None
+        behavior_name = None
+        behavior_prob = 0.0
+
+        if fam == FAMILY_STOP:
+            behavior = int(stop_pred[wi])
+            behavior_name = STOP_NAMES[behavior]
+            behavior_prob = float(stop_probs[wi, behavior])
+        elif fam == FAMILY_YIELD:
+            behavior = int(yield_pred[wi])
+            behavior_name = YIELD_NAMES[behavior]
+            behavior_prob = float(yield_probs[wi, behavior])
+        elif fam == FAMILY_NOENTRY:
+            behavior = int(noentry_pred[wi])
+            behavior_name = NOENTRY_NAMES[behavior]
+            behavior_prob = float(noentry_probs[wi, behavior])
+
+        wp = {
+            "window_index": int(wi),
+            "window_start": int(start_idx),
+            "window_end": int(end_idx),
+            "timestamp_sec": ctx["timestamp_sec"],
+            "family": fam,
+            "family_name": FAMILY_NAMES[fam],
+            "behavior": behavior,
+            "behavior_name": behavior_name,
+            "behavior_prob": behavior_prob,
+            "tg_prob": float(tailgating_probs[wi]),
+            "family_probs": family_probs[wi].tolist(),
+            "stop_probs": stop_probs[wi].tolist(),
+            "yield_probs": yield_probs[wi].tolist(),
+            "noentry_probs": noentry_probs[wi].tolist(),
+            "context": ctx,
+        }
+        window_preds.append(wp)
+
+        decision_log.append({
+            "window_index": int(wi),
+            "window_start": int(start_idx),
+            "window_end": int(end_idx),
+            "timestamp_sec": ctx["timestamp_sec"],
+            "family_id": fam,
+            "family_name": FAMILY_NAMES[fam],
+            "behavior_id": behavior,
+            "behavior_name": behavior_name,
+            "behavior_prob": round(float(behavior_prob), 4),
+            "tailgating_prob": round(float(tailgating_probs[wi]), 4),
+            "family_probs": {FAMILY_NAMES[j]: round(float(family_probs[wi, j]), 4) for j in range(len(FAMILY_NAMES))},
+            "stop_probs": {STOP_NAMES[j]: round(float(stop_probs[wi, j]), 4) for j in range(len(STOP_NAMES))},
+            "yield_probs": {YIELD_NAMES[j]: round(float(yield_probs[wi, j]), 4) for j in range(len(YIELD_NAMES))},
+            "noentry_probs": {NOENTRY_NAMES[j]: round(float(noentry_probs[wi, j]), 4) for j in range(len(NOENTRY_NAMES))},
+            "context": ctx,
+        })
+
+    agg = aggregate_window_predictions(window_preds)
+
+    for event_name in agg["events"]:
+        best = _best_window_for_event(event_name, window_preds, combined_df)
+        if best is None:
+            continue
+        wp, ctx = best
+        payload = _event_payload(event_name, wp, ctx)
+
         bucket = EVENT_BUCKET[event_name]
         if bucket == "positive":
             positive_actions.append(payload)
@@ -750,57 +960,16 @@ def run_m18_episode_scoring(
     passed = result == "PASS"
     final_grade = 100 if passed else 0
 
-    decision_log = [{
-        "episode_index": 0,
-        "timestamp_sec": ctx["timestamp_sec"],
-        "scenario_id": scenario_idx,
-        "scenario_name": scenario_name,
-        "scenario_confidence": round(scenario_conf, 4),
-        "scenario_probs": {
-            scenario_names[i]: round(float(scenario_probs_arr[i]), 4)
-            for i in range(len(scenario_probs_arr))
-        },
-        "events": list(events),
-        "context": ctx,
-        "input_rows": int(len(X_raw)),
-        "model_rows": int(real_len),
-        "max_len": MODEL_MAX_LEN,
-        "was_cropped": bool(was_cropped),
-    }]
-
-    debug = _outputs_debug(outputs, scenario_names)
-    if debug:
-        decision_log[0].update(debug)
-
-    aggregation = {
-        "scenario_id": scenario_idx,
-        "scenario_name": scenario_name,
-        "scenario_confidence": scenario_conf,
-        "scenario_probs": {
-            scenario_names[i]: float(scenario_probs_arr[i])
-            for i in range(len(scenario_probs_arr))
-        },
-        "events": list(events),
-        "scenario_to_events": (global_model_config or {}).get("scenario_to_events", DEFAULT_SCENARIO_TO_EVENTS),
-        "input_rows": int(len(X_raw)),
-        "model_rows": int(real_len),
-        "max_len": MODEL_MAX_LEN,
-        "was_cropped": bool(was_cropped),
-        "policy": "M18 episode-level scenario argmax only. No raw runtime traffic-rule gates.",
-    }
-    aggregation.update(debug)
-
     thought_payload = {
         "test_id": test_id,
         "exported_at": datetime.now().isoformat(),
-        "model_id": (global_model_config or {}).get("model_id", MODEL_ID),
+        "model_id": MODEL_ID,
         "model_type": MODEL_TYPE,
-        "model_family": MODEL_FAMILY,
-        "code_version": (global_model_config or {}).get("code_version"),
-        "generator_version": (global_model_config or {}).get("generator_version"),
         "feature_names": MODEL_FEATURES,
-        "scenario_names": scenario_names,
-        "scenario_to_events": (global_model_config or {}).get("scenario_to_events", DEFAULT_SCENARIO_TO_EVENTS),
+        "family_names": FAMILY_NAMES,
+        "stop_names": STOP_NAMES,
+        "yield_names": YIELD_NAMES,
+        "noentry_names": NOENTRY_NAMES,
         "legacy_class_names": {str(k): v for k, v in LEGACY_CLASS_NAMES.items()},
         "result": result,
         "passed": passed,
@@ -811,20 +980,21 @@ def run_m18_episode_scoring(
         "ignored_warning_events": ignored_warning_events,
         "grade": final_grade,
         "decision_log": decision_log,
-        "window_predictions": [],
-        "aggregation": aggregation,
-        "xai_explanations": {},
-        "action_sequences": [],
+        "window_predictions": window_preds,
+        "aggregation": agg,
+        "xai_explanations": xai_data,
+        "action_sequences": action_sequences,
         "positive_actions": positive_actions,
         "positive_actions_count": len(positive_actions),
         "violation_events": violation_events,
         "violation_events_count": len(violation_events),
-        "windows_analyzed": 0,
-        "episode_rows_analyzed": int(real_len),
+        "windows_analyzed": len(X_windows),
+        "window_stride": MODEL_WINDOW_STRIDE,
         "episode_policy": (
-            "M18 episode-level scenario BiLSTM. Backend uses only scenario_probs argmax "
-            "and class_map scenario_to_events. Auxiliary heads are debug/training-only. "
-            "No raw speed/sign/distance runtime gates are used for road-rule decisions."
+            "M16 hierarchical multi-head LSTM. The model chooses family and behavior heads. "
+            "No sign-type resolver/gate is applied after the model. "
+            "Backend only aggregates model-selected outputs and translates to legacy events. "
+            "NoEntry.NoEvent emits no positive action."
         ),
     }
 
@@ -840,35 +1010,26 @@ def run_m18_episode_scoring(
         "ignored_warning_codes": ignored_warning_codes,
         "ignored_warning_events": ignored_warning_events,
         "decision_log": decision_log,
-        "xai_data": {},
-        "action_sequences": [],
+        "xai_data": xai_data,
+        "action_sequences": action_sequences,
         "positive_actions": positive_actions,
-        "windows_analyzed": 0,
-        "episode_rows_analyzed": int(real_len),
+        "windows_analyzed": len(X_windows),
         "violation_events": violation_events,
-        "aggregation": aggregation,
+        "aggregation": agg,
     }
 
 
 # Backward-compatible aliases for scripts that call old names.
-def run_m17_atomic_scoring(combined_df: pd.DataFrame, test_id: str, test_export_path: str) -> dict:
-    return run_m18_episode_scoring(combined_df, test_id, test_export_path)
-
-
-def run_m16_hierarchical_scoring(combined_df: pd.DataFrame, test_id: str, test_export_path: str) -> dict:
-    return run_m18_episode_scoring(combined_df, test_id, test_export_path)
-
-
 def run_m15_composite_scoring(combined_df: pd.DataFrame, test_id: str, test_export_path: str) -> dict:
-    return run_m18_episode_scoring(combined_df, test_id, test_export_path)
+    return run_m16_hierarchical_scoring(combined_df, test_id, test_export_path)
 
 
 def run_m14_multilabel_scoring(combined_df: pd.DataFrame, test_id: str, test_export_path: str) -> dict:
-    return run_m18_episode_scoring(combined_df, test_id, test_export_path)
+    return run_m16_hierarchical_scoring(combined_df, test_id, test_export_path)
 
 
 def run_m12_episode_scoring(combined_df: pd.DataFrame, test_id: str, test_export_path: str) -> dict:
-    return run_m18_episode_scoring(combined_df, test_id, test_export_path)
+    return run_m16_hierarchical_scoring(combined_df, test_id, test_export_path)
 
 
 # ==========================================================================
@@ -958,7 +1119,7 @@ async def evaluate_test(
         )
 
         score = await asyncio.to_thread(
-            run_m18_episode_scoring,
+            run_m16_hierarchical_scoring,
             combined_df,
             test_id,
             test_export_path,
@@ -980,7 +1141,6 @@ async def evaluate_test(
         ignored_warning_events = score["ignored_warning_events"]
 
         windows_analyzed = score["windows_analyzed"]
-        episode_rows_analyzed = score.get("episode_rows_analyzed", 0)
 
         update_progress(test_id, 100, "Complete!")
 
@@ -993,9 +1153,8 @@ async def evaluate_test(
         return {
             "status": "success",
             "test_id": test_id,
-            "model_id": (global_model_config or {}).get("model_id", MODEL_ID),
+            "model_id": MODEL_ID,
             "model_type": MODEL_TYPE,
-            "model_family": MODEL_FAMILY,
             "student_id": student_id,
             "tester_email": tester["email"],
             "result": result,
@@ -1009,7 +1168,6 @@ async def evaluate_test(
             "ignored_warning_events_count": len(ignored_warning_events),
             "ignored_warning_events": ignored_warning_events,
             "windows_analyzed": windows_analyzed,
-            "episode_rows_analyzed": episode_rows_analyzed,
             "xai_explanations": xai_data,
             "decision_log": decision_log,
             "action_sequences": action_sequences,
@@ -1219,9 +1377,35 @@ async def get_test_detail(
     return doc
 
 
-# ==========================================================================
-# Predictions
-# ==========================================================================
+# ===========================================================================
+# Student Success Predictions
+# ===========================================================================
+# This is the SECOND model area: student-history success prediction.
+# It is independent from the driving-recognition model, YOLO, vector_builder,
+# replay, and M18/M18_6 artifacts.
+#
+# Expected future artifacts in app/ai_models/:
+#   student_success_model.keras
+#   student_success_scaler.pkl
+#   student_success_class_map.json
+#
+# Until these artifacts exist, the API returns predicted_success_rate=None
+# instead of using manual IF / weighted-average logic.
+# ===========================================================================
+
+
+async def _load_student_tests_for_prediction(student_id: str, tester_email: str) -> List[Dict[str, Any]]:
+    cursor = db.db["tests"].find({
+        "student_id": student_id,
+        "tester_email": tester_email,
+    }).sort("saved_at", 1)
+
+    tests: List[Dict[str, Any]] = []
+    async for doc in cursor:
+        tests.append(doc)
+    return tests
+
+
 @router.get("/prediction/{student_id}")
 async def predict_student_success(
     student_id: str,
@@ -1235,97 +1419,14 @@ async def predict_student_success(
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
 
-    cursor = db.db["tests"].find({
-        "student_id": student_id,
-        "tester_email": tester["email"],
-    }).sort("saved_at", 1)
+    tests = await _load_student_tests_for_prediction(student_id, tester["email"])
+    predictor = get_student_predictor(BASE_DIR)
 
-    tests = []
-    async for doc in cursor:
-        tests.append(doc)
-
-    if not tests:
-        return {
-            "student_id": student_id,
-            "student_name": student["name"],
-            "tests_count": 0,
-            "predicted_success_rate": None,
-            "confidence": "no_data",
-            "trend": "unknown",
-            "average_grade": 0,
-            "last_grades": [],
-            "weakest_violations": [],
-            "recommendation": "Run at least one test to get predictions",
-        }
-
-    grades = [t.get("grade", 0) for t in tests]
-    avg_grade = sum(grades) / len(grades)
-
-    if len(grades) >= 3:
-        recent = grades[-3:]
-        older = grades[:-3] if len(grades) > 3 else grades[:-1]
-        recent_avg = sum(recent) / len(recent)
-        older_avg = sum(older) / len(older) if older else recent_avg
-        delta = recent_avg - older_avg
-
-        if delta > 5:
-            trend = "improving"
-        elif delta < -5:
-            trend = "declining"
-        else:
-            trend = "stable"
-    else:
-        trend = "insufficient_data"
-
-    weights = [i + 1 for i in range(len(grades))]
-    weighted_avg = sum(g * w for g, w in zip(grades, weights)) / sum(weights)
-
-    adj = {
-        "improving": 5,
-        "stable": 0,
-        "declining": -5,
-    }.get(trend, 0)
-
-    predicted = round(max(0, min(100, weighted_avg + adj)))
-
-    if len(tests) >= 5:
-        confidence = "high"
-    elif len(tests) >= 3:
-        confidence = "medium"
-    else:
-        confidence = "low"
-
-    counter = {}
-    for t in tests:
-        for code in t.get("violations_codes", []):
-            counter[code] = counter.get(code, 0) + 1
-
-    weakest = sorted(counter.items(), key=lambda x: -x[1])[:3]
-
-    if predicted >= 85:
-        rec = "Excellent! Ready for the official driving test."
-    elif predicted >= 70:
-        rec = "Good progress. Focus on consistency."
-    elif predicted >= 50:
-        rec = "Improvement needed. Practice common scenarios."
-    else:
-        rec = "Significant practice required."
-
-    return {
-        "student_id": student_id,
-        "student_name": student["name"],
-        "tests_count": len(tests),
-        "predicted_success_rate": predicted,
-        "confidence": confidence,
-        "trend": trend,
-        "average_grade": round(avg_grade, 1),
-        "last_grades": grades[-5:],
-        "weakest_violations": [
-            {"code": int(c), "count": int(n)}
-            for c, n in weakest
-        ],
-        "recommendation": rec,
-    }
+    return predictor.predict_payload(
+        student_id=student_id,
+        student_name=student.get("name", "Unknown"),
+        tests=tests,
+    )
 
 
 @router.get("/predictions")
@@ -1334,82 +1435,26 @@ async def predict_all_students(tester: dict = Depends(get_current_tester)):
         "tester_email": tester["email"],
     })
 
-    out = []
+    predictor = get_student_predictor(BASE_DIR)
+    out: List[Dict[str, Any]] = []
 
     async for student in cursor:
         sid = student["student_id"]
+        tests = await _load_student_tests_for_prediction(sid, tester["email"])
+        out.append(
+            predictor.predict_payload(
+                student_id=sid,
+                student_name=student.get("name", "Unknown"),
+                tests=tests,
+            )
+        )
 
-        tcursor = db.db["tests"].find({
-            "student_id": sid,
-            "tester_email": tester["email"],
-        }).sort("saved_at", 1)
-
-        grades = []
-        counter = {}
-
-        async for t in tcursor:
-            grades.append(t.get("grade", 0))
-            for code in t.get("violations_codes", []):
-                counter[code] = counter.get(code, 0) + 1
-
-        if not grades:
-            out.append({
-                "student_id": sid,
-                "student_name": student["name"],
-                "tests_count": 0,
-                "predicted_success_rate": None,
-                "trend": "unknown",
-                "average_grade": 0,
-                "last_grade": None,
-                "top_violations": [],
-            })
-            continue
-
-        weights = [i + 1 for i in range(len(grades))]
-        weighted_avg = sum(g * w for g, w in zip(grades, weights)) / sum(weights)
-
-        if len(grades) >= 3:
-            recent_avg = sum(grades[-3:]) / 3
-            older = grades[:-3] if len(grades) > 3 else grades[:-1]
-            older_avg = sum(older) / len(older) if older else recent_avg
-            delta = recent_avg - older_avg
-
-            if delta > 5:
-                trend = "improving"
-            elif delta < -5:
-                trend = "declining"
-            else:
-                trend = "stable"
-
-            adj = {
-                "improving": 5,
-                "stable": 0,
-                "declining": -5,
-            }[trend]
-        else:
-            trend = "insufficient_data"
-            adj = 0
-
-        predicted = round(max(0, min(100, weighted_avg + adj)))
-        top = sorted(counter.items(), key=lambda x: -x[1])[:2]
-
-        out.append({
-            "student_id": sid,
-            "student_name": student["name"],
-            "tests_count": len(grades),
-            "predicted_success_rate": predicted,
-            "trend": trend,
-            "average_grade": round(sum(grades) / len(grades), 1),
-            "last_grade": grades[-1],
-            "top_violations": [
-                {"code": int(c), "count": int(n)}
-                for c, n in top
-            ],
-        })
-
+    # Students with no model/no prediction go last. Among predicted students,
+    # lower readiness appears first so the teacher sees who needs attention.
     out.sort(key=lambda p: (
-        p["predicted_success_rate"] is None,
-        p["predicted_success_rate"] or 0,
+        p.get("predicted_success_rate") is None,
+        p.get("predicted_success_rate") if p.get("predicted_success_rate") is not None else 101,
+        p.get("student_name", ""),
     ))
 
     return out
@@ -1420,4 +1465,5 @@ async def predict_all_students_legacy(
     tester_email: str,
     tester: dict = Depends(get_current_tester),
 ):
+    # Kept only for old clients. The authenticated token is the source of truth.
     return await predict_all_students(tester)
