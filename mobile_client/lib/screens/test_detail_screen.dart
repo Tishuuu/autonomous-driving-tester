@@ -35,6 +35,88 @@ class _TestDetailScreenState extends State<TestDetailScreen> {
     4: Icons.do_not_disturb_on,
   };
 
+  static const Map<int, String> _positiveActionNames = {
+    5: "Correct Stop",
+    6: "Correct Yield",
+  };
+
+  static const Map<int, IconData> _positiveActionIcons = {
+    5: Icons.stop_circle_outlined,
+    6: Icons.check_circle_outline,
+  };
+
+  int _intFrom(dynamic value, {int fallback = 0}) {
+    if (value is num) return value.toInt();
+    return int.tryParse(value?.toString() ?? '') ?? fallback;
+  }
+
+  double _doubleFrom(dynamic value, {double fallback = 0.0}) {
+    if (value is num) return value.toDouble();
+    return double.tryParse(value?.toString() ?? '') ?? fallback;
+  }
+
+  int _xaiClassId(Map<String, dynamic> e) {
+    return _intFrom(
+      e['violation_code'] ?? e['class_id'] ?? e['predicted_class'],
+      fallback: 0,
+    );
+  }
+
+  bool _isFailClass(int code) => code == 2 || code == 3 || code == 4;
+
+
+  bool _passedFrom(Map<String, dynamic> data) {
+    if (data['passed'] is bool) return data['passed'] as bool;
+    final result = data['result']?.toString().toUpperCase();
+    if (result == 'PASS') return true;
+    if (result == 'FAIL') return false;
+    return (data['grade'] ?? 0) >= 80;
+  }
+
+  int _mistakesCountFrom(Map<String, dynamic> data) {
+    final value = data['mistakes_count'] ?? data['violation_events_count'] ?? 0;
+    return value is num ? value.toInt() : int.tryParse(value.toString()) ?? 0;
+  }
+
+  int _ignoredWarningsCountFrom(Map<String, dynamic> data) {
+    final value = data['ignored_warning_events_count'] ?? 0;
+    return value is num ? value.toInt() : int.tryParse(value.toString()) ?? 0;
+  }
+
+  List<dynamic> _mistakeCodesFrom(Map<String, dynamic> data) {
+    return List<dynamic>.from(data['mistake_codes'] ?? data['violations_codes'] ?? []);
+  }
+
+  List<Map<String, dynamic>> _positiveActionsFrom(Map<String, dynamic> data) {
+    final raw = data['positive_actions'];
+    if (raw is! List) return [];
+
+    final actions = raw
+        .whereType<Map>()
+        .map((e) {
+          final action = Map<String, dynamic>.from(e);
+          int classId = _intFrom(action['class_id'], fallback: -1);
+          final type = action['type']?.toString() ?? '';
+          if (classId < 0) {
+            if (type == 'CorrectStop') classId = 5;
+            if (type == 'CorrectYield') classId = 6;
+          }
+          action['class_id'] = classId;
+          action['timestamp_sec'] = _doubleFrom(action['timestamp_sec']);
+          action['confidence'] = _doubleFrom(action['confidence']);
+          return action;
+        })
+        .where((a) => _positiveActionNames.containsKey(a['class_id']))
+        .toList()
+      ..sort(
+        (a, b) => _doubleFrom(a['timestamp_sec']).compareTo(
+          _doubleFrom(b['timestamp_sec']),
+        ),
+      );
+
+    return actions;
+  }
+
   Future<Map<String, dynamic>?>? _future;
 
   @override
@@ -59,17 +141,9 @@ class _TestDetailScreenState extends State<TestDetailScreen> {
     return ApiService.getTestDetail(widget.testObjectId);
   }
 
-  /// בונה ציר זמן שלם מ-decision_log: גם הפרות, גם פעולות תקינות.
-  /// אם אין decision_log (טסטים ישנים), נופל חזרה ל-xai_explanations בלבד.
+  /// Timeline shows only major mistakes.
+  /// decision_log contains raw model states and ignored warnings, so we do not use it here.
   List<_TimelineEvent> _buildTimeline(Map<String, dynamic> data) {
-    final List<dynamic> decisionLog = data['decision_log'] ?? [];
-
-    // אם יש decision_log חדש - נשתמש בו (כולל פעולות תקינות בעצור וכו')
-    if (decisionLog.isNotEmpty) {
-      return _buildTimelineFromLog(decisionLog, data);
-    }
-
-    // נפילה לאחור: רק הפרות מ-XAI
     return _buildTimelineFromXAI(data);
   }
 
@@ -138,32 +212,39 @@ class _TestDetailScreenState extends State<TestDetailScreen> {
     return events;
   }
 
-  /// נפילה לאחור - רק אירועי הפרה מ-XAI (טסטים ישנים).
+  /// נפילה לאחור - רק אירועי הפרה מ-XAI.
+  /// תומך גם בפורמט M11 הישן (violation_code) וגם ב-M12 החדש (class_id).
   List<_TimelineEvent> _buildTimelineFromXAI(Map<String, dynamic> data) {
     final Map<String, dynamic> explanations = data['xai_explanations'] ?? {};
 
-    final List<Map<String, dynamic>> entries =
-        explanations.values
-            .map((e) => Map<String, dynamic>.from(e as Map))
-            .where((e) => (e['violation_code'] ?? 0) != 0)
-            .toList()
-          ..sort(
-            (a, b) => (a['timestamp_sec'] as num).compareTo(
-              b['timestamp_sec'] as num,
-            ),
-          );
+    final List<Map<String, dynamic>> entries = explanations.values
+        .whereType<Map>()
+        .map((e) => Map<String, dynamic>.from(e))
+        .where((e) => _isFailClass(_xaiClassId(e)))
+        .map((e) {
+          final copy = Map<String, dynamic>.from(e);
+          copy['violation_code'] = _xaiClassId(copy);
+          copy['timestamp_sec'] = _doubleFrom(copy['timestamp_sec']);
+          return copy;
+        })
+        .toList()
+      ..sort(
+        (a, b) => _doubleFrom(a['timestamp_sec']).compareTo(
+          _doubleFrom(b['timestamp_sec']),
+        ),
+      );
 
     final List<_TimelineEvent> events = [];
     if (entries.isEmpty) return events;
 
-    double startSec = (entries.first['timestamp_sec'] as num).toDouble();
+    double startSec = _doubleFrom(entries.first['timestamp_sec']);
     double endSec = startSec;
-    int code = entries.first['violation_code'] as int;
+    int code = _xaiClassId(entries.first);
 
     for (int i = 1; i < entries.length; i++) {
       final entry = entries[i];
-      final double t = (entry['timestamp_sec'] as num).toDouble();
-      final int c = entry['violation_code'] as int;
+      final double t = _doubleFrom(entry['timestamp_sec']);
+      final int c = _xaiClassId(entry);
 
       if (c == code && (t - endSec) < 3.0) {
         endSec = t;
@@ -191,6 +272,21 @@ class _TestDetailScreenState extends State<TestDetailScreen> {
     );
 
     return events;
+  }
+
+  List<_TimelineEvent> _fallbackMistakeEvents(List<dynamic> mistakeCodes) {
+    return mistakeCodes
+        .map((c) => _intFrom(c, fallback: -1))
+        .where(_isFailClass)
+        .map(
+          (code) => _TimelineEvent(
+            timeSec: 0.0,
+            durationSec: 0.0,
+            violationCode: code,
+            isViolation: true,
+          ),
+        )
+        .toList();
   }
 
   /// אם אין אירועים בכלל (טסט נקי לגמרי) - מציג נקודה אחת ירוקה במרכז
@@ -265,14 +361,20 @@ class _TestDetailScreenState extends State<TestDetailScreen> {
   }
 
   Widget _buildContent(Map<String, dynamic> data) {
-    final int grade = data['grade'] ?? 0;
-    final bool passed = grade >= 80;
+    final bool passed = _passedFrom(data);
+    final int mistakesCount = _mistakesCountFrom(data);
+    final int ignoredWarningsCount = _ignoredWarningsCountFrom(data);
+    final List<dynamic> mistakeCodes = _mistakeCodesFrom(data);
+    final List<Map<String, dynamic>> positiveActions = _positiveActionsFrom(data);
     final Color gradeColor = passed ? _activeGreen : _errorRed;
     final String studentName = data['student_name']?.toString() ?? 'Unknown';
     final String studentId = data['student_id']?.toString() ?? '';
     final String savedAt = data['saved_at']?.toString() ?? '';
 
-    final violationEvents = _buildTimeline(data);
+    List<_TimelineEvent> violationEvents = _buildTimeline(data);
+    if (!passed && violationEvents.isEmpty) {
+      violationEvents = _fallbackMistakeEvents(mistakeCodes);
+    }
     final int violationsCount = violationEvents.length;
 
     // משך כולל - אם אין, נחשב מהאירוע האחרון
@@ -324,13 +426,10 @@ class _TestDetailScreenState extends State<TestDetailScreen> {
                     ],
                   ),
                   alignment: Alignment.center,
-                  child: Text(
-                    "$grade",
-                    style: GoogleFonts.lexend(
-                      color: gradeColor,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 22,
-                    ),
+                  child: Icon(
+                    passed ? Icons.verified_rounded : Icons.cancel_rounded,
+                    color: gradeColor,
+                    size: 34,
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -355,25 +454,49 @@ class _TestDetailScreenState extends State<TestDetailScreen> {
                         ),
                       ),
                       const SizedBox(height: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 3,
-                        ),
-                        decoration: BoxDecoration(
-                          color: gradeColor.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          passed ? "PASSED" : "FAILED",
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: gradeColor.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              passed ? "PASS" : "FAIL",
+                              style: GoogleFonts.lexend(
+                                color: gradeColor,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              passed
+                                  ? "No major mistakes"
+                                  : "$mistakesCount major mistake${mistakesCount == 1 ? '' : 's'}",
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.lexend(
+                                color: Colors.white70,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (ignoredWarningsCount > 0) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          "Ignored warnings: $ignoredWarningsCount",
                           style: GoogleFonts.lexend(
-                            color: gradeColor,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1,
+                            color: Colors.white38,
+                            fontSize: 11,
                           ),
                         ),
-                      ),
+                      ],
                     ],
                   ),
                 ),
@@ -399,13 +522,18 @@ class _TestDetailScreenState extends State<TestDetailScreen> {
               ),
             ),
 
+          if (positiveActions.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            _buildPositiveActionsSection(positiveActions),
+          ],
+
           const SizedBox(height: 30),
 
           // ===== כותרת ציר הזמן =====
           Row(
             children: [
               Text(
-                "DRIVE TIMELINE",
+                "MAJOR MISTAKES",
                 style: GoogleFonts.lexend(
                   color: Colors.white38,
                   fontWeight: FontWeight.bold,
@@ -428,7 +556,7 @@ class _TestDetailScreenState extends State<TestDetailScreen> {
                     border: Border.all(color: _errorRed.withOpacity(0.5)),
                   ),
                   child: Text(
-                    "$violationsCount violation${violationsCount == 1 ? '' : 's'}",
+                    "$mistakesCount mistake${mistakesCount == 1 ? '' : 's'}",
                     style: GoogleFonts.lexend(
                       color: _errorRed,
                       fontWeight: FontWeight.bold,
@@ -448,7 +576,7 @@ class _TestDetailScreenState extends State<TestDetailScreen> {
                     border: Border.all(color: _activeGreen.withOpacity(0.5)),
                   ),
                   child: Text(
-                    "Clean drive",
+                    "No mistakes",
                     style: GoogleFonts.lexend(
                       color: _activeGreen,
                       fontWeight: FontWeight.bold,
@@ -467,6 +595,105 @@ class _TestDetailScreenState extends State<TestDetailScreen> {
             final isLast = i == allEvents.length - 1;
             return _buildTimelineNode(ev, isLast);
           }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPositiveActionsSection(List<Map<String, dynamic>> actions) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              "GOOD DRIVING",
+              style: GoogleFonts.lexend(
+                color: Colors.white38,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.5,
+                fontSize: 12,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(child: Container(height: 1, color: Colors.white12)),
+            const SizedBox(width: 10),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: _activeGreen.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: _activeGreen.withOpacity(0.5)),
+              ),
+              child: Text(
+                "${actions.length}",
+                style: GoogleFonts.lexend(
+                  color: _activeGreen,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 11,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 14),
+        ...actions.map(_buildPositiveActionCard),
+      ],
+    );
+  }
+
+  Widget _buildPositiveActionCard(Map<String, dynamic> action) {
+    final int classId = _intFrom(action['class_id']);
+    final String name = _positiveActionNames[classId] ??
+        action['class_label']?.toString() ??
+        action['type']?.toString() ??
+        "Correct Action";
+    final IconData icon = _positiveActionIcons[classId] ?? Icons.check_circle_outline;
+    final double timestamp = _doubleFrom(action['timestamp_sec']);
+    final double confidence = _doubleFrom(action['confidence']);
+    final String confidenceText = confidence > 0
+        ? " • ${(confidence * 100).clamp(0, 100).toStringAsFixed(0)}%"
+        : "";
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: _activeGreen.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _activeGreen.withOpacity(0.35)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(9),
+            decoration: BoxDecoration(
+              color: _activeGreen.withOpacity(0.16),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: _activeGreen, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  style: GoogleFonts.lexend(
+                    color: Colors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  "${timestamp.toStringAsFixed(1)}s$confidenceText",
+                  style: GoogleFonts.lexend(color: Colors.white54, fontSize: 11),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );

@@ -1,0 +1,72 @@
+{
+  "model_id": "M12",
+  "n_timesteps": 30,
+  "n_features": 19,
+  "feature_names": [
+    "time_seconds",
+    "speed_kmh",
+    "jerk",
+    "car_distance",
+    "car_ttc",
+    "car_relative_x",
+    "car_relative_y",
+    "car_motion_x",
+    "car_motion_y",
+    "car_static_score",
+    "sign_type",
+    "sign_distance",
+    "sign_ttc",
+    "memory_sign_type",
+    "memory_sign_distance",
+    "time_since_sign_seen_sec",
+    "meters_since_sign_seen",
+    "last_seen_sign_distance",
+    "memory_sign_ttc"
+  ],
+  "classes": {
+    "0": "Normal Driving",
+    "1": "Tailgating",
+    "2": "Running Stop",
+    "3": "Failure to Yield",
+    "4": "No Entry Violation",
+    "5": "Correct Stop",
+    "6": "Correct Yield"
+  },
+  "sign_type_map": {
+    "0": "none",
+    "1": "stop_sign",
+    "2": "yield_sign",
+    "3": "no_entry"
+  },
+  "memory_sign_type_map": {
+    "0": "none",
+    "1": "stop_sign",
+    "2": "yield_sign",
+    "3": "no_entry"
+  },
+  "positive_action_classes": {
+    "5": "CorrectStop",
+    "6": "CorrectYield"
+  },
+  "violation_classes": {
+    "1": "Tailgating",
+    "2": "RunningStop",
+    "3": "FailureToYield",
+    "4": "NoEntryViolation"
+  },
+  "fail_classes": {
+    "2": "RunningStop",
+    "3": "FailureToYield",
+    "4": "NoEntryViolation"
+  },
+  "ignored_warning_classes": {
+    "1": "Tailgating"
+  },
+  "notes": {
+    "main_change_from_m11": "Uses M12 19-feature schema with sign memory and vehicle context.",
+    "important_rule": "No answer-leak features are used. No has_stopped_after_sign_seen, no vehicle_is_relevant_to_yield.",
+    "stop_memory_goal": "CorrectStop can be learned when STOP leaves the frame before the physical stop.",
+    "post_stop_goal": "STOP can be followed by CorrectYield or FailureToYield behavior using sequence context.",
+    "backend_requirement": "test_routes.py must use M12_FEATURE_NAMES and must check both sign_type and memory_sign_type for context."
+  }
+}

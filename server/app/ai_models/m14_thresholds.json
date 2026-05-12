@@ -1,0 +1,20 @@
+{
+  "model_id": "M14",
+  "output_order": [
+    "Tailgating",
+    "RunningStop",
+    "FailureToYield",
+    "NoEntryViolation",
+    "CorrectStop",
+    "CorrectYield"
+  ],
+  "thresholds": {
+    "Tailgating": 0.15000000596046448,
+    "RunningStop": 0.28999999165534973,
+    "FailureToYield": 0.3499999940395355,
+    "NoEntryViolation": 0.6899999976158142,
+    "CorrectStop": 0.15000000596046448,
+    "CorrectYield": 0.15000000596046448
+  },
+  "source": "validation_f1_grid_search"
+}

@@ -1,0 +1,271 @@
+{
+  "model_id": "M15",
+  "model_type": "composite_softmax",
+  "n_timesteps": 60,
+  "n_features": 33,
+  "feature_names": [
+    "time_seconds",
+    "speed_kmh",
+    "jerk",
+    "car_distance",
+    "car_ttc",
+    "car_relative_x",
+    "car_relative_y",
+    "car_motion_x",
+    "car_motion_y",
+    "car_static_score",
+    "sign_type",
+    "sign_distance",
+    "sign_ttc",
+    "memory_sign_type",
+    "memory_sign_distance",
+    "time_since_sign_seen_sec",
+    "meters_since_sign_seen",
+    "last_seen_sign_distance",
+    "memory_sign_ttc",
+    "gps_accuracy",
+    "gps_age_ms",
+    "gps_update_count_delta",
+    "gps_dx_m",
+    "gps_dy_m",
+    "gps_step_distance_m",
+    "gps_speed_kmh",
+    "heading_sin",
+    "heading_cos",
+    "heading_delta_deg",
+    "turn_rate_deg_s",
+    "accel_x",
+    "accel_y",
+    "accel_z"
+  ],
+  "class_names": [
+    "SafeDriving",
+    "Tailgating",
+    "StopOk",
+    "StopBadYield",
+    "RunningStop",
+    "YieldOk",
+    "YieldBad",
+    "NoEntryViolation"
+  ],
+  "classes": {
+    "0": "SafeDriving",
+    "1": "Tailgating",
+    "2": "StopOk",
+    "3": "StopBadYield",
+    "4": "RunningStop",
+    "5": "YieldOk",
+    "6": "YieldBad",
+    "7": "NoEntryViolation"
+  },
+  "normal_definition": "SafeDriving is class 0. NoEntry turn-away and irrelevant NoEntry are SafeDriving, not a positive action.",
+  "output_to_legacy_events": {
+    "0": {
+      "class": "SafeDriving",
+      "result": "PASS",
+      "mistake_codes": [],
+      "positive_actions": [],
+      "ignored_warning_codes": []
+    },
+    "1": {
+      "class": "Tailgating",
+      "result": "PASS",
+      "mistake_codes": [],
+      "positive_actions": [],
+      "ignored_warning_codes": [
+        1
+      ]
+    },
+    "2": {
+      "class": "StopOk",
+      "result": "PASS",
+      "mistake_codes": [],
+      "positive_actions": [
+        5,
+        6
+      ],
+      "positive_action_labels": [
+        "Correct Stop",
+        "Correct Yield"
+      ],
+      "ignored_warning_codes": []
+    },
+    "3": {
+      "class": "StopBadYield",
+      "result": "FAIL",
+      "mistake_codes": [
+        3
+      ],
+      "positive_actions": [
+        5
+      ],
+      "positive_action_labels": [
+        "Correct Stop"
+      ],
+      "ignored_warning_codes": []
+    },
+    "4": {
+      "class": "RunningStop",
+      "result": "FAIL",
+      "mistake_codes": [
+        2
+      ],
+      "positive_actions": [],
+      "ignored_warning_codes": []
+    },
+    "5": {
+      "class": "YieldOk",
+      "result": "PASS",
+      "mistake_codes": [],
+      "positive_actions": [
+        6
+      ],
+      "positive_action_labels": [
+        "Correct Yield"
+      ],
+      "ignored_warning_codes": []
+    },
+    "6": {
+      "class": "YieldBad",
+      "result": "FAIL",
+      "mistake_codes": [
+        3
+      ],
+      "positive_actions": [],
+      "ignored_warning_codes": []
+    },
+    "7": {
+      "class": "NoEntryViolation",
+      "result": "FAIL",
+      "mistake_codes": [
+        4
+      ],
+      "positive_actions": [],
+      "ignored_warning_codes": []
+    }
+  },
+  "legacy_class_names": {
+    "0": "Normal Driving",
+    "1": "Tailgating",
+    "2": "Running Stop",
+    "3": "Failure to Yield",
+    "4": "No Entry Violation",
+    "5": "Correct Stop",
+    "6": "Correct Yield"
+  },
+  "sign_type_map": {
+    "0": "none",
+    "1": "stop_sign",
+    "2": "yield_sign",
+    "3": "no_entry"
+  },
+  "cost_sensitive_loss": {
+    "lambda": 0.38,
+    "cost_matrix": [
+      [
+        0.0,
+        2.0,
+        8.0,
+        8.0,
+        8.0,
+        8.0,
+        8.0,
+        9.0
+      ],
+      [
+        2.0,
+        0.0,
+        6.0,
+        6.0,
+        6.0,
+        6.0,
+        6.0,
+        6.0
+      ],
+      [
+        5.0,
+        1.0,
+        0.0,
+        5.0,
+        7.0,
+        8.0,
+        8.0,
+        9.0
+      ],
+      [
+        5.0,
+        1.0,
+        7.0,
+        0.0,
+        6.0,
+        8.0,
+        8.0,
+        9.0
+      ],
+      [
+        5.0,
+        1.0,
+        7.0,
+        6.0,
+        0.0,
+        8.0,
+        8.0,
+        9.0
+      ],
+      [
+        5.0,
+        1.0,
+        8.0,
+        8.0,
+        8.0,
+        0.0,
+        6.0,
+        9.0
+      ],
+      [
+        5.0,
+        1.0,
+        8.0,
+        8.0,
+        8.0,
+        8.0,
+        0.0,
+        9.0
+      ],
+      [
+        9.0,
+        9.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        10.0,
+        0.0
+      ]
+    ],
+    "class_order": [
+      "SafeDriving",
+      "Tailgating",
+      "StopOk",
+      "StopBadYield",
+      "RunningStop",
+      "YieldOk",
+      "YieldBad",
+      "NoEntryViolation"
+    ],
+    "main_goal": "Strongly penalize cross-sign-family mistakes, e.g. NoEntry predicted as YieldOk or StopOk."
+  },
+  "notes": {
+    "main_change_from_m14": "M15 uses composite 8-class softmax instead of independent sigmoid outputs.",
+    "why": "Only STOP requires multi-event semantics. Composite classes prevent illegal output combinations.",
+    "forbidden_inputs": [
+      "post_stop_min_car_distance",
+      "post_stop_min_car_ttc",
+      "post_sign_turn_magnitude",
+      "turned_away_from_no_entry",
+      "unsafe_entry_score",
+      "did_yield_correctly",
+      "entered_badly"
+    ]
+  }
+}

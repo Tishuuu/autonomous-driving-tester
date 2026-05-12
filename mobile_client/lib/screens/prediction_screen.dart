@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import '../services/api_service.dart';
+
 import '../providers/user_provider.dart';
+import '../services/api_service.dart';
 import 'student_prediction_detail_screen.dart';
 
 class PredictionsScreen extends StatefulWidget {
@@ -18,12 +19,11 @@ class _PredictionsScreenState extends State<PredictionsScreen> {
   static const Color _errorRed = Color(0xFFFF4C4C);
   static const Color _warningOrange = Color(0xFFFFA94C);
 
-  // קיצורים לעבירות (כדי שתיכנס בכרטיס)
   static const Map<int, String> _violationShortNames = {
-    1: "Tailgating",
-    2: "Stop Sign",
-    3: "Yielding",
-    4: "No Entry",
+    1: 'Tailgating',
+    2: 'Stop Sign',
+    3: 'Yielding',
+    4: 'No Entry',
   };
 
   static const Map<int, IconData> _violationIcons = {
@@ -50,14 +50,61 @@ class _PredictionsScreenState extends State<PredictionsScreen> {
   Future<void> _refresh() async {
     final f = _load();
     if (!mounted) return;
-    setState(() {
-      _future = f;
-    });
+    setState(() => _future = f);
     try {
       await f;
     } catch (_) {
-      // FutureBuilder surfaces error in snapshot
+      // FutureBuilder displays the error state.
     }
+  }
+
+  int? _asNullableInt(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is double) return value.round();
+    return int.tryParse(value.toString());
+  }
+
+  int _asInt(dynamic value, [int fallback = 0]) {
+    return _asNullableInt(value) ?? fallback;
+  }
+
+  String _modelStatus(Map<String, dynamic> data) {
+    final model = data['prediction_model'];
+    if (model is Map && model['model_status'] != null) {
+      return model['model_status'].toString();
+    }
+    if (data['confidence'] != null) return data['confidence'].toString();
+    return 'unknown';
+  }
+
+  String _modelSubtitle(Map<String, dynamic> data) {
+    final status = _modelStatus(data);
+    final testsCount = _asInt(data['tests_count']);
+
+    if (status == 'ok') {
+      final confidence = data['confidence']?.toString() ?? 'unknown';
+      return 'AI model prediction • $confidence confidence';
+    }
+    if (status == 'missing_model' || status == 'no_model') {
+      return 'Student prediction model is not trained yet';
+    }
+    if (status == 'no_history' || testsCount == 0) {
+      return 'Run tests for this student to enable prediction';
+    }
+    return 'Prediction unavailable';
+  }
+
+  bool _hasModelPrediction(Map<String, dynamic> data) {
+    return _asNullableInt(data['predicted_success_rate']) != null &&
+        _modelStatus(data) == 'ok';
+  }
+
+  Color _rateColor(int? rate) {
+    if (rate == null) return Colors.white24;
+    if (rate >= 80) return _activeGreen;
+    if (rate >= 60) return _warningOrange;
+    return _errorRed;
   }
 
   @override
@@ -93,19 +140,21 @@ class _PredictionsScreenState extends State<PredictionsScreen> {
                     Icon(Icons.psychology, color: _primaryBlue, size: 28),
                     const SizedBox(width: 8),
                     Text(
-                      "Predictions",
+                      'Predictions',
                       style: GoogleFonts.lexend(
                         fontSize: 26,
                         fontWeight: FontWeight.bold,
                         color: _primaryBlue,
-                        shadows: [Shadow(color: _primaryBlue, blurRadius: 10)],
+                        shadows: const [
+                          Shadow(color: _primaryBlue, blurRadius: 10),
+                        ],
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  "Driving test success forecast per student",
+                  'Student success forecast from previous driving tests',
                   style: GoogleFonts.lexend(
                     color: Colors.white54,
                     fontSize: 12,
@@ -121,17 +170,20 @@ class _PredictionsScreenState extends State<PredictionsScreen> {
                           child: CircularProgressIndicator(color: _primaryBlue),
                         );
                       }
-                      final list = snapshot.data ?? [];
-                      if (list.isEmpty) {
-                        return _buildEmpty();
+
+                      if (snapshot.hasError) {
+                        return _buildError(snapshot.error.toString());
                       }
+
+                      final list = snapshot.data ?? [];
+                      if (list.isEmpty) return _buildEmpty();
+
                       return RefreshIndicator(
                         onRefresh: _refresh,
                         color: _primaryBlue,
                         child: ListView.builder(
                           itemCount: list.length,
-                          itemBuilder: (ctx, i) =>
-                              _buildPredictionCard(list[i]),
+                          itemBuilder: (ctx, i) => _buildPredictionCard(list[i]),
                         ),
                       );
                     },
@@ -148,26 +200,25 @@ class _PredictionsScreenState extends State<PredictionsScreen> {
   Widget _buildPredictionCard(Map<String, dynamic> data) {
     final String name = data['student_name']?.toString() ?? 'Unknown';
     final String id = data['student_id']?.toString() ?? '';
-    final int? rate = data['predicted_success_rate'];
-    final int testsCount = data['tests_count'] ?? 0;
+    final int? rate = _asNullableInt(data['predicted_success_rate']);
+    final int testsCount = _asInt(data['tests_count']);
     final String trend = data['trend']?.toString() ?? 'unknown';
-    final List<dynamic> topViolations = data['top_violations'] ?? [];
+    final List<dynamic> topViolations = data['top_violations'] is List
+        ? data['top_violations'] as List<dynamic>
+        : [];
 
-    final Color color = rate == null
-        ? Colors.white24
-        : rate >= 80
-        ? _activeGreen
-        : rate >= 60
-        ? _warningOrange
-        : _errorRed;
+    final bool hasPrediction = _hasModelPrediction(data);
+    final Color color = _rateColor(hasPrediction ? rate : null);
 
     return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) =>
-                StudentPredictionDetailScreen(studentId: id, studentName: name),
+            builder: (_) => StudentPredictionDetailScreen(
+              studentId: id,
+              studentName: name,
+            ),
           ),
         );
       },
@@ -182,46 +233,9 @@ class _PredictionsScreenState extends State<PredictionsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ===== שורה ראשית: שם + תחזית =====
             Row(
               children: [
-                // מעגל תחזית
-                Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    SizedBox(
-                      width: 56,
-                      height: 56,
-                      child: CircularProgressIndicator(
-                        value: (rate ?? 0) / 100,
-                        strokeWidth: 4.5,
-                        backgroundColor: Colors.white10,
-                        valueColor: AlwaysStoppedAnimation<Color>(color),
-                      ),
-                    ),
-                    Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          rate != null ? "$rate" : "—",
-                          style: GoogleFonts.lexend(
-                            color: color,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                            height: 1,
-                          ),
-                        ),
-                        Text(
-                          "%",
-                          style: GoogleFonts.lexend(
-                            color: color.withOpacity(0.7),
-                            fontSize: 9,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                _buildPredictionCircle(rate, hasPrediction, color),
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(
@@ -237,29 +251,38 @@ class _PredictionsScreenState extends State<PredictionsScreen> {
                       ),
                       const SizedBox(height: 1),
                       Text(
-                        "ID: $id",
+                        'ID: $id',
                         style: GoogleFonts.lexend(
                           color: Colors.white54,
                           fontSize: 11,
                         ),
                       ),
+                      const SizedBox(height: 5),
+                      Text(
+                        _modelSubtitle(data),
+                        style: GoogleFonts.lexend(
+                          color: hasPrediction ? Colors.white60 : _warningOrange,
+                          fontSize: 10.5,
+                          fontWeight: hasPrediction
+                              ? FontWeight.w400
+                              : FontWeight.w600,
+                        ),
+                      ),
                     ],
                   ),
                 ),
-                Icon(Icons.arrow_forward_ios, color: Colors.white24, size: 14),
+                const Icon(
+                  Icons.arrow_forward_ios,
+                  color: Colors.white24,
+                  size: 14,
+                ),
               ],
             ),
-
-            // ===== ה-2 פיסות מידע: מגמה + עבירות =====
             if (testsCount > 0) ...[
               const SizedBox(height: 14),
               const Divider(color: Colors.white12, height: 1),
               const SizedBox(height: 14),
-
-              // === מגמה (שורה אחת בולטת) ===
               _buildTrendRow(trend, testsCount),
-
-              // === עבירות נפוצות ===
               if (topViolations.isNotEmpty) ...[
                 const SizedBox(height: 12),
                 _buildViolationsSection(topViolations, testsCount),
@@ -270,7 +293,7 @@ class _PredictionsScreenState extends State<PredictionsScreen> {
                     Icon(Icons.verified, color: _activeGreen, size: 14),
                     const SizedBox(width: 6),
                     Text(
-                      "No recurring violations",
+                      'No recurring violations',
                       style: GoogleFonts.lexend(
                         color: _activeGreen,
                         fontSize: 11,
@@ -280,59 +303,95 @@ class _PredictionsScreenState extends State<PredictionsScreen> {
                   ],
                 ),
               ],
-            ] else
-              Padding(
-                padding: const EdgeInsets.only(top: 10),
-                child: Text(
-                  "No tests yet — run a test to enable predictions",
-                  style: GoogleFonts.lexend(
-                    color: Colors.white38,
-                    fontSize: 11,
-                    fontStyle: FontStyle.italic,
-                  ),
+            ] else ...[
+              const SizedBox(height: 10),
+              Text(
+                'No tests yet — run a test to enable predictions',
+                style: GoogleFonts.lexend(
+                  color: Colors.white38,
+                  fontSize: 11,
+                  fontStyle: FontStyle.italic,
                 ),
               ),
+            ],
           ],
         ),
       ),
     );
   }
 
-  // ===== שורת מגמה =====
+  Widget _buildPredictionCircle(int? rate, bool hasPrediction, Color color) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        SizedBox(
+          width: 58,
+          height: 58,
+          child: CircularProgressIndicator(
+            value: hasPrediction ? (rate ?? 0) / 100.0 : 0,
+            strokeWidth: 4.5,
+            backgroundColor: Colors.white10,
+            valueColor: AlwaysStoppedAnimation<Color>(color),
+          ),
+        ),
+        if (hasPrediction)
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '${rate ?? 0}',
+                style: GoogleFonts.lexend(
+                  color: color,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  height: 1,
+                ),
+              ),
+              Text(
+                '%',
+                style: GoogleFonts.lexend(
+                  color: color.withOpacity(0.7),
+                  fontSize: 9,
+                ),
+              ),
+            ],
+          )
+        else
+          Icon(Icons.model_training_rounded, color: color, size: 22),
+      ],
+    );
+  }
+
   Widget _buildTrendRow(String trend, int testsCount) {
-    final IconData icon =
-        {
+    final IconData icon = {
           'improving': Icons.trending_up,
           'declining': Icons.trending_down,
           'stable': Icons.trending_flat,
         }[trend] ??
         Icons.help_outline;
 
-    final Color trendColor =
-        {
+    final Color trendColor = {
           'improving': _activeGreen,
           'declining': _errorRed,
           'stable': _primaryBlue,
         }[trend] ??
         Colors.white54;
 
-    final String label =
-        {
-          'improving': "Improving",
-          'declining': "Declining",
-          'stable': "Stable",
-          'insufficient_data': "Insufficient data",
+    final String label = {
+          'improving': 'Improving',
+          'declining': 'Declining',
+          'stable': 'Stable',
+          'insufficient_data': 'Insufficient data',
         }[trend] ??
-        "Unknown";
+        'Unknown';
 
-    final String subtitle =
-        {
-          'improving': "Recent grades trending upward",
-          'declining': "Recent grades trending downward",
-          'stable': "Performance is consistent",
-          'insufficient_data': "Need 3+ tests for trend",
+    final String subtitle = {
+          'improving': 'Recent grades trending upward',
+          'declining': 'Recent grades trending downward',
+          'stable': 'Performance is consistent',
+          'insufficient_data': 'Need 3+ tests for trend',
         }[trend] ??
-        "";
+        '';
 
     return Row(
       children: [
@@ -361,7 +420,7 @@ class _PredictionsScreenState extends State<PredictionsScreen> {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    "•  $testsCount tests",
+                    '•  $testsCount tests',
                     style: GoogleFonts.lexend(
                       color: Colors.white38,
                       fontSize: 10,
@@ -381,21 +440,20 @@ class _PredictionsScreenState extends State<PredictionsScreen> {
     );
   }
 
-  // ===== חלק העבירות הנפוצות =====
   Widget _buildViolationsSection(List<dynamic> violations, int testsCount) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            Icon(
+            const Icon(
               Icons.report_problem_outlined,
               color: Colors.white38,
               size: 12,
             ),
             const SizedBox(width: 5),
             Text(
-              "FOCUS AREAS",
+              'FOCUS AREAS',
               style: GoogleFonts.lexend(
                 color: Colors.white38,
                 fontSize: 9,
@@ -407,14 +465,13 @@ class _PredictionsScreenState extends State<PredictionsScreen> {
         ),
         const SizedBox(height: 8),
         Row(
-          children: violations.take(2).map<Widget>((v) {
-            final int code = v['code'] ?? 0;
-            final int count = v['count'] ?? 0;
+          children: violations.take(2).toList().asMap().entries.map<Widget>((entry) {
+            final v = entry.value;
+            final int code = v is Map ? _asInt(v['code']) : 0;
+            final int count = v is Map ? _asInt(v['count']) : 0;
             return Expanded(
               child: Padding(
-                padding: EdgeInsets.only(
-                  right: violations.indexOf(v) == 0 ? 8 : 0,
-                ),
+                padding: EdgeInsets.only(right: entry.key == 0 ? 8 : 0),
                 child: _violationChip(code, count, testsCount),
               ),
             );
@@ -425,7 +482,7 @@ class _PredictionsScreenState extends State<PredictionsScreen> {
   }
 
   Widget _violationChip(int code, int count, int testsCount) {
-    final String name = _violationShortNames[code] ?? "Unknown";
+    final String name = _violationShortNames[code] ?? 'Unknown';
     final IconData icon = _violationIcons[code] ?? Icons.warning_amber;
     final int frequencyPct = testsCount == 0
         ? 0
@@ -457,7 +514,7 @@ class _PredictionsScreenState extends State<PredictionsScreen> {
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  "$count× ($frequencyPct%)",
+                  '$count× ($frequencyPct%)',
                   style: GoogleFonts.lexend(
                     color: _errorRed,
                     fontSize: 9,
@@ -477,10 +534,10 @@ class _PredictionsScreenState extends State<PredictionsScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.psychology_outlined, color: Colors.white24, size: 70),
+          const Icon(Icons.psychology_outlined, color: Colors.white24, size: 70),
           const SizedBox(height: 14),
           Text(
-            "No students yet",
+            'No students yet',
             style: GoogleFonts.lexend(
               color: Colors.white70,
               fontSize: 18,
@@ -489,11 +546,49 @@ class _PredictionsScreenState extends State<PredictionsScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            "Run a test and add students to see predictions",
+            'Run a test and add students to see predictions',
             textAlign: TextAlign.center,
             style: GoogleFonts.lexend(color: Colors.white38, fontSize: 13),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildError(String error) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, color: _errorRed, size: 64),
+            const SizedBox(height: 14),
+            Text(
+              'Failed to load predictions',
+              style: GoogleFonts.lexend(
+                color: Colors.white70,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              error,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.lexend(color: Colors.white38, fontSize: 12),
+            ),
+            const SizedBox(height: 16),
+            TextButton.icon(
+              onPressed: _refresh,
+              icon: const Icon(Icons.refresh, color: _primaryBlue),
+              label: Text(
+                'Retry',
+                style: GoogleFonts.lexend(color: _primaryBlue),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

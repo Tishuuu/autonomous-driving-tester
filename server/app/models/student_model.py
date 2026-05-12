@@ -20,9 +20,17 @@ class TestSaveRequest(BaseModel):
     """מבנה הנתונים לשמירת טסט מנותח ב-DB."""
     student_id: str = Field(..., description="תז התלמיד שעבר את הטסט")
     tester_email: str = Field(..., description="אימייל המורה שביצע את הטסט")
+    # grade is kept for backwards compatibility only: 100=PASS, 0=FAIL.
     grade: int = Field(..., ge=0, le=100)
+    result: str = "PASS"
+    passed: bool = True
+    mistakes_count: int = 0
+    mistake_codes: list = Field(default_factory=list)
     violations_codes: list = Field(default_factory=list)
     violation_events_count: int = 0
+    ignored_warning_codes: list = Field(default_factory=list)
+    ignored_warning_events_count: int = 0
+    ignored_warning_events: list = Field(default_factory=list)
     xai_explanations: dict = Field(default_factory=dict)
     windows_analyzed: int = 0
     test_id: Optional[str] = None
@@ -30,3 +38,4 @@ class TestSaveRequest(BaseModel):
     # 🆕 לוג חשיבת המודל - נשמר ב-MongoDB לבקרה ולניתוח
     decision_log: list = Field(default_factory=list)
     action_sequences: list = Field(default_factory=list)
+    positive_actions: list = Field(default_factory=list)

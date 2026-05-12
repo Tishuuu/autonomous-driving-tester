@@ -195,6 +195,13 @@ class ApiService {
   static Future<bool> saveTest({
     required String studentId,
     required int grade,
+    String? result,
+    bool? passed,
+    int? mistakesCount,
+    List<dynamic>? mistakeCodes,
+    List<dynamic>? ignoredWarningCodes,
+    int? ignoredWarningEventsCount,
+    List<dynamic>? ignoredWarningEvents,
     required List<dynamic> violationsCodes,
     required Map<String, dynamic> xaiExplanations,
     required int violationEventsCount,
@@ -202,6 +209,7 @@ class ApiService {
     String? testId,
     List<dynamic>? decisionLog,
     List<dynamic>? actionSequences,
+    List<dynamic>? positiveActions,
   }) async {
     try {
       final response = await http
@@ -213,14 +221,22 @@ class ApiService {
               // tester_email no longer sent — server uses token
               "tester_email": "from_token",
               "grade": grade,
+              "result": result ?? (grade >= 80 ? "PASS" : "FAIL"),
+              "passed": passed ?? grade >= 80,
+              "mistakes_count": mistakesCount ?? violationEventsCount,
+              "mistake_codes": mistakeCodes ?? violationsCodes,
               "violations_codes": violationsCodes,
               "xai_explanations": xaiExplanations,
               "violation_events_count": violationEventsCount,
+              "ignored_warning_codes": ignoredWarningCodes ?? [],
+              "ignored_warning_events_count": ignoredWarningEventsCount ?? 0,
+              "ignored_warning_events": ignoredWarningEvents ?? [],
               "windows_analyzed": windowsAnalyzed,
               "test_id": testId,
               "test_date": DateTime.now().toIso8601String(),
               "decision_log": decisionLog ?? [],
               "action_sequences": actionSequences ?? [],
+              "positive_actions": positiveActions ?? [],
             }),
           )
           .timeout(ApiConfig.mediumTimeout);

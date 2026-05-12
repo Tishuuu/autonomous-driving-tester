@@ -83,15 +83,15 @@ class _LivefeedScreenState extends State<LivefeedScreen> {
     final sensorProvider = Provider.of<SensorProvider>(context, listen: false);
 
     // ✅ התיקון של קלאוד: חוסמים התחלת טסט עד שיש נעילת GPS תקינה (למניעת 0,0)
-    if (!_isTesting && !sensorProvider.hasGpsFix) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Waiting for GPS lock... please move outdoors."),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return; // יוצא מהפונקציה ולא מתחיל את הטסט
-    }
+    // if (!_isTesting && !sensorProvider.hasGpsFix) {
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     const SnackBar(
+    //       content: Text("Waiting for GPS lock... please move outdoors."),
+    //       backgroundColor: Colors.orange,
+    //     ),
+    //   );
+    //   return; // יוצא מהפונקציה ולא מתחיל את הטסט
+    // }
 
     if (_isTesting) {
       // ===== עצירת הטסט =====
@@ -139,15 +139,26 @@ class _LivefeedScreenState extends State<LivefeedScreen> {
       setState(() => _isTesting = true);
       print("🟢 Starting Real World Test...");
 
-      // 1. הפעלת איסוף נתוני החיישנים
-      await sensorProvider.startRealSensors();
+      try {
+        // 1. הפעלת איסוף נתוני החיישנים
+        await sensorProvider.startRealSensors();
 
-      // 2. התחלת צילום הוידאו
-      if (_cameraController != null &&
-          !_cameraController!.value.isRecordingVideo) {
-        await _cameraController!.startVideoRecording();
-        // ✅ סימון הזמן המדויק שהוידאו החל - לסנכרון עם החיישנים
-        sensorProvider.markVideoStart();
+        // 2. התחלת צילום הוידאו
+        if (_cameraController != null &&
+            !_cameraController!.value.isRecordingVideo) {
+          await _cameraController!.startVideoRecording();
+          // סימון הזמן המדויק שהוידאו החל - לסנכרון עם החיישנים
+          sensorProvider.markVideoStart();
+        }
+      } catch (e) {
+        if (!mounted) return;
+        setState(() => _isTesting = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to start test: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }
