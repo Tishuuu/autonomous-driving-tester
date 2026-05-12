@@ -4947,3 +4947,12 @@
 2026-05-12 05:11:09.097 | INFO     | app.services.vision_service:<module>:21 - YOLO STARTING
 2026-05-12 05:11:09.370 | INFO     | main:lifespan:13 -  Server Starting Up
 2026-05-12 05:11:09.586 | INFO     | app.core.database:connect_db:25 -  MongoDB Connected Successfully! Database: auto_tester_db
+2026-05-12 19:57:14.580 | INFO     | app.services.vision_service:<module>:21 - YOLO STARTING
+2026-05-12 19:57:14.716 | INFO     | app.routes.test_routes:load_ai_models:341 - Loading M18 episode-level scenario model...
+2026-05-12 19:57:15.417 | INFO     | app.routes.test_routes:load_ai_models:366 - M18 Model + Scaler ready. Outputs: ListWrapper(['continued_past_sign', 'normal_subtype_probs', 'relevant_threat_present', 'scenario_probs', 'speed_reached_zero', 'stopped_at_sign', 'yielded_to_threat'])
+2026-05-12 19:57:48.739 | INFO     | app.services.vision_service:<module>:21 - YOLO STARTING
+2026-05-12 19:57:48.843 | INFO     | app.routes.test_routes:load_ai_models:341 - Loading M18 episode-level scenario model...
+2026-05-12 19:57:49.136 | INFO     | app.routes.test_routes:load_ai_models:366 - M18 Model + Scaler ready. Outputs: ListWrapper(['continued_past_sign', 'normal_subtype_probs', 'relevant_threat_present', 'scenario_probs', 'speed_reached_zero', 'stopped_at_sign', 'yielded_to_threat'])
+2026-05-12 19:59:04.339 | INFO     | app.services.vision_service:<module>:21 - YOLO STARTING
+2026-05-12 19:59:04.426 | INFO     | app.routes.test_routes:load_ai_models:341 - Loading M18 episode-level scenario model...
+2026-05-12 19:59:04.729 | INFO     | app.routes.test_routes:load_ai_models:366 - M18 Model + Scaler ready. Outputs: ListWrapper(['continued_past_sign', 'normal_subtype_probs', 'relevant_threat_present', 'scenario_probs', 'speed_reached_zero', 'stopped_at_sign', 'yielded_to_threat'])
